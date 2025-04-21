@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Reservation } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 interface Props {
   reservations: Reservation[];
@@ -31,7 +32,9 @@ const CalendarListReservations = ({ reservations }: Props) => (
             </Badge>
           </div>
         </div>
-        <Button size="sm" variant="outline">View</Button>
+        <Button size="sm" variant="outline" asChild>
+          <Link to={`/rooms?roomNumber=${reservation.roomNumber}`}>View</Link>
+        </Button>
       </div>
     ))}
   </div>

@@ -9,19 +9,71 @@ import CalendarSidebar from "@/components/calendar/CalendarSidebar";
 import CalendarDayReservations from "@/components/calendar/CalendarDayReservations";
 import CalendarListReservations from "@/components/calendar/CalendarListReservations";
 
+// Create a shared state storage to connect Calendar and RoomManagement pages
+// In a real application, you would use a state management library or context
+// For this demo, we'll use localStorage to simulate shared state
+const getStoredReservations = (): Reservation[] => {
+  const stored = localStorage.getItem('hotel-reservations');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Failed to parse stored reservations", e);
+    }
+  }
+  return mockReservations;
+};
+
+const storeReservations = (reservations: Reservation[]) => {
+  localStorage.setItem('hotel-reservations', JSON.stringify(reservations));
+};
+
 const Calendar = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [viewMode, setViewMode] = useState<"day" | "list">("day");
   const [showAddReservation, setShowAddReservation] = useState(false);
-  const [reservations, setReservations] = useState<Reservation[]>(mockReservations);
+  const [reservations, setReservations] = useState<Reservation[]>(getStoredReservations());
 
   const formattedDate = date ? date.toISOString().split("T")[0] : "";
 
+  // When reservations change, store them for cross-page access
+  useEffect(() => {
+    storeReservations(reservations);
+  }, [reservations]);
+
+  // Load shared reservations when page loads
+  useEffect(() => {
+    const storedReservations = getStoredReservations();
+    setReservations(storedReservations);
+
+    // Set up storage event listener to detect changes from other pages
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'hotel-reservations' && e.newValue) {
+        try {
+          setReservations(JSON.parse(e.newValue));
+        } catch (e) {
+          console.error("Failed to parse stored reservations from other page", e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const refreshReservations = (newReservation?: Reservation) => {
     if (newReservation) {
-      setReservations(prev => [...prev, newReservation]);
-    } else {
-      setReservations([...mockReservations]);
+      // Check if this is an update or a new reservation
+      const existingIndex = reservations.findIndex(r => r.id === newReservation.id);
+      if (existingIndex >= 0) {
+        // Update existing reservation
+        const updatedReservations = [...reservations];
+        updatedReservations[existingIndex] = newReservation;
+        setReservations(updatedReservations);
+      } else {
+        // Add new reservation
+        setReservations(prev => [...prev, newReservation]);
+      }
     }
   };
 
