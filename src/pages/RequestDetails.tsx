@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { mockRequests } from "@/data/mockData";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context";
 import { AlertCircle, CheckCircle, Clock, MapPin, MessageSquare, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Request, RequestStatus } from "@/types";
