@@ -10,8 +10,6 @@ interface Props {
   onRoomSelect: (roomNumber: string) => void;
 }
 
-const mockRooms = availableRooms => availableRooms;
-
 export default function ReservationRoomStep({
   availableRooms,
   selectedRoom,
@@ -30,29 +28,31 @@ export default function ReservationRoomStep({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {availableRooms.map((room) => (
-              <div
-                key={room.id}
-                className={cn(
-                  "border rounded-md p-3 cursor-pointer hover:border-primary transition-colors",
-                  selectedRoom === room.roomNumber &&
-                    "border-primary bg-primary/5"
-                )}
-                onClick={() => onRoomSelect(room.roomNumber)}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium">Room {room.roomNumber}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {room.type} • Floor {room.floor}
-                    </p>
+          <div className="max-h-[380px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {availableRooms.map((room) => (
+                <div
+                  key={room.id}
+                  className={cn(
+                    "border rounded-md p-3 cursor-pointer hover:border-primary transition-colors",
+                    selectedRoom === room.roomNumber &&
+                      "border-primary bg-primary/5"
+                  )}
+                  onClick={() => onRoomSelect(room.roomNumber)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium">Room {room.roomNumber}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {room.type} • Floor {room.floor}
+                      </p>
+                    </div>
+                    <Badge variant="outline">{room.status}</Badge>
                   </div>
-                  <Badge variant="outline">{room.status}</Badge>
+                  <p className="text-sm mt-2">Capacity: {room.capacity}</p>
                 </div>
-                <p className="text-sm mt-2">Capacity: {room.capacity}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
         {selectedRoom && (

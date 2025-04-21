@@ -19,6 +19,7 @@ interface AddReservationDialogProps {
 
 export function AddReservationDialog({ open, onOpenChange }: AddReservationDialogProps) {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<string>("dates");
   const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
@@ -60,9 +61,16 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
     setGuestPhone("");
     setAdults(1);
     setChildren(0);
+    setActiveTab("dates");
   };
 
-  const handleRoomSelect = (roomNumber: string) => setSelectedRoom(roomNumber);
+  const handleRoomSelect = (roomNumber: string) => {
+    setSelectedRoom(roomNumber);
+    if (roomNumber) {
+      // Automatically move to the next tab when a room is selected
+      setActiveTab("guest");
+    }
+  };
 
   const handleCalendarSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (range) {
@@ -70,19 +78,28 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
         from: range.from,
         to: range.to,
       });
+      
+      // If both dates are selected, automatically move to the room tab
+      if (range.from && range.to) {
+        setActiveTab("room");
+      }
     }
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Reservation</DialogTitle>
           <DialogDescription>
             Create a new reservation by selecting dates, room, and guest information.
           </DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="dates" className="mt-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-4">
           <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="dates">1. Select Dates</TabsTrigger>
             <TabsTrigger value="room" disabled={!dateRange.from || !dateRange.to}>

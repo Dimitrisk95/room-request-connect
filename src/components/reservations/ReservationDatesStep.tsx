@@ -11,6 +11,10 @@ interface Props {
 }
 
 export default function ReservationDatesStep({ dateRange, onCalendarSelect }: Props) {
+  // Create today's date at 00:00:00 to ensure proper comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   return (
     <TabsContent value="dates" className="mt-4">
       <div className="space-y-4">
@@ -23,7 +27,12 @@ export default function ReservationDatesStep({ dateRange, onCalendarSelect }: Pr
             selected={dateRange}
             onSelect={onCalendarSelect}
             numberOfMonths={2}
-            disabled={(date) => date < new Date()}
+            disabled={(date) => {
+              // Allow today by comparing dates at start of day
+              const dateValue = new Date(date);
+              dateValue.setHours(0, 0, 0, 0);
+              return dateValue < today;
+            }}
             className="rounded-md border pointer-events-auto"
           />
         </div>
