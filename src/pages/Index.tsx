@@ -31,7 +31,7 @@ const Index = () => {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => navigate("/login?tab=staff")}
+          onClick={() => navigate("/login?mode=staff")}
           className="border-primary text-primary hover:bg-primary/10"
         >
           Staff Login
@@ -46,7 +46,7 @@ const Index = () => {
         </p>
         <Button
           size="lg"
-          onClick={() => navigate("/login?tab=guest")}
+          onClick={() => navigate("/login?mode=guest")}
           className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-lg"
         >
           Connect to Your Room
