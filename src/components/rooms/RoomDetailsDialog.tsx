@@ -89,6 +89,8 @@ export function RoomDetailsDialog({
           children={children}
           setChildren={setChildren}
           isEditMode={isEditMode}
+          allReservations={reservations}
+          selectedReservationId={selectedReservation?.id}
         />
 
         <RoomDetailsFooter

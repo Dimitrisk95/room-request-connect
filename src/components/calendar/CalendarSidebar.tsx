@@ -40,6 +40,13 @@ const CalendarSidebar = ({
             const dateString = date.toISOString().split("T")[0];
             return getReservationsForDate(dateString).checkOuts.length > 0;
           },
+          reserved: (date) => {
+            const dateString = date.toISOString().split("T")[0];
+            return (
+              getReservationsForDate(dateString).checkIns.length > 0 ||
+              getReservationsForDate(dateString).checkOuts.length > 0
+            );
+          }
         }}
         modifiersStyles={{
           checkIn: {
@@ -50,6 +57,9 @@ const CalendarSidebar = ({
             backgroundColor: "rgba(59, 130, 246, 0.1)",
             borderTop: "3px solid rgb(59, 130, 246)",
           },
+          reserved: {
+            color: "#ef4444",
+          }
         }}
       />
       <div className="flex gap-2 mt-4">

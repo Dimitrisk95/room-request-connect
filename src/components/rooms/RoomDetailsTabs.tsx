@@ -26,6 +26,8 @@ interface RoomDetailsTabsProps {
   children: number;
   setChildren: (count: number) => void;
   isEditMode: boolean;
+  allReservations: Reservation[];
+  selectedReservationId?: string;
 }
 
 const RoomDetailsTabs = ({
@@ -48,6 +50,8 @@ const RoomDetailsTabs = ({
   children,
   setChildren,
   isEditMode,
+  allReservations,
+  selectedReservationId
 }: RoomDetailsTabsProps) => (
   <Tabs value={activeTab} onValueChange={setActiveTab}>
     <TabsList className="grid grid-cols-2 w-full">
@@ -81,10 +85,12 @@ const RoomDetailsTabs = ({
         children={children}
         setChildren={setChildren}
         isEditMode={isEditMode}
+        roomNumber={room.roomNumber}
+        allReservations={allReservations}
+        excludeReservationId={selectedReservationId}
       />
     </TabsContent>
   </Tabs>
 );
 
 export default RoomDetailsTabs;
-

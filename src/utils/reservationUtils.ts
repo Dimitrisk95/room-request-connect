@@ -48,3 +48,20 @@ export const calculateNights = (from: Date, to: Date): number => {
 export const formatDateToString = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
+
+/**
+ * Check if a date is within a reservation
+ */
+export const isDateReserved = (
+  date: Date,
+  roomNumber: string,
+  reservations: Reservation[]
+): boolean => {
+  const dateString = formatDateToString(date);
+  return reservations.some(
+    (res) =>
+      res.roomNumber === roomNumber &&
+      dateString >= res.checkIn &&
+      dateString <= res.checkOut
+  );
+};
