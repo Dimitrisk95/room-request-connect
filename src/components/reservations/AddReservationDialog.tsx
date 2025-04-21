@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockRooms, mockReservations } from "@/data/mockData";
-import { DateRange } from "@/types";
+import { DateRange, Reservation } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { isRoomAvailable, formatDateToString } from "@/utils/reservationUtils";
 import ReservationDatesStep from "./ReservationDatesStep";
@@ -15,9 +15,14 @@ import ReservationGuestStep from "./ReservationGuestStep";
 interface AddReservationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onReservationAdded?: (reservation: Reservation) => void;
 }
 
-export function AddReservationDialog({ open, onOpenChange }: AddReservationDialogProps) {
+export function AddReservationDialog({ 
+  open, 
+  onOpenChange, 
+  onReservationAdded 
+}: AddReservationDialogProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("dates");
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -45,10 +50,34 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
       });
       return;
     }
+
+    // Create a new reservation
+    const newReservation: Reservation = {
+      id: `res-${Date.now()}`,
+      roomId: `room-${selectedRoom}`,
+      roomNumber: selectedRoom,
+      guestId: `guest-${Date.now()}`,
+      guestName: guestName,
+      checkIn: formatDateToString(dateRange.from),
+      checkOut: formatDateToString(dateRange.to),
+      status: "confirmed",
+      adults: adults,
+      children: children,
+      totalAmount: Math.floor(Math.random() * 1000) + 100, // Random amount for demo
+      paidAmount: 0,
+      notes: guestEmail || guestPhone ? `Email: ${guestEmail}, Phone: ${guestPhone}` : undefined
+    };
+
+    // Notify parent component about the new reservation
+    if (onReservationAdded) {
+      onReservationAdded(newReservation);
+    }
+
     toast({
       title: "Reservation created",
       description: `Successfully booked Room ${selectedRoom} for ${guestName} from ${format(dateRange.from, "PP")} to ${format(dateRange.to, "PP")}`,
     });
+    
     resetForm();
     onOpenChange(false);
   };

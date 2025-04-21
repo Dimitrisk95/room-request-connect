@@ -1,9 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { mockReservations, mockRooms } from "@/data/mockData";
 import { Reservation } from "@/types";
 import { AddReservationDialog } from "@/components/reservations/AddReservationDialog";
@@ -15,11 +13,20 @@ const Calendar = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [viewMode, setViewMode] = useState<"day" | "list">("day");
   const [showAddReservation, setShowAddReservation] = useState(false);
+  const [reservations, setReservations] = useState<Reservation[]>(mockReservations);
 
   const formattedDate = date ? date.toISOString().split("T")[0] : "";
 
+  const refreshReservations = (newReservation?: Reservation) => {
+    if (newReservation) {
+      setReservations(prev => [...prev, newReservation]);
+    } else {
+      setReservations([...mockReservations]);
+    }
+  };
+
   const getDayReservations = () => {
-    return mockReservations.filter(reservation => {
+    return reservations.filter(reservation => {
       const checkIn = reservation.checkIn;
       const checkOut = reservation.checkOut;
       return (
@@ -43,8 +50,8 @@ const Calendar = () => {
   };
 
   const getReservationsForDate = (dateString: string) => {
-    const checkIns = mockReservations.filter(r => r.checkIn === dateString);
-    const checkOuts = mockReservations.filter(r => r.checkOut === dateString);
+    const checkIns = reservations.filter(r => r.checkIn === dateString);
+    const checkOuts = reservations.filter(r => r.checkOut === dateString);
     return { checkIns, checkOuts };
   };
 
@@ -102,6 +109,7 @@ const Calendar = () => {
       <AddReservationDialog
         open={showAddReservation}
         onOpenChange={setShowAddReservation}
+        onReservationAdded={refreshReservations}
       />
     </DashboardShell>
   );
