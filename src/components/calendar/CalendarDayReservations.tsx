@@ -2,14 +2,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Reservation, Room } from "@/types";
+import { Trash } from "lucide-react";
 
 interface Props {
   roomReservations: Record<string, Reservation[]>;
   getRoomData: (roomNumber: string) => Room | undefined;
   formattedDate: string;
+  onDeleteReservation: (reservationId: string) => void;
 }
 
-const CalendarDayReservations = ({ roomReservations, getRoomData, formattedDate }: Props) => (
+const CalendarDayReservations = ({ roomReservations, getRoomData, formattedDate, onDeleteReservation }: Props) => (
   <div className="space-y-6">
     {Object.entries(roomReservations).map(([roomNumber, reservations]) => {
       const room = getRoomData(roomNumber);
@@ -64,6 +66,13 @@ const CalendarDayReservations = ({ roomReservations, getRoomData, formattedDate 
                 </div>
                 <div className="flex gap-2 mt-4">
                   <Button size="sm" variant="outline">View Details</Button>
+                  <Button 
+                    size="sm" 
+                    variant="destructive" 
+                    onClick={() => onDeleteReservation(reservation.id)}
+                  >
+                    <Trash className="h-4 w-4 mr-2" /> Cancel Reservation
+                  </Button>
                   {isCheckIn && <Button size="sm">Check In</Button>}
                   {isCheckOut && <Button size="sm">Check Out</Button>}
                 </div>

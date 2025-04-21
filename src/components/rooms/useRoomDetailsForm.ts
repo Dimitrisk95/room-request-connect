@@ -10,6 +10,7 @@ export const useRoomDetailsForm = (
   toast: any,
   onReservationAdded?: (reservation: Reservation) => void,
   onReservationUpdated?: (reservation: Reservation) => void,
+  onReservationDeleted?: (reservationId: string) => void,
   onOpenChange?: (open: boolean) => void
 ) => {
   const [activeTab, setActiveTab] = useState<string>("details");
@@ -114,6 +115,18 @@ export const useRoomDetailsForm = (
     if (onOpenChange) onOpenChange(false);
   };
 
+  const handleDeleteReservation = () => {
+    if (selectedReservation && onReservationDeleted) {
+      onReservationDeleted(selectedReservation.id);
+      toast({
+        title: "Reservation cancelled",
+        description: `Reservation for ${selectedReservation.guestName} has been cancelled.`,
+      });
+      resetForm();
+      if (onOpenChange) onOpenChange(false);
+    }
+  };
+
   const handleNewReservation = () => {
     setIsEditMode(false);
     setSelectedReservation(null);
@@ -137,8 +150,10 @@ export const useRoomDetailsForm = (
     children,
     setChildren,
     isEditMode,
+    selectedReservation,
     handleReservationSelect,
     handleCreateReservation,
+    handleDeleteReservation,
     handleNewReservation,
     roomReservations
   };

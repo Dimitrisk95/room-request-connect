@@ -118,6 +118,14 @@ const RoomManagement = () => {
     });
   };
 
+  const handleReservationDeleted = (reservationId: string) => {
+    setReservations(prev => prev.filter(r => r.id !== reservationId));
+    toast({
+      title: "Reservation cancelled",
+      description: "The reservation has been successfully cancelled."
+    });
+  };
+
   return (
     <DashboardShell>
       <div className="space-y-6">
@@ -219,6 +227,7 @@ const RoomManagement = () => {
         reservations={reservations}
         onReservationAdded={handleReservationAdded}
         onReservationUpdated={handleReservationAdded}
+        onReservationDeleted={handleReservationDeleted}
       />
 
       <AddReservationDialog

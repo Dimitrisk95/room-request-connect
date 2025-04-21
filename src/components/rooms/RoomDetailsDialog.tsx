@@ -13,6 +13,7 @@ interface RoomDetailsDialogProps {
   reservations: Reservation[];
   onReservationAdded?: (reservation: Reservation) => void;
   onReservationUpdated?: (reservation: Reservation) => void;
+  onReservationDeleted?: (reservationId: string) => void;
 }
 
 export function RoomDetailsDialog({
@@ -21,7 +22,8 @@ export function RoomDetailsDialog({
   room,
   reservations,
   onReservationAdded,
-  onReservationUpdated
+  onReservationUpdated,
+  onReservationDeleted
 }: RoomDetailsDialogProps) {
   const { toast } = useToast();
 
@@ -41,8 +43,10 @@ export function RoomDetailsDialog({
     children,
     setChildren,
     isEditMode,
+    selectedReservation,
     handleReservationSelect,
     handleCreateReservation,
+    handleDeleteReservation,
     handleNewReservation,
     roomReservations
   } = useRoomDetailsForm(
@@ -52,6 +56,7 @@ export function RoomDetailsDialog({
     toast,
     onReservationAdded,
     onReservationUpdated,
+    onReservationDeleted,
     onOpenChange
   );
 
@@ -89,6 +94,7 @@ export function RoomDetailsDialog({
         <RoomDetailsFooter
           onCancel={() => onOpenChange(false)}
           onAction={handleCreateReservation}
+          onDelete={isEditMode && selectedReservation ? handleDeleteReservation : undefined}
           actionDisabled={!dateRange.from || !dateRange.to || !guestName}
           isReservationTab={activeTab === "reservation"}
           isEditMode={isEditMode}

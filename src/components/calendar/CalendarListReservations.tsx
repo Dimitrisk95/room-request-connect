@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Reservation } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { Trash } from "lucide-react";
 
 interface Props {
   reservations: Reservation[];
+  onDeleteReservation: (reservationId: string) => void;
 }
 
-const CalendarListReservations = ({ reservations }: Props) => (
+const CalendarListReservations = ({ reservations, onDeleteReservation }: Props) => (
   <div className="space-y-4">
     {reservations.map((reservation) => (
       <div key={reservation.id} className="flex items-center border rounded-lg p-4">
@@ -32,9 +34,18 @@ const CalendarListReservations = ({ reservations }: Props) => (
             </Badge>
           </div>
         </div>
-        <Button size="sm" variant="outline" asChild>
-          <Link to={`/rooms`}>View Rooms</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" asChild>
+            <Link to={`/rooms`}>View Rooms</Link>
+          </Button>
+          <Button 
+            size="sm" 
+            variant="destructive" 
+            onClick={() => onDeleteReservation(reservation.id)}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     ))}
   </div>

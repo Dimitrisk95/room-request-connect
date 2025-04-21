@@ -8,6 +8,7 @@ import { AddReservationDialog } from "@/components/reservations/AddReservationDi
 import CalendarSidebar from "@/components/calendar/CalendarSidebar";
 import CalendarDayReservations from "@/components/calendar/CalendarDayReservations";
 import CalendarListReservations from "@/components/calendar/CalendarListReservations";
+import { useToast } from "@/hooks/use-toast";
 
 // Create a shared state storage to connect Calendar and RoomManagement pages
 // In a real application, you would use a state management library or context
@@ -29,6 +30,7 @@ const storeReservations = (reservations: Reservation[]) => {
 };
 
 const Calendar = () => {
+  const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [viewMode, setViewMode] = useState<"day" | "list">("day");
   const [showAddReservation, setShowAddReservation] = useState(false);
@@ -75,6 +77,15 @@ const Calendar = () => {
         setReservations(prev => [...prev, newReservation]);
       }
     }
+  };
+
+  const handleDeleteReservation = (reservationId: string) => {
+    const updatedReservations = reservations.filter(r => r.id !== reservationId);
+    setReservations(updatedReservations);
+    toast({
+      title: "Reservation cancelled",
+      description: "The reservation has been successfully cancelled."
+    });
   };
 
   const getDayReservations = () => {
@@ -150,9 +161,13 @@ const Calendar = () => {
                   roomReservations={roomReservations}
                   getRoomData={getRoomData}
                   formattedDate={formattedDate}
+                  onDeleteReservation={handleDeleteReservation}
                 />
               ) : (
-                <CalendarListReservations reservations={dayReservations} />
+                <CalendarListReservations 
+                  reservations={dayReservations} 
+                  onDeleteReservation={handleDeleteReservation}
+                />
               )}
             </CardContent>
           </Card>
