@@ -1,30 +1,41 @@
-
 import { Room, Guest, Request, Reservation } from "@/types";
-
-// Generate a random date within a range
-const randomDate = (start: Date, end: Date) => {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-};
 
 // Format date to ISO string
 const formatDate = (date: Date) => {
   return date.toISOString().split('T')[0];
 };
 
-// Generate mock rooms
-export const mockRooms: Room[] = Array.from({ length: 20 }, (_, i) => {
-  const roomNumber = `${Math.floor(i / 5) + 1}${(i % 5) + 1}${Math.floor(Math.random() * 10)}`;
-  const status = Math.random() > 0.6 ? "occupied" : "vacant";
-  
-  return {
-    id: `room-${i + 1}`,
-    roomNumber,
-    type: ["Standard", "Deluxe", "Suite"][Math.floor(Math.random() * 3)],
-    floor: Math.floor(i / 5) + 1,
-    capacity: Math.floor(Math.random() * 3) + 1,
-    status: status as "vacant" | "occupied" | "maintenance" | "cleaning",
-  };
-});
+// Generate random date within a range
+const randomDate = (start: Date, end: Date) => {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+};
+
+// Generate mock rooms with consistent room numbers
+export const mockRooms: Room[] = (() => {
+  const rooms: Room[] = [];
+  // Create 3 floors with 10 rooms each
+  for (let floor = 1; floor <= 3; floor++) {
+    for (let roomNum = 1; roomNum <= 10; roomNum++) {
+      // Create room number in format: floor + room number (e.g. 101, 102, 201, 202)
+      const roomNumber = `${floor}${roomNum.toString().padStart(2, '0')}`;
+      
+      // Assign a status - make ~30% of rooms occupied
+      const status = Math.random() > 0.7 ? "occupied" : 
+                    Math.random() > 0.8 ? "maintenance" :
+                    Math.random() > 0.7 ? "cleaning" : "vacant";
+      
+      rooms.push({
+        id: `room-${floor}-${roomNum}`,
+        roomNumber,
+        type: ["Standard", "Deluxe", "Suite"][Math.floor(Math.random() * 3)],
+        floor,
+        capacity: Math.floor(Math.random() * 3) + 1,
+        status: status as "vacant" | "occupied" | "maintenance" | "cleaning",
+      });
+    }
+  }
+  return rooms;
+})();
 
 // Generate mock guests
 export const mockGuests: Guest[] = Array.from({ length: 10 }, (_, i) => {
@@ -44,10 +55,13 @@ export const mockGuests: Guest[] = Array.from({ length: 10 }, (_, i) => {
   };
 });
 
-// Assign guests to rooms
+// Assign guests to rooms - update to be consistent with new room structure
 mockRooms.forEach((room, index) => {
   if (room.status === "occupied" && index < mockGuests.length) {
     room.currentGuest = mockGuests[index];
+    // Update guest room information to match the room
+    mockGuests[index].roomId = room.id;
+    mockGuests[index].roomNumber = room.roomNumber;
   }
 });
 
@@ -131,4 +145,12 @@ export const mockReservations: Reservation[] = Array.from({ length: 25 }, (_, i)
     paidAmount: Math.random() > 0.3 ? ((adults * 100) + (children * 50)) * (Math.floor((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))) : 0,
     notes: Math.random() > 0.7 ? "Special requests: Late check-in, extra pillows" : undefined,
   };
+});
+
+// Update mockReservations to reference valid rooms
+mockReservations.forEach((reservation) => {
+  const randomRoomIndex = Math.floor(Math.random() * mockRooms.length);
+  const room = mockRooms[randomRoomIndex];
+  reservation.roomId = room.id;
+  reservation.roomNumber = room.roomNumber;
 });

@@ -6,10 +6,15 @@ interface RoomCardProps {
   room: Room;
   getStatusColor: (status: string) => string;
   onClick: (room: Room) => void;
+  showCurrentGuest?: boolean;
 }
 
-// Only show currentGuest if present
-export const RoomCard = ({ room, getStatusColor, onClick }: RoomCardProps) => (
+export const RoomCard = ({ 
+  room, 
+  getStatusColor, 
+  onClick,
+  showCurrentGuest = true
+}: RoomCardProps) => (
   <div
     className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
       room.status === "occupied" ? "border-pending" : 
@@ -24,7 +29,7 @@ export const RoomCard = ({ room, getStatusColor, onClick }: RoomCardProps) => (
     <Badge variant="outline" className={`mt-2 ${getStatusColor(room.status)}`}>
       {room.status}
     </Badge>
-    {room.currentGuest && (
+    {showCurrentGuest && room.currentGuest && (
       <div className="mt-2 text-xs truncate">
         {room.currentGuest.name}
       </div>

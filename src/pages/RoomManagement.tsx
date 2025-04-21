@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockRooms, mockReservations } from "@/data/mockData";
-import { Badge } from "@/components/ui/badge";
 import { Room, Reservation } from "@/types";
 import { RoomDetailsDialog } from "@/components/rooms/RoomDetailsDialog";
 import { AddReservationDialog } from "@/components/reservations/AddReservationDialog";
@@ -15,7 +14,7 @@ import RoomsGrid from "@/components/rooms/RoomsGrid";
 const RoomManagement = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [roomsData, setRoomsData] = useState(mockRooms);
+  const [roomsData] = useState(mockRooms);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>(mockReservations);
   const [roomDetailsOpen, setRoomDetailsOpen] = useState(false);
@@ -69,15 +68,10 @@ const RoomManagement = () => {
       return [...prev, newReservation];
     });
 
-    updateRoomStatus(newReservation.roomNumber, "occupied");
-  };
-
-  const updateRoomStatus = (roomNumber: string, status: "vacant" | "occupied" | "maintenance" | "cleaning") => {
-    setRoomsData(prev => 
-      prev.map(room => 
-        room.roomNumber === roomNumber ? { ...room, status } : room
-      )
-    );
+    toast({
+      title: "Reservation added",
+      description: `Room ${newReservation.roomNumber} has been reserved.`
+    });
   };
 
   return (
@@ -115,6 +109,7 @@ const RoomManagement = () => {
                     rooms={filterRooms(floorGroups[floor])}
                     getStatusColor={getStatusColor}
                     onRoomClick={handleRoomClick}
+                    showCurrentGuest={true}
                   />
                 </CardContent>
               </Card>
@@ -131,6 +126,7 @@ const RoomManagement = () => {
                   rooms={filterRooms(roomsData.filter((r) => r.status === "occupied"))}
                   getStatusColor={getStatusColor}
                   onRoomClick={handleRoomClick}
+                  showCurrentGuest={true}
                 />
               </CardContent>
             </Card>
