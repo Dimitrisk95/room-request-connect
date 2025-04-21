@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { Hotel } from "lucide-react";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -49,4 +48,3 @@ const Index = () => {
 };
 
 export default Index;
-
