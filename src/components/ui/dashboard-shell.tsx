@@ -1,7 +1,7 @@
 
 import React, { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Hotel, LogOut, MessageSquare, User, Users } from "lucide-react";
+import { Calendar, Hotel, LogOut, MessageSquare, User, Users, Shield, Building } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -14,13 +14,25 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   const { pathname } = useLocation();
   const { logout, user } = useAuth();
 
-  const navigation = [
+  // Basic navigation for all user roles
+  const baseNavigation = [
     { name: "Dashboard", href: "/dashboard", icon: Hotel },
-    { name: "Rooms", href: "/rooms", icon: User },
+    { name: "Rooms", href: "/rooms", icon: Building },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Requests", href: "/requests", icon: MessageSquare },
     { name: "Staff", href: "/staff", icon: Users },
   ];
+  
+  // Admin-only navigation items
+  const adminNavigation = [
+    { name: "Admin Dashboard", href: "/admin", icon: Shield },
+    { name: "Staff Management", href: "/staff-management", icon: User },
+  ];
+  
+  // Combine navigation based on user role
+  const navigation = user?.role === "admin" 
+    ? [...baseNavigation, ...adminNavigation] 
+    : baseNavigation;
 
   return (
     <div className="flex h-screen overflow-hidden">
