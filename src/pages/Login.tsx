@@ -7,6 +7,7 @@ import StaffLoginForm from "@/components/login/StaffLoginForm";
 import GuestLoginForm from "@/components/login/GuestLoginForm";
 import HotelSelector from "@/components/login/HotelSelector";
 import DrawerNavigation from "@/components/DrawerNavigation";
+import GuestHotelConnectForm from "@/components/login/GuestHotelConnectForm";
 
 const Login = () => {
   const { login, loginAsGuest, loginWithGoogle } = useAuth();
@@ -35,6 +36,7 @@ const Login = () => {
   });
 
   const [guestCredentials, setGuestCredentials] = useState({
+    hotelName: "",
     roomCode: "",
     roomNumber: "",
   });
@@ -109,12 +111,37 @@ const Login = () => {
     }
   };
 
+  const handleCombinedGuestConnect = async (hotelName: string, roomCode: string, roomNumber: string) => {
+    setIsLoading(true);
+    try {
+      // Optionally, save hotelName locally for guest role
+      localStorage.setItem("selectedHotel", hotelName);
+      // Do the guest login with all credentials
+      await loginAsGuest(roomCode, roomNumber);
+      navigate(`/guest/${roomCode}`);
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "Invalid hotel name or room code. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderContent = () => {
-    if (mode === "guest" && !selectedHotel) {
-      return <HotelSelector onHotelSelect={handleHotelSelect} />;
+    if (mode === "guest") {
+      // Show combined guest connect form
+      return (
+        <GuestHotelConnectForm
+          isLoading={isLoading}
+          onConnect={handleCombinedGuestConnect}
+        />
+      );
     }
 
-    return mode === "staff" ? (
+    return (
       <StaffLoginForm
         staffCredentials={staffCredentials}
         setStaffCredentials={setStaffCredentials}
@@ -123,13 +150,6 @@ const Login = () => {
         isLoading={isLoading}
         handleStaffLogin={handleStaffLogin}
         handleGoogleLogin={handleGoogleLogin}
-      />
-    ) : (
-      <GuestLoginForm
-        guestCredentials={guestCredentials}
-        setGuestCredentials={setGuestCredentials}
-        isLoading={isLoading}
-        handleGuestLogin={handleGuestLogin}
       />
     );
   };
