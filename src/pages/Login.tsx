@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -6,6 +5,7 @@ import { Hotel } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import StaffLoginForm from "@/components/login/StaffLoginForm";
 import GuestLoginForm from "@/components/login/GuestLoginForm";
+import HotelSelector from "@/components/login/HotelSelector";
 import DrawerNavigation from "@/components/DrawerNavigation";
 
 const Login = () => {
@@ -14,7 +14,6 @@ const Login = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle query param (mode) to determine current form
   const [searchParams] = useSearchParams();
   const modeParam = (searchParams.get("mode") === "guest" || searchParams.get("mode") === "staff")
     ? searchParams.get("mode")
@@ -23,31 +22,32 @@ const Login = () => {
 
   useEffect(() => {
     if (!modeParam) {
-      // If mode is missing or invalid, redirect to default (staff)
       navigate("/login?mode=staff", { replace: true });
     } else {
       setMode(modeParam as "staff" | "guest");
     }
-    // eslint-disable-next-line
   }, [modeParam, navigate]);
 
-  // Staff login form state
   const [staffCredentials, setStaffCredentials] = useState({
     email: "",
     password: "",
     role: "admin" as "admin" | "staff",
   });
 
-  // Guest login form state
   const [guestCredentials, setGuestCredentials] = useState({
     roomCode: "",
     roomNumber: "",
   });
 
-  // Google signup with code
   const [googleSignupCode, setGoogleSignupCode] = useState("");
 
-  // Handle staff login
+  const [selectedHotel, setSelectedHotel] = useState<string | null>(null);
+
+  const handleHotelSelect = (hotelId: string) => {
+    setSelectedHotel(hotelId);
+    localStorage.setItem("selectedHotel", hotelId);
+  };
+
   const handleStaffLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -70,7 +70,6 @@ const Login = () => {
     }
   };
 
-  // Handle Google login
   const handleGoogleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -89,7 +88,6 @@ const Login = () => {
     }
   };
 
-  // Handle guest login
   const handleGuestLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -111,6 +109,31 @@ const Login = () => {
     }
   };
 
+  const renderContent = () => {
+    if (mode === "guest" && !selectedHotel) {
+      return <HotelSelector onHotelSelect={handleHotelSelect} />;
+    }
+
+    return mode === "staff" ? (
+      <StaffLoginForm
+        staffCredentials={staffCredentials}
+        setStaffCredentials={setStaffCredentials}
+        googleSignupCode={googleSignupCode}
+        setGoogleSignupCode={setGoogleSignupCode}
+        isLoading={isLoading}
+        handleStaffLogin={handleStaffLogin}
+        handleGoogleLogin={handleGoogleLogin}
+      />
+    ) : (
+      <GuestLoginForm
+        guestCredentials={guestCredentials}
+        setGuestCredentials={setGuestCredentials}
+        isLoading={isLoading}
+        handleGuestLogin={handleGuestLogin}
+      />
+    );
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background relative">
       <DrawerNavigation />
@@ -126,33 +149,7 @@ const Login = () => {
             Connect with your hotel for a seamless stay
           </p>
         </div>
-        {mode === "staff" && (
-          <>
-            <StaffLoginForm
-              staffCredentials={staffCredentials}
-              setStaffCredentials={setStaffCredentials}
-              googleSignupCode={googleSignupCode}
-              setGoogleSignupCode={setGoogleSignupCode}
-              isLoading={isLoading}
-              handleStaffLogin={handleStaffLogin}
-              handleGoogleLogin={handleGoogleLogin}
-            />
-            <div className="text-center mt-8 text-sm text-muted-foreground">
-              <p>Demo Credentials:</p>
-              <p>Admin: admin@hotel.com / admin123</p>
-              <p>Staff: staff@hotel.com / staff123</p>
-              <p>Guest: Room 101 / Code: 123456</p>
-            </div>
-          </>
-        )}
-        {mode === "guest" && (
-          <GuestLoginForm
-            guestCredentials={guestCredentials}
-            setGuestCredentials={setGuestCredentials}
-            isLoading={isLoading}
-            handleGuestLogin={handleGuestLogin}
-          />
-        )}
+        {renderContent()}
       </div>
     </div>
   );
