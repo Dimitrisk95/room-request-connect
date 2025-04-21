@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import RoomManagement from "./pages/RoomManagement";
 import Calendar from "./pages/Calendar";
 import GuestView from "./pages/GuestView";
 import StaffView from "./pages/StaffView";
+import StaffManagement from "./pages/StaffManagement";
 import Requests from "./pages/Requests";
 import RequestDetails from "./pages/RequestDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -35,6 +37,11 @@ const App = () => (
             <Route path="/rooms" element={<ProtectedRoute><RoomManagement /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/staff" element={<ProtectedRoute><StaffView /></ProtectedRoute>} />
+            <Route path="/staff-management" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <StaffManagement />
+              </ProtectedRoute>
+            } />
             <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
             <Route path="/request/:id" element={<ProtectedRoute><RequestDetails /></ProtectedRoute>} />
             

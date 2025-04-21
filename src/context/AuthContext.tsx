@@ -1,5 +1,7 @@
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 // Define user roles
 export type UserRole = "admin" | "staff" | "guest";
@@ -19,8 +21,12 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string, role: UserRole) => Promise<void>;
+  loginWithGoogle: (signupCode: string) => Promise<void>;
   loginAsGuest: (roomCode: string, roomNumber: string) => Promise<void>;
   logout: () => void;
+  createStaffAccount: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
+  signupCode: string;
+  generateNewSignupCode: () => void;
 }
 
 // Create auth context
@@ -30,6 +36,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 interface AuthProviderProps {
   children: ReactNode;
 }
+
+// Generate a random 6-digit code
+const generateCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
 
 // Mock user data - in a real app this would come from a backend
 const mockUsers = [
@@ -57,6 +68,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
+  const [signupCode, setSignupCode] = useState<string>(() => {
+    const savedCode = localStorage.getItem("signupCode");
+    return savedCode || generateCode();
+  });
+
+  // Generate new signup code
+  const generateNewSignupCode = () => {
+    const newCode = generateCode();
+    setSignupCode(newCode);
+    localStorage.setItem("signupCode", newCode);
+  };
+
+  // Generate new code at midnight every day
+  useEffect(() => {
+    // Set initial code if not exists
+    if (!localStorage.getItem("signupCode")) {
+      generateNewSignupCode();
+    }
+
+    // Calculate time until midnight
+    const now = new Date();
+    const night = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1, // next day
+      0, 0, 0 // midnight
+    );
+    const msToMidnight = night.getTime() - now.getTime();
+
+    // Set timeout to generate new code at midnight
+    const timeoutId = setTimeout(() => {
+      generateNewSignupCode();
+      // Setup daily interval after first midnight
+      const intervalId = setInterval(generateNewSignupCode, 24 * 60 * 60 * 1000);
+      return () => clearInterval(intervalId);
+    }, msToMidnight);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   // Check if user is authenticated
   const isAuthenticated = !!user;
@@ -78,6 +128,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Set user in state and localStorage
     setUser(userWithoutPassword);
     localStorage.setItem("user", JSON.stringify(userWithoutPassword));
+  };
+
+  // Login with Google
+  const loginWithGoogle = async (inputSignupCode: string) => {
+    // Verify the signup code
+    if (inputSignupCode !== signupCode) {
+      throw new Error("Invalid signup code");
+    }
+
+    // In a real implementation, this would authenticate with Supabase and Google
+    // For now, we'll simulate this process
+    try {
+      // Simulate Supabase Google auth
+      // Replace this with actual Supabase Google auth implementation
+      // const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      
+      // For demo purposes, let's simulate a successful login
+      const mockGoogleUser = {
+        id: `google-${Date.now()}`,
+        name: "Google Staff",
+        email: "google-staff@example.com",
+        role: "staff" as UserRole,
+        hotelId: "hotel1"
+      };
+      
+      setUser(mockGoogleUser);
+      localStorage.setItem("user", JSON.stringify(mockGoogleUser));
+    } catch (error) {
+      throw new Error("Google authentication failed");
+    }
+  };
+
+  // Create staff account by admin
+  const createStaffAccount = async (name: string, email: string, password: string, role: UserRole) => {
+    // Validate that only admin can create staff accounts
+    if (user?.role !== "admin") {
+      throw new Error("Only admins can create staff accounts");
+    }
+
+    // In a real app, this would create a new user in the database
+    const newStaffId = `staff-${Date.now()}`;
+    const newStaff = {
+      id: newStaffId,
+      name,
+      email,
+      password, // In a real app, this would be hashed
+      role,
+      hotelId: user.hotelId
+    };
+
+    // Add to mock users (in a real app, this would be saved to a database)
+    mockUsers.push(newStaff);
+    
+    return;
   };
 
   // Login as guest
@@ -112,8 +216,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         isAuthenticated,
         login,
+        loginWithGoogle,
         loginAsGuest,
-        logout
+        logout,
+        createStaffAccount,
+        signupCode,
+        generateNewSignupCode
       }}
     >
       {children}

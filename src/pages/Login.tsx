@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Hotel } from "lucide-react";
+import { Hotel, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/components/ui/use-toast";
 
 const Login = () => {
-  const { login, loginAsGuest } = useAuth();
+  const { login, loginAsGuest, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +29,9 @@ const Login = () => {
     roomNumber: "",
   });
 
+  // Google signup with code
+  const [googleSignupCode, setGoogleSignupCode] = useState("");
+
   // Handle staff login
   const handleStaffLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +48,25 @@ const Login = () => {
       toast({
         title: "Login failed",
         description: "Invalid credentials. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Google login
+  const handleGoogleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      await loginWithGoogle(googleSignupCode);
+      navigate("/dashboard");
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "Invalid signup code or Google authentication failed.",
         variant: "destructive",
       });
     } finally {
@@ -154,9 +176,40 @@ const Login = () => {
                     />
                   </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col space-y-2">
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Logging in..." : "Login"}
+                  </Button>
+                  
+                  <div className="relative w-full">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-muted" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="signupCode">Staff Signup Code</Label>
+                    <Input
+                      id="signupCode"
+                      type="text"
+                      placeholder="Enter hotel signup code"
+                      value={googleSignupCode}
+                      onChange={(e) => setGoogleSignupCode(e.target.value)}
+                    />
+                  </div>
+                  
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={handleGoogleLogin}
+                    disabled={isLoading || !googleSignupCode}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    {isLoading ? "Connecting..." : "Sign in with Google"}
                   </Button>
                 </CardFooter>
               </form>
