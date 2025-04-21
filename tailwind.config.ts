@@ -52,6 +52,18 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				success: {
+					DEFAULT: 'hsl(142, 76%, 36%)',
+					foreground: 'hsl(0, 0%, 100%)'
+				},
+				warning: {
+					DEFAULT: 'hsl(38, 92%, 50%)',
+					foreground: 'hsl(0, 0%, 10%)'
+				},
+				pending: {
+					DEFAULT: 'hsl(214, 84%, 56%)',
+					foreground: 'hsl(0, 0%, 100%)'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
