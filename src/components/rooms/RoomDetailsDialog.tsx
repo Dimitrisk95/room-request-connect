@@ -46,9 +46,12 @@ export function RoomDetailsDialog({
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
   // Filter reservations for this room
-  const roomReservations = reservations.filter(
+  const roomReservations = room ? reservations.filter(
     (res) => res.roomNumber === room?.roomNumber
-  );
+  ) : [];
+
+  console.log("Room reservations:", roomReservations);
+  console.log("All reservations:", reservations);
 
   // Reset form when dialog opens/closes or room changes
   useEffect(() => {
@@ -200,7 +203,7 @@ export function RoomDetailsDialog({
             </div>
             
             <div className="mt-6">
-              <h3 className="text-md font-medium mb-3">Reservations</h3>
+              <h3 className="text-md font-medium mb-3">Reservations ({roomReservations.length})</h3>
               {roomReservations.length > 0 ? (
                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                   {roomReservations.map((reservation) => (

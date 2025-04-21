@@ -1,24 +1,68 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockRooms, mockReservations } from "@/data/mockData";
+import { mockRooms } from "@/data/mockData";
 import { Room, Reservation } from "@/types";
 import { RoomDetailsDialog } from "@/components/rooms/RoomDetailsDialog";
 import { AddReservationDialog } from "@/components/reservations/AddReservationDialog";
 import { useToast } from "@/hooks/use-toast";
 import RoomsGrid from "@/components/rooms/RoomsGrid";
 
+// Get stored reservations from localStorage (shared with Calendar page)
+const getStoredReservations = (): Reservation[] => {
+  const stored = localStorage.getItem('hotel-reservations');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Failed to parse stored reservations", e);
+    }
+  }
+  return [];
+};
+
+// Store reservations to localStorage (shared with Calendar page)
+const storeReservations = (reservations: Reservation[]) => {
+  localStorage.setItem('hotel-reservations', JSON.stringify(reservations));
+};
+
 const RoomManagement = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [roomsData] = useState(mockRooms);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [reservations, setReservations] = useState<Reservation[]>(mockReservations);
+  const [reservations, setReservations] = useState<Reservation[]>(getStoredReservations());
   const [roomDetailsOpen, setRoomDetailsOpen] = useState(false);
   const [showAddReservation, setShowAddReservation] = useState(false);
+
+  // Load shared reservations when page loads
+  useEffect(() => {
+    const storedReservations = getStoredReservations();
+    setReservations(storedReservations);
+
+    // Set up storage event listener to detect changes from Calendar page
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'hotel-reservations' && e.newValue) {
+        try {
+          setReservations(JSON.parse(e.newValue));
+        } catch (e) {
+          console.error("Failed to parse stored reservations from other page", e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // When reservations change, store them for cross-page access
+  useEffect(() => {
+    storeReservations(reservations);
+  }, [reservations]);
 
   const filterRooms = (rooms: Room[], floor: number | null = null) => {
     return rooms.filter((room) => {

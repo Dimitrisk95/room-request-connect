@@ -33,7 +33,7 @@ const CalendarListReservations = ({ reservations }: Props) => (
           </div>
         </div>
         <Button size="sm" variant="outline" asChild>
-          <Link to={`/rooms?roomNumber=${reservation.roomNumber}`}>View</Link>
+          <Link to={`/rooms`}>View Rooms</Link>
         </Button>
       </div>
     ))}
