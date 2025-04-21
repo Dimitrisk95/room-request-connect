@@ -1,5 +1,5 @@
 
-import { Room, Reservation } from "@/types";
+import { Room, Reservation, DateRange } from "@/types";
 import { isAfter, isBefore, isEqual } from "date-fns";
 
 /**
@@ -7,9 +7,10 @@ import { isAfter, isBefore, isEqual } from "date-fns";
  */
 export const isRoomAvailable = (
   room: Room,
-  dateRange: { from: Date | undefined; to: Date | undefined },
+  dateRange: DateRange,
   existingReservations: Reservation[]
 ): boolean => {
+  // If no date range is selected, or if it's incomplete, consider the room available
   if (!dateRange.from || !dateRange.to) return true;
 
   // If room is under maintenance or cleaning, it's not available

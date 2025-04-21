@@ -1,18 +1,19 @@
 
 import { useState } from "react";
-import { format, isAfter, isBefore, isEqual, isSameDay } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockRooms, mockReservations } from "@/data/mockData";
-import { Room } from "@/types";
+import { DateRange, Room } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { isRoomAvailable, calculateNights, formatDateToString } from "@/utils/reservationUtils";
 
 interface AddReservationDialogProps {
   open: boolean;
@@ -21,10 +22,7 @@ interface AddReservationDialogProps {
 
 export function AddReservationDialog({ open, onOpenChange }: AddReservationDialogProps) {
   const { toast } = useToast();
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
   });
@@ -35,34 +33,10 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
   const [adults, setAdults] = useState<number>(1);
   const [children, setChildren] = useState<number>(0);
 
-  // Check if a room is available for the selected date range
-  const isRoomAvailable = (room: Room) => {
-    if (!dateRange.from || !dateRange.to) return true;
-
-    // If room is under maintenance or cleaning, it's not available
-    if (room.status === "maintenance" || room.status === "cleaning") {
-      return false;
-    }
-
-    // Check if there's any reservation for this room that overlaps with the selected date range
-    const conflictingReservations = mockReservations.filter((reservation) => {
-      if (reservation.roomNumber !== room.roomNumber) return false;
-
-      const resCheckIn = new Date(reservation.checkIn);
-      const resCheckOut = new Date(reservation.checkOut);
-
-      // Check for overlapping reservations
-      return !(
-        (isBefore(resCheckOut, dateRange.from) || isEqual(resCheckOut, dateRange.from)) ||
-        (isAfter(resCheckIn, dateRange.to) || isEqual(resCheckIn, dateRange.to))
-      );
-    });
-
-    return conflictingReservations.length === 0;
-  };
-
   // Filter available rooms based on the selected date range
-  const availableRooms = mockRooms.filter(isRoomAvailable);
+  const availableRooms = mockRooms.filter((room) => {
+    return isRoomAvailable(room, dateRange, mockReservations);
+  });
 
   const handleSubmit = () => {
     if (!dateRange.from || !dateRange.to || !selectedRoom || !guestName) {
@@ -100,32 +74,14 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
     setSelectedRoom(roomNumber);
   };
 
-  // Generate disabledDates for Calendar
-  const getRoomDisabledDates = (roomNumber: string) => {
-    const reservations = mockReservations.filter(
-      (res) => res.roomNumber === roomNumber
-    );
-    
-    if (reservations.length === 0) return undefined;
-    
-    // Return a function that checks if a date is within any reservation period
-    return (date: Date) => {
-      return reservations.some((res) => {
-        const checkIn = new Date(res.checkIn);
-        const checkOut = new Date(res.checkOut);
-        return (
-          (isAfter(date, checkIn) || isSameDay(date, checkIn)) && 
-          (isBefore(date, checkOut) || isSameDay(date, checkOut))
-        );
-      });
-    };
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>Add New Reservation</DialogTitle>
+          <DialogDescription>
+            Create a new reservation by selecting dates, room, and guest information.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="dates" className="mt-4">
@@ -148,9 +104,11 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
                 <Calendar
                   mode="range"
                   selected={dateRange}
-                  onSelect={setDateRange}
+                  onSelect={(range) => {
+                    if (range) setDateRange(range);
+                  }}
                   numberOfMonths={2}
-                  disabled={(date) => isBefore(date, new Date())}
+                  disabled={(date) => date < new Date()}
                   className="rounded-md border pointer-events-auto"
                 />
               </div>
@@ -165,10 +123,7 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
                   </p>
                   <p>
                     <strong>Duration:</strong>{" "}
-                    {Math.ceil(
-                      (dateRange.to.getTime() - dateRange.from.getTime()) /
-                        (1000 * 60 * 60 * 24)
-                    )}{" "}
+                    {calculateNights(dateRange.from, dateRange.to)}{" "}
                     nights
                   </p>
                 </div>
