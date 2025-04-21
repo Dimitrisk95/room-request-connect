@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Hotel, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,15 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Handle query param (tab) to set initial tab
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") === "guest" ? "guest" : "staff";
+  const [tab, setTab] = useState<"staff" | "guest">(tabParam);
+
+  useEffect(() => {
+    setTab(tabParam);
+  }, [tabParam]);
 
   // Staff login form
   const [staffCredentials, setStaffCredentials] = useState({
@@ -111,7 +120,7 @@ const Login = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="staff" className="w-full">
+        <Tabs value={tab} onValueChange={(val) => setTab(val as "staff" | "guest")} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="staff">Staff & Management</TabsTrigger>
             <TabsTrigger value="guest">Guests</TabsTrigger>
