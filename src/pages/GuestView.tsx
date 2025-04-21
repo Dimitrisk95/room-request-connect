@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ const GuestView = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const roomNumber = user?.roomNumber || "";
 
   // Form state for new request
@@ -65,6 +66,12 @@ const GuestView = () => {
     }
   };
 
+  // New logout and redirect handler
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -75,7 +82,7 @@ const GuestView = () => {
               <Hotel className="h-6 w-6" />
               <h1 className="text-xl font-bold">Room Request Connect</h1>
             </div>
-            <Button variant="outline" onClick={logout}>
+            <Button variant="outline" onClick={handleLogout}>
               Disconnect
             </Button>
           </div>
