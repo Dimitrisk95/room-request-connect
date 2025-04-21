@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { Hotel } from "lucide-react";
+import DrawerNavigation from "@/components/DrawerNavigation";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -22,6 +23,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col">
+      <DrawerNavigation />
       {/* Top section with logo and login button */}
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
