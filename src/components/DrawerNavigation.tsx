@@ -41,7 +41,7 @@ export default function DrawerNavigation() {
       <DrawerTrigger asChild>
         <Button
           variant="outline"
-          className="fixed left-4 top-4 z-50 md:hidden"
+          className="fixed left-4 top-4 z-50" // Removed md:hidden to show on all screen sizes
           size="icon"
           aria-label="Open navigation menu"
         >
