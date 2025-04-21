@@ -88,7 +88,8 @@ export interface Reservation {
 }
 
 // DateRange type for calendar selections
+// Modified to make both properties optional to be compatible with react-day-picker
 export interface DateRange {
   from: Date | undefined;
-  to: Date | undefined;
+  to?: Date | undefined;
 }

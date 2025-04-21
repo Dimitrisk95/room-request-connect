@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -74,6 +73,17 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
     setSelectedRoom(roomNumber);
   };
 
+  // Handle calendar selection with type safety
+  const handleCalendarSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (range) {
+      // Ensure we're setting a compatible DateRange object
+      setDateRange({
+        from: range.from,
+        to: range.to
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px]">
@@ -104,9 +114,7 @@ export function AddReservationDialog({ open, onOpenChange }: AddReservationDialo
                 <Calendar
                   mode="range"
                   selected={dateRange}
-                  onSelect={(range) => {
-                    if (range) setDateRange(range);
-                  }}
+                  onSelect={handleCalendarSelect}
                   numberOfMonths={2}
                   disabled={(date) => date < new Date()}
                   className="rounded-md border pointer-events-auto"
