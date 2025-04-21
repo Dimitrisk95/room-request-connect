@@ -79,6 +79,16 @@ const Login = () => {
 
   const handleGoogleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!googleSignupCode.trim()) {
+      toast({
+        title: "Staff Signup Code Required",
+        description: "Please enter the staff signup code to proceed with Google login.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
 
     try {

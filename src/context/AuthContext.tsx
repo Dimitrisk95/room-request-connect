@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 // Define user roles
 export type UserRole = "admin" | "staff" | "guest";
@@ -72,6 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const savedCode = localStorage.getItem("signupCode");
     return savedCode || generateCode();
   });
+  const { toast } = useToast();
 
   // Generate new signup code
   const generateNewSignupCode = () => {
@@ -144,25 +146,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     // In a real implementation, this would authenticate with Supabase and Google
-    // For now, we'll simulate this process
     try {
-      // Simulate Supabase Google auth
-      // Replace this with actual Supabase Google auth implementation
-      // const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      // Simulate Google OAuth popup
+      toast({
+        title: "Google Authentication",
+        description: "Opening Google authentication popup...",
+      });
       
-      // For demo purposes, let's simulate a successful login
+      // Simulate a delay for the popup and authentication process
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Show a simulated Google login popup - in a real app this would be handled by Google
+      const confirmed = window.confirm("Simulated Google Login:\nWould you like to sign in with your Google account?");
+      
+      if (!confirmed) {
+        throw new Error("Google authentication cancelled");
+      }
+      
+      // Simulate successful login after user confirms
       const mockGoogleUser = {
         id: `google-${Date.now()}`,
         name: "Google Staff",
         email: "google-staff@example.com",
         role: "staff" as UserRole,
-        hotelId: "hotel1"
+        hotelId: localStorage.getItem("selectedHotel") || "hotel1"
       };
       
       setUser(mockGoogleUser);
       localStorage.setItem("user", JSON.stringify(mockGoogleUser));
+      
+      toast({
+        title: "Google Login Successful",
+        description: "You've been logged in with your Google account.",
+      });
     } catch (error) {
-      throw new Error("Google authentication failed");
+      if ((error as Error).message === "Google authentication cancelled") {
+        toast({
+          title: "Authentication Cancelled",
+          description: "Google login was cancelled.",
+          variant: "destructive",
+        });
+      }
+      throw error;
     }
   };
 
