@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,14 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DashboardShell } from "@/components/ui/dashboard-shell";
+import DashboardShell from "@/components/ui/dashboard-shell";
 
 const StaffManagement = () => {
   const { user, createStaffAccount, signupCode, generateNewSignupCode } = useAuth();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
   
-  // New staff form state
   const [newStaff, setNewStaff] = useState({
     name: "",
     email: "",
@@ -23,7 +21,6 @@ const StaffManagement = () => {
     role: "staff" as "admin" | "staff"
   });
 
-  // Check if user is admin
   if (user?.role !== "admin") {
     return (
       <DashboardShell>
@@ -35,7 +32,6 @@ const StaffManagement = () => {
     );
   }
 
-  // Handle create staff account
   const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsCreating(true);
@@ -53,7 +49,6 @@ const StaffManagement = () => {
         description: `${newStaff.name} has been added as ${newStaff.role}.`,
       });
       
-      // Reset form
       setNewStaff({
         name: "",
         email: "",
@@ -71,7 +66,6 @@ const StaffManagement = () => {
     }
   };
 
-  // Copy signup code to clipboard
   const copySignupCode = () => {
     navigator.clipboard.writeText(signupCode);
     toast({
@@ -80,7 +74,6 @@ const StaffManagement = () => {
     });
   };
   
-  // Generate new signup code
   const handleGenerateNewCode = () => {
     generateNewSignupCode();
     toast({
