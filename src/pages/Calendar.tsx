@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { mockReservations, mockRooms } from "@/data/mockData";
 import { Reservation } from "@/types";
+import { AddReservationDialog } from "@/components/reservations/AddReservationDialog";
+import { CalendarPlus } from "lucide-react";
 
 const Calendar = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [viewMode, setViewMode] = useState<"day" | "list">("day");
+  const [showAddReservation, setShowAddReservation] = useState(false);
   
   // Format the selected date to ISO format for comparison
   const formattedDate = date ? date.toISOString().split('T')[0] : "";
@@ -59,6 +62,14 @@ const Calendar = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Reservation Calendar</h1>
           <div className="flex gap-2">
+            <Button 
+              variant="default" 
+              onClick={() => setShowAddReservation(true)}
+              className="flex items-center gap-1"
+            >
+              <CalendarPlus className="h-4 w-4" />
+              Add Reservation
+            </Button>
             <Button variant={viewMode === "day" ? "default" : "outline"} onClick={() => setViewMode("day")}>
               Day View
             </Button>
@@ -79,7 +90,7 @@ const Calendar = () => {
                 mode="single"
                 selected={date}
                 onSelect={setDate}
-                className="rounded-md border"
+                className="rounded-md border pointer-events-auto"
                 modifiers={{
                   checkIn: (date) => {
                     const dateString = date.toISOString().split('T')[0];
@@ -222,6 +233,11 @@ const Calendar = () => {
           </Card>
         </div>
       </div>
+
+      <AddReservationDialog 
+        open={showAddReservation} 
+        onOpenChange={setShowAddReservation}
+      />
     </DashboardShell>
   );
 };

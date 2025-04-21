@@ -86,3 +86,9 @@ export interface Reservation {
   paidAmount: number;
   notes?: string;
 }
+
+// DateRange type for calendar selections
+export interface DateRange {
+  from: Date | undefined;
+  to: Date | undefined;
+}
