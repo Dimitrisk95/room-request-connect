@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
 import { UserPlus, Copy, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
