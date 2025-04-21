@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +7,13 @@ import { Mail } from "lucide-react";
 
 interface StaffLoginFormProps {
   staffCredentials: {
+    hotelName: string;
     email: string;
     password: string;
     role: "admin" | "staff";
   };
   setStaffCredentials: React.Dispatch<React.SetStateAction<{
+    hotelName: string;
     email: string;
     password: string;
     role: "admin" | "staff";
@@ -43,6 +44,22 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
       </CardHeader>
       <form onSubmit={handleStaffLogin}>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="hotelName">Hotel Name</Label>
+            <Input
+              id="hotelName"
+              type="text"
+              placeholder="Enter hotel name (e.g. MarbellaCorfu)"
+              value={staffCredentials.hotelName}
+              onChange={(e) =>
+                setStaffCredentials({
+                  ...staffCredentials,
+                  hotelName: e.target.value,
+                })
+              }
+              required
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="role">Role</Label>
             <select

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -30,6 +31,7 @@ const Login = () => {
   }, [modeParam, navigate]);
 
   const [staffCredentials, setStaffCredentials] = useState({
+    hotelName: "",
     email: "",
     password: "",
     role: "admin" as "admin" | "staff",
@@ -55,10 +57,13 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // Save selected hotel for staff context, just as for guests
+      localStorage.setItem("selectedHotel", staffCredentials.hotelName);
       await login(
         staffCredentials.email,
         staffCredentials.password,
-        staffCredentials.role
+        staffCredentials.role,
+        staffCredentials.hotelName
       );
       navigate("/dashboard");
     } catch (error) {
@@ -114,9 +119,7 @@ const Login = () => {
   const handleCombinedGuestConnect = async (hotelName: string, roomCode: string, roomNumber: string) => {
     setIsLoading(true);
     try {
-      // Optionally, save hotelName locally for guest role
       localStorage.setItem("selectedHotel", hotelName);
-      // Do the guest login with all credentials
       await loginAsGuest(roomCode, roomNumber);
       navigate(`/guest/${roomCode}`);
     } catch (error) {
@@ -132,7 +135,6 @@ const Login = () => {
 
   const renderContent = () => {
     if (mode === "guest") {
-      // Show combined guest connect form
       return (
         <GuestHotelConnectForm
           isLoading={isLoading}
