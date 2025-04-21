@@ -20,7 +20,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, role: UserRole) => Promise<void>;
+  login: (email: string, password: string, role: UserRole, hotelId?: string) => Promise<void>;
   loginWithGoogle: (signupCode: string) => Promise<void>;
   loginAsGuest: (roomCode: string, roomNumber: string) => Promise<void>;
   logout: () => void;
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isAuthenticated = !!user;
 
   // Login function
-  const login = async (email: string, password: string, role: UserRole) => {
+  const login = async (email: string, password: string, role: UserRole, hotelId?: string) => {
     // In a real app, this would be an API call
     const foundUser = mockUsers.find(
       (u) => u.email === email && u.password === password && u.role === role
@@ -125,9 +125,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Remove password before storing user
     const { password: _, ...userWithoutPassword } = foundUser;
     
+    // Update hotelId if provided
+    const userToStore = {
+      ...userWithoutPassword,
+      hotelId: hotelId || userWithoutPassword.hotelId
+    };
+    
     // Set user in state and localStorage
-    setUser(userWithoutPassword);
-    localStorage.setItem("user", JSON.stringify(userWithoutPassword));
+    setUser(userToStore);
+    localStorage.setItem("user", JSON.stringify(userToStore));
   };
 
   // Login with Google
