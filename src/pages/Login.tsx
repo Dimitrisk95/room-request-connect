@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Hotel } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import StaffLoginForm from "@/components/login/StaffLoginForm";
 import GuestLoginForm from "@/components/login/GuestLoginForm";
 import DrawerNavigation from "@/components/DrawerNavigation";
@@ -112,7 +112,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background relative">
       <DrawerNavigation />
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">

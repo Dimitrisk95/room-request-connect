@@ -22,7 +22,7 @@ const Index = () => {
   }, [isAuthenticated, navigate, user]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col relative">
       <DrawerNavigation />
       {/* Top section with logo and login button */}
       <div className="w-full p-4 flex justify-between items-center">

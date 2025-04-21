@@ -42,6 +42,7 @@ export default function DrawerNavigation() {
         <Button
           variant="outline"
           className="fixed left-4 top-4 z-50 md:hidden"
+          size="icon"
           aria-label="Open navigation menu"
         >
           <Menu />
@@ -56,7 +57,7 @@ export default function DrawerNavigation() {
             Navigate
           </DrawerDescription>
         </DrawerHeader>
-        <div className="flex flex-col gap-1 px-3">
+        <div className="flex flex-col gap-1 px-3 pb-4">
           {links.map((link) => (
             <Button
               key={link.label}
