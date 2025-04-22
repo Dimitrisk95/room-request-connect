@@ -91,9 +91,9 @@ export const createAuthHandlers = ({
 
   // Create Staff Account using Supabase ("admin" only)
   const createStaffAccount = async (
-    name: string,
-    email: string,
-    password: string,
+    name: string, 
+    email: string, 
+    password: string, 
     role: UserRole = "staff",
     hotelId: string
   ) => {
@@ -111,7 +111,7 @@ export const createAuthHandlers = ({
 
     if (error) throw error;
     
-    // Safely handle the potentially null data
+    // Fix the TypeScript error by safely handling the potentially null data
     return data?.[0] || null;
   };
 
