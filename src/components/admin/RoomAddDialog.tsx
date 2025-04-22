@@ -16,6 +16,7 @@ interface RoomAddDialogProps {
   onRoomAdded: () => void;
 }
 
+// Define the room status type to match our Room type
 type RoomStatus = "vacant" | "occupied" | "maintenance" | "cleaning";
 
 const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {

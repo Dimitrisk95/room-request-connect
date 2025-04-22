@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bed, Plus } from "lucide-react";
+import { Bed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import RoomAddDialog from "./RoomAddDialog";
@@ -34,15 +34,17 @@ const HotelRoomManagement = () => {
 
       if (error) throw error;
 
-      // Map directly to the app's Room type
+      // Map directly to the app's Room type, ensuring status is correctly typed
       const transformedRooms: Room[] = (data as Tables<"rooms">[] | null)?.map((room) => ({
         id: room.id,
         roomNumber: room.room_number,
         floor: room.floor,
         type: room.type,
-        status: room.status,
+        // Cast the status to the correct type
+        status: room.status as "vacant" | "occupied" | "maintenance" | "cleaning",
         capacity: room.capacity,
       })) || [];
+      
       setRooms(transformedRooms);
     } catch (error) {
       console.error("Error fetching rooms:", error);
