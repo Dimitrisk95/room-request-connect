@@ -9,6 +9,8 @@ import GuestLoginForm from "@/components/login/GuestLoginForm";
 import HotelSelector from "@/components/login/HotelSelector";
 import DrawerNavigation from "@/components/DrawerNavigation";
 import GuestHotelConnectForm from "@/components/login/GuestHotelConnectForm";
+import AdminRegistrationForm from "@/components/login/AdminRegistrationForm";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Login = () => {
   const { login, loginAsGuest } = useAuth();
@@ -40,6 +42,10 @@ const Login = () => {
     hotelCode: "",
     roomCode: "",
   });
+
+  // State for admin registration
+  const [showAdminRegister, setShowAdminRegister] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleStaffLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +110,15 @@ const Login = () => {
   };
 
   const renderContent = () => {
+    if (showAdminRegister && !isMobile) {
+      return (
+        <AdminRegistrationForm
+          onRegistered={() => setShowAdminRegister(false)}
+          onCancel={() => setShowAdminRegister(false)}
+        />
+      );
+    }
+
     if (mode === "guest") {
       return (
         <GuestHotelConnectForm
@@ -138,6 +153,16 @@ const Login = () => {
             Connect with your hotel for a seamless stay
           </p>
         </div>
+        {!isMobile && !showAdminRegister && (
+          <div className="mb-4 flex justify-end">
+            <button
+              className="text-primary underline text-sm hover:text-primary/80"
+              onClick={() => setShowAdminRegister(true)}
+            >
+              Register as Admin
+            </button>
+          </div>
+        )}
         {renderContent()}
       </div>
     </div>
@@ -145,3 +170,4 @@ const Login = () => {
 };
 
 export default Login;
+
