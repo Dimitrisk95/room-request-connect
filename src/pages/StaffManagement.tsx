@@ -38,11 +38,13 @@ const StaffManagement = () => {
     setIsCreating(true);
 
     try {
+      // Pass the user's hotelId to ensure staff are created for the admin's hotel
       await createStaffAccount(
         newStaff.name,
         newStaff.email,
         newStaff.password,
-        newStaff.role
+        newStaff.role,
+        user.hotelId
       );
       
       toast({

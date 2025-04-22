@@ -17,7 +17,7 @@ export interface AuthContextType {
   loginWithGoogle: (signupCode: string) => Promise<void>;
   loginAsGuest: (roomCode: string, roomNumber: string) => Promise<void>;
   logout: () => void;
-  createStaffAccount: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
+  createStaffAccount: (name: string, email: string, password: string, role?: UserRole, hotelId?: string) => Promise<void>;
   signupCode: string;
   generateNewSignupCode: () => void;
 }

@@ -55,6 +55,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setSignupCode,
   });
 
+  // Create a wrapper around createStaffAccount to match the type definition
+  const createStaffAccountWrapper = async (
+    name: string, 
+    email: string, 
+    password: string, 
+    role: UserRole = "staff",
+    hotelId?: string
+  ) => {
+    // If the user is an admin, use their hotel ID as default if none provided
+    const targetHotelId = hotelId || (user?.role === "admin" ? user.hotelId : "hotel1");
+    
+    if (!targetHotelId) {
+      throw new Error("Hotel ID is required");
+    }
+    
+    handlers.createStaffAccount(name, email, password, role, targetHotelId);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -63,6 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signupCode,
         generateNewSignupCode,
         ...handlers,
+        createStaffAccount: createStaffAccountWrapper
       } as AuthContextType}
     >
       {children}
