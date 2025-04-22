@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -16,13 +15,19 @@ interface AdminRegistrationFormProps {
   onCancel: () => void;
 }
 
-// Create a schema for admin registration
+// Update schema: remove hotelId, add confirmPassword and cross-field validation
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  hotelId: z.string().min(2, "Hotel code is required"),
-});
+  confirmPassword: z.string().min(6, "Confirm your password"),
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Passwords must match",
+    path: ["confirmPassword"],
+  }
+);
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -37,7 +42,7 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
       name: "",
       email: "",
       password: "",
-      hotelId: "",
+      confirmPassword: "",
     },
   });
 
@@ -48,8 +53,7 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
         values.name,
         values.email,
         values.password,
-        "admin",
-        values.hotelId
+        "admin"
       );
       toast({
         title: "Admin account created",
@@ -78,22 +82,6 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="hotelId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hotel Code</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter your hotel code"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="name"
@@ -133,6 +121,22 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
