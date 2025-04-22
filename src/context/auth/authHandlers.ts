@@ -73,50 +73,51 @@ export const createAuthHandlers = ({
 
   // Create Staff Account using Supabase ("admin" only)
   const createStaffAccount = async (
-    name: string, 
-    email: string, 
-    password: string, 
+    name: string,
+    email: string,
+    password: string,
     role: UserRole = "staff",
     hotelId?: string
   ) => {
-    // For admin registration during initial setup, use a default hotel ID if none provided
-    // This is required because the users table has a hotel_id field that can't be null
     let insertHotelId = hotelId;
-    
+
     if (!insertHotelId) {
-      // Create a default hotel ID for the first admin
-      // In a real app, you would create a hotel first
       insertHotelId = "550e8400-e29b-41d4-a716-446655440000";
     }
 
-    // We need to enable the API key to bypass RLS for this specific operation
     const { data, error } = await supabase.auth.getSession();
-    
     if (error) throw error;
-    
-    // Define the type for the parameters to be passed to the RPC function
+
+    // RPC parameter and return types
     type CreateUserParams = {
       user_name: string;
       user_email: string;
       user_password: string;
-      user_role: string;
-      user_hotel_id: string;
+      user_role?: "admin" | "staff" | "guest";
+      user_hotel_id?: string;
     };
-    
-    // Insert the user using RPC function with properly typed parameters
-    const { data: userData, error: userError } = await supabase.rpc<any>(
-      'create_new_user', 
+
+    type CreateUserReturn = {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+      hotel_id: string;
+    };
+
+    const { data: userData, error: userError } = await supabase.rpc<CreateUserReturn, CreateUserParams>(
+      'create_new_user',
       {
         user_name: name,
         user_email: email,
         user_password: password,
         user_role: role,
         user_hotel_id: insertHotelId
-      } as CreateUserParams
+      }
     );
 
     if (userError) throw userError;
-    
+
     return userData;
   };
 

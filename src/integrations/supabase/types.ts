@@ -120,7 +120,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_new_user: {
+        Args: {
+          user_name: string
+          user_email: string
+          user_password: string
+          user_role?: Database["public"]["Enums"]["user_role"]
+          user_hotel_id?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       user_role: "admin" | "staff" | "guest"
