@@ -59,7 +59,7 @@ export const mockRequests: Request[] = [
     description: 'I would like to order breakfast for tomorrow morning at 7:30 AM.',
     category: 'room-service',
     priority: 'low',
-    status: 'completed',
+    status: 'resolved',
     createdAt: new Date('2025-04-18T20:15:00').toISOString(),
     updatedAt: new Date('2025-04-19T07:30:00').toISOString(),
     assignedTo: 'staff-2',

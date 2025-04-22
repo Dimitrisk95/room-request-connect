@@ -120,8 +120,8 @@ const GuestRequestForm = () => {
             <Label htmlFor="category">Category</Label>
             <Select
               value={requestForm.category}
-              onValueChange={(value) =>
-                setRequestForm({ ...requestForm, category: value })
+              onValueChange={(value: RequestCategory) =>
+                setRequestForm({ ...requestForm, category: value as RequestCategory })
               }
             >
               <SelectTrigger id="category">
@@ -145,8 +145,8 @@ const GuestRequestForm = () => {
             <Label htmlFor="priority">Priority</Label>
             <Select
               value={requestForm.priority}
-              onValueChange={(value: "low" | "medium" | "high" | "urgent") =>
-                setRequestForm({ ...requestForm, priority: value })
+              onValueChange={(value: RequestPriority) =>
+                setRequestForm({ ...requestForm, priority: value as RequestPriority })
               }
             >
               <SelectTrigger id="priority">

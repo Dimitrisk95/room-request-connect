@@ -73,7 +73,7 @@ const RequestsTable = () => {
         return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 flex items-center gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
       case "in-progress":
         return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 flex items-center gap-1"><ArrowUpCircle className="h-3 w-3" /> In Progress</Badge>;
-      case "completed":
+      case "resolved":
         return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Completed</Badge>;
       case "cancelled":
         return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 flex items-center gap-1"><XCircle className="h-3 w-3" /> Cancelled</Badge>;
@@ -163,7 +163,7 @@ const RequestsTable = () => {
                         <Button 
                           size="sm" 
                           className="bg-green-600 hover:bg-green-700" 
-                          onClick={() => handleStatusChange(request.id, "completed")}
+                          onClick={() => handleStatusChange(request.id, "resolved")}
                         >
                           Complete
                         </Button>

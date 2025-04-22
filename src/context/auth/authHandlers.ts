@@ -111,8 +111,8 @@ export const createAuthHandlers = ({
 
     if (error) throw error;
     
-    // Fix for the null check with optional chaining and default value
-    return data?.[0] ?? null;
+    // Fix the null check with a default return
+    return data ? data[0] : null;
   };
 
   return {
