@@ -10,7 +10,7 @@ import DrawerNavigation from "@/components/DrawerNavigation";
 import GuestHotelConnectForm from "@/components/login/GuestHotelConnectForm";
 
 const Login = () => {
-  const { login, loginAsGuest, loginWithGoogle } = useAuth();
+  const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -30,10 +30,9 @@ const Login = () => {
   }, [modeParam, navigate]);
 
   const [staffCredentials, setStaffCredentials] = useState({
-    hotelName: "",
+    hotelCode: "",
     email: "",
     password: "",
-    role: "admin" as "admin" | "staff",
   });
 
   const [guestCredentials, setGuestCredentials] = useState({
@@ -41,60 +40,23 @@ const Login = () => {
     roomCode: "",
   });
 
-  const [googleSignupCode, setGoogleSignupCode] = useState("");
-
-  const [selectedHotel, setSelectedHotel] = useState<string | null>(null);
-
-  const handleHotelSelect = (hotelId: string) => {
-    setSelectedHotel(hotelId);
-    localStorage.setItem("selectedHotel", hotelId);
-  };
-
   const handleStaffLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      localStorage.setItem("selectedHotel", staffCredentials.hotelName);
+      localStorage.setItem("selectedHotel", staffCredentials.hotelCode);
       await login(
         staffCredentials.email,
         staffCredentials.password,
-        staffCredentials.role,
-        staffCredentials.hotelName
+        undefined,
+        staffCredentials.hotelCode
       );
       navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Login failed",
         description: "Invalid credentials. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!googleSignupCode.trim()) {
-      toast({
-        title: "Staff Signup Code Required",
-        description: "Please enter the staff signup code to proceed with Google login.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-
-    try {
-      await loginWithGoogle(googleSignupCode);
-      navigate("/dashboard");
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Invalid signup code or Google authentication failed.",
         variant: "destructive",
       });
     } finally {
@@ -155,11 +117,8 @@ const Login = () => {
       <StaffLoginForm
         staffCredentials={staffCredentials}
         setStaffCredentials={setStaffCredentials}
-        googleSignupCode={googleSignupCode}
-        setGoogleSignupCode={setGoogleSignupCode}
         isLoading={isLoading}
         handleStaffLogin={handleStaffLogin}
-        handleGoogleLogin={handleGoogleLogin}
       />
     );
   };

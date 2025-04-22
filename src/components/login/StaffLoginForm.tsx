@@ -7,32 +7,24 @@ import { Mail } from "lucide-react";
 
 interface StaffLoginFormProps {
   staffCredentials: {
-    hotelName: string;
+    hotelCode: string;
     email: string;
     password: string;
-    role: "admin" | "staff";
   };
   setStaffCredentials: React.Dispatch<React.SetStateAction<{
-    hotelName: string;
+    hotelCode: string;
     email: string;
     password: string;
-    role: "admin" | "staff";
   }>>;
-  googleSignupCode: string;
-  setGoogleSignupCode: React.Dispatch<React.SetStateAction<string>>;
   isLoading: boolean;
   handleStaffLogin: (e: React.FormEvent) => Promise<void>;
-  handleGoogleLogin: (e: React.FormEvent) => Promise<void>;
 }
 
 const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
   staffCredentials,
   setStaffCredentials,
-  googleSignupCode,
-  setGoogleSignupCode,
   isLoading,
-  handleStaffLogin,
-  handleGoogleLogin
+  handleStaffLogin
 }) => {
   return (
     <Card>
@@ -45,37 +37,20 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
       <form onSubmit={handleStaffLogin}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="hotelName">Hotel Name</Label>
+            <Label htmlFor="hotelCode">Hotel Code</Label>
             <Input
-              id="hotelName"
+              id="hotelCode"
               type="text"
-              placeholder="Enter hotel name (e.g. MarbellaCorfu)"
-              value={staffCredentials.hotelName}
+              placeholder="Enter hotel code"
+              value={staffCredentials.hotelCode}
               onChange={(e) =>
                 setStaffCredentials({
                   ...staffCredentials,
-                  hotelName: e.target.value,
+                  hotelCode: e.target.value,
                 })
               }
               required
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <select
-              id="role"
-              className="w-full p-2 border rounded-md"
-              value={staffCredentials.role}
-              onChange={(e) =>
-                setStaffCredentials({
-                  ...staffCredentials,
-                  role: e.target.value as "admin" | "staff",
-                })
-              }
-            >
-              <option value="admin">Hotel Management</option>
-              <option value="staff">Staff Member</option>
-            </select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -109,40 +84,9 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
             />
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
+        <CardFooter className="mt-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Login"}
-          </Button>
-          
-          <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-muted" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-          
-          <div className="space-y-2 w-full">
-            <Label htmlFor="signupCode">Staff Signup Code</Label>
-            <Input
-              id="signupCode"
-              type="text"
-              placeholder="Enter hotel signup code"
-              value={googleSignupCode}
-              onChange={(e) => setGoogleSignupCode(e.target.value)}
-            />
-          </div>
-          
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="w-full" 
-            onClick={handleGoogleLogin}
-            disabled={isLoading || !googleSignupCode}
-          >
-            <Mail className="mr-2 h-4 w-4" />
-            {isLoading ? "Connecting..." : "Sign in with Google"}
           </Button>
         </CardFooter>
       </form>

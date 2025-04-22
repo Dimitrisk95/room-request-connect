@@ -2,31 +2,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole } from "./types";
 
 /** --- Supabase Helpers --- */
-async function getUserByEmail(email: string) {
+async function getUserByEmailAndHotel(email: string, hotelCode: string) {
   const { data, error } = await supabase
     .from("users")
     .select("*")
     .eq("email", email)
+    .eq("hotel_id", hotelCode)
     .maybeSingle();
   if (error) throw error;
   return data;
 }
 
-async function validatePassword(email: string, password: string) {
-  // In production, passwords should be hashed and compared server-side for security. 
-  // For this mock prototype, we assume password is stored as bcrypt hash.
-  const user = await getUserByEmail(email);
+async function validateStaffPassword(email: string, hotelCode: string, password: string) {
+  // In production, passwords should be hashed and compared server-side.
+  const user = await getUserByEmailAndHotel(email, hotelCode);
+
   if (!user) return null;
 
-  // For the demo, we "fake" password check: accept password 'admin123' for the admin,
-  // 'staff123' for any staff, and bypass for others (you would hash/check on backend).
   if (user.role === "admin" && password === "admin123") return user;
-  if (user.role === "staff" && password === "staff123") return user;
+  if (["staff", "moderator"].includes(user.role) && password === "staff123") return user; // for demo
 
-  // You should use bcrypt.compare() in an Edge Function for real projects!
+  // Normally use bcrypt.compare()
   return null;
 }
-/** --- End Supabase Helpers --- */
 
 /** --- Handlers --- */
 
@@ -41,27 +39,20 @@ export const createAuthHandlers = ({
   signupCode: string;
   setSignupCode: (code: string) => void;
 }) => {
-
-  // Login with email and password using Supabase
-  const login = async (email: string, password: string, role: UserRole, hotelId?: string) => {
-    const validUser = await validatePassword(email, password);
-    if (!validUser || validUser.role !== role) {
+  // Staff login: use hotel code + email + password, no role selection
+  const login = async (
+    email: string,
+    password: string,
+    _role: any, // no longer used
+    hotelCode?: string
+  ) => {
+    if (!hotelCode) throw new Error("Hotel code required");
+    const validUser = await validateStaffPassword(email, hotelCode, password);
+    if (!validUser) {
       throw new Error("Invalid credentials");
     }
     setUser(validUser);
     localStorage.setItem("user", JSON.stringify(validUser));
-  };
-
-  // Google login remains a stub: use as staff, linked to first hotel.
-  const loginWithGoogle = async (signupCode: string) => {
-    // You'd normally verify the code and Google oAuth.
-    setUser({
-      id: `google-user-${Date.now()}`,
-      name: "Google User",
-      email: "google@example.com",
-      role: "staff",
-      hotelId: "550e8400-e29b-41d4-a716-446655440000"
-    });
   };
 
   // Guest login now uses hotelCode and roomCode only
@@ -112,7 +103,6 @@ export const createAuthHandlers = ({
 
   return {
     login,
-    loginWithGoogle,
     loginAsGuest,
     logout,
     createStaffAccount

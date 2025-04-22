@@ -1,5 +1,5 @@
 
-export type UserRole = "admin" | "staff" | "guest";
+export type UserRole = "admin" | "staff" | "guest" | "moderator";
 
 export interface User {
   id: string;
@@ -13,9 +13,8 @@ export interface User {
 export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, role: UserRole, hotelId?: string) => Promise<void>;
-  loginWithGoogle: (signupCode: string) => Promise<void>;
-  loginAsGuest: (roomCode: string, roomNumber: string) => Promise<void>;
+  login: (email: string, password: string, role?: UserRole, hotelCode?: string) => Promise<void>;
+  loginAsGuest: (hotelCode: string, roomCode: string) => Promise<void>;
   logout: () => void;
   createStaffAccount: (name: string, email: string, password: string, role?: UserRole, hotelId?: string) => Promise<void>;
   signupCode: string;
