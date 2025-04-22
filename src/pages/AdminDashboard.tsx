@@ -2,15 +2,17 @@
 import { useState } from "react";
 import { useAuth } from "@/context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Shield, UserPlus } from "lucide-react";
+import { Building, Shield, UserPlus, Bed } from "lucide-react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import HotelSettings from "@/components/admin/HotelSettings";
 import RoleManagement from "@/components/admin/RoleManagement";
+import HotelCreation from "@/components/admin/HotelCreation";
+import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("hotel-settings");
+  const [activeTab, setActiveTab] = useState("hotel-creation");
 
   if (user?.role !== "admin") {
     return (
@@ -30,22 +32,27 @@ const AdminDashboard = () => {
           <div>
             <h1 className="text-2xl font-bold mb-1">Admin Dashboard</h1>
             <p className="text-muted-foreground">
-              Manage your hotel settings and staff roles
+              Manage your hotel settings, rooms, and staff roles
             </p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="hotel-creation" className="flex items-center">
+              <Building className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Create Hotel</span>
+              <span className="sm:hidden">Create</span>
+            </TabsTrigger>
             <TabsTrigger value="hotel-settings" className="flex items-center">
               <Building className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Hotel Settings</span>
-              <span className="sm:hidden">Hotel</span>
+              <span className="sm:hidden">Settings</span>
             </TabsTrigger>
-            <TabsTrigger value="role-management" className="flex items-center">
-              <Shield className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Staff Roles</span>
-              <span className="sm:hidden">Roles</span>
+            <TabsTrigger value="room-management" className="flex items-center">
+              <Bed className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Room Management</span>
+              <span className="sm:hidden">Rooms</span>
             </TabsTrigger>
             <TabsTrigger value="staff-management" className="flex items-center">
               <UserPlus className="mr-2 h-4 w-4" />
@@ -54,15 +61,21 @@ const AdminDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="hotel-creation" className="space-y-6">
+            <div className="grid md:grid-cols-1 gap-6">
+              <HotelCreation />
+            </div>
+          </TabsContent>
+
           <TabsContent value="hotel-settings" className="space-y-6">
             <div className="grid md:grid-cols-1 gap-6">
               <HotelSettings />
             </div>
           </TabsContent>
 
-          <TabsContent value="role-management" className="space-y-6">
+          <TabsContent value="room-management" className="space-y-6">
             <div className="grid md:grid-cols-1 gap-6">
-              <RoleManagement />
+              <HotelRoomManagement />
             </div>
           </TabsContent>
 
