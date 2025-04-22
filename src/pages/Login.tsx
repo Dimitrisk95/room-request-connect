@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context";
@@ -38,9 +37,8 @@ const Login = () => {
   });
 
   const [guestCredentials, setGuestCredentials] = useState({
-    hotelName: "",
+    hotelCode: "",
     roomCode: "",
-    roomNumber: "",
   });
 
   const [googleSignupCode, setGoogleSignupCode] = useState("");
@@ -57,7 +55,6 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Save selected hotel for staff context, just as for guests
       localStorage.setItem("selectedHotel", staffCredentials.hotelName);
       await login(
         staffCredentials.email,
@@ -110,15 +107,16 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      localStorage.setItem("selectedHotel", guestCredentials.hotelCode);
       await loginAsGuest(
-        guestCredentials.roomCode,
-        guestCredentials.roomNumber
+        guestCredentials.hotelCode,
+        guestCredentials.roomCode
       );
-      navigate(`/guest/${guestCredentials.roomCode}`);
+      navigate(`/guest/${guestCredentials.hotelCode}/${guestCredentials.roomCode}`);
     } catch (error) {
       toast({
         title: "Login failed",
-        description: "Invalid room code. Please try again.",
+        description: "Invalid hotel or room code. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -126,16 +124,16 @@ const Login = () => {
     }
   };
 
-  const handleCombinedGuestConnect = async (hotelName: string, roomCode: string, roomNumber: string) => {
+  const handleCombinedGuestConnect = async (hotelCode: string, roomCode: string) => {
     setIsLoading(true);
     try {
-      localStorage.setItem("selectedHotel", hotelName);
-      await loginAsGuest(roomCode, roomNumber);
-      navigate(`/guest/${roomCode}`);
+      localStorage.setItem("selectedHotel", hotelCode);
+      await loginAsGuest(hotelCode, roomCode);
+      navigate(`/guest/${hotelCode}/${roomCode}`);
     } catch (error) {
       toast({
         title: "Login failed",
-        description: "Invalid hotel name or room code. Please try again.",
+        description: "Invalid hotel code or room code. Please try again.",
         variant: "destructive",
       });
     } finally {

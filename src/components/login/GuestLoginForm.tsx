@@ -6,12 +6,12 @@ import { Label } from "@/components/ui/label";
 
 interface GuestLoginFormProps {
   guestCredentials: {
+    hotelCode: string;
     roomCode: string;
-    roomNumber: string;
   };
   setGuestCredentials: React.Dispatch<React.SetStateAction<{
+    hotelCode: string;
     roomCode: string;
-    roomNumber: string;
   }>>;
   isLoading: boolean;
   handleGuestLogin: (e: React.FormEvent) => Promise<void>;
@@ -27,33 +27,33 @@ const GuestLoginForm: React.FC<GuestLoginFormProps> = ({
     <CardHeader>
       <CardTitle>Guest Access</CardTitle>
       <CardDescription>
-        Enter your room code to access services
+        Enter your codes provided by your hotel to access services
       </CardDescription>
     </CardHeader>
     <form onSubmit={handleGuestLogin}>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="roomNumber">Room Number</Label>
+          <Label htmlFor="hotelCode">Hotel Code</Label>
           <Input
-            id="roomNumber"
+            id="hotelCode"
             type="text"
-            placeholder="e.g. 101"
-            value={guestCredentials.roomNumber}
+            placeholder="e.g. HOTEL123"
+            value={guestCredentials.hotelCode}
             onChange={(e) =>
               setGuestCredentials({
                 ...guestCredentials,
-                roomNumber: e.target.value,
+                hotelCode: e.target.value,
               })
             }
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="roomCode">Room Access Code</Label>
+          <Label htmlFor="roomCode">Room Code</Label>
           <Input
             id="roomCode"
             type="text"
-            placeholder="Enter the code provided by your hotel"
+            placeholder="Enter your room code"
             value={guestCredentials.roomCode}
             onChange={(e) =>
               setGuestCredentials({

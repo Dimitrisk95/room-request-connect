@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole } from "./types";
 
@@ -65,22 +64,18 @@ export const createAuthHandlers = ({
     });
   };
 
-  // Guest login as before (doesn't use database for mock)
-  const loginAsGuest = async (roomCode: string, roomNumber: string) => {
-    setUser({
+  // Guest login now uses hotelCode and roomCode only
+  const loginAsGuest = async (hotelCode: string, roomCode: string) => {
+    const guestUser = {
       id: `guest-${Date.now()}`,
       name: "Guest User",
-      email: `guest-${roomCode}@example.com`,
-      role: "guest",
-      roomNumber
-    });
-    localStorage.setItem("user", JSON.stringify({
-      id: `guest-${Date.now()}`,
-      name: "Guest User",
-      email: `guest-${roomCode}@example.com`,
-      role: "guest",
-      roomNumber
-    }));
+      email: `guest-${hotelCode}-${roomCode}@example.com`,
+      role: "guest" as const,
+      hotelId: hotelCode,
+      roomNumber: roomCode,
+    };
+    setUser(guestUser);
+    localStorage.setItem("user", JSON.stringify(guestUser));
   };
 
   // Logout: remove user from memory/localStorage

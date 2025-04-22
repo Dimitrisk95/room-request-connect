@@ -7,20 +7,19 @@ import { Label } from "@/components/ui/label";
 
 interface GuestHotelConnectFormProps {
   isLoading: boolean;
-  onConnect: (hotelName: string, roomCode: string, roomNumber: string) => Promise<void>;
+  onConnect: (hotelCode: string, roomCode: string) => Promise<void>;
 }
 
 const GuestHotelConnectForm: React.FC<GuestHotelConnectFormProps> = ({
   isLoading,
   onConnect,
 }) => {
-  const [hotelName, setHotelName] = useState("");
+  const [hotelCode, setHotelCode] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  const [roomNumber, setRoomNumber] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConnect(hotelName.trim(), roomCode.trim(), roomNumber.trim());
+    onConnect(hotelCode.trim(), roomCode.trim());
   };
 
   return (
@@ -28,39 +27,28 @@ const GuestHotelConnectForm: React.FC<GuestHotelConnectFormProps> = ({
       <CardHeader>
         <CardTitle>Guest Room Connection</CardTitle>
         <CardDescription>
-          Enter your hotel name and the room code provided by your hotel.
+          Enter your hotel code and room code provided by your hotel.
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="hotelName">Hotel Name</Label>
+            <Label htmlFor="hotelCode">Hotel Code</Label>
             <Input
-              id="hotelName"
+              id="hotelCode"
               type="text"
-              placeholder="Enter hotel name (e.g. MarbellaCorfu)"
-              value={hotelName}
-              onChange={(e) => setHotelName(e.target.value)}
+              placeholder="Enter hotel code (e.g. HOTEL123)"
+              value={hotelCode}
+              onChange={(e) => setHotelCode(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="roomNumber">Room Number</Label>
-            <Input
-              id="roomNumber"
-              type="text"
-              placeholder="e.g. 101"
-              value={roomNumber}
-              onChange={(e) => setRoomNumber(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="roomCode">Room Access Code</Label>
+            <Label htmlFor="roomCode">Room Code</Label>
             <Input
               id="roomCode"
               type="text"
-              placeholder="Enter the code provided by your hotel"
+              placeholder="Enter your room code"
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value)}
               required
