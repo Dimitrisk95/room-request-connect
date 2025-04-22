@@ -6,7 +6,7 @@ import GuestRequestForm from "@/components/guest/GuestRequestForm";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockRequests } from "@/context/auth/authHandlers";
 
 const Requests = () => {

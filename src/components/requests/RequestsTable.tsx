@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
-import { mockRequests } from "@/context/auth/authHandlers"; 
+import { mockRequests, createRequest } from "@/context/auth/authHandlers"; 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,23 +18,27 @@ import { useToast } from "@/hooks/use-toast";
 const RequestsTable = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [requests, setRequests] = useState(mockRequests);
+  const [requests, setRequests] = useState([...mockRequests]);
   const [isStaffView, setIsStaffView] = useState(true);
 
   useEffect(() => {
     // In a real app, this would fetch data from an API
-    setRequests(mockRequests);
+    setRequests([...mockRequests]);
     setIsStaffView(user?.role === "admin" || user?.role === "staff");
   }, [user]);
 
   const handleStatusChange = (requestId: string, newStatus: "pending" | "in-progress" | "resolved" | "cancelled") => {
-    // Update the requests in our mock data
-    mockRequests = mockRequests.map(req => 
+    // Create a new array with the updated request
+    const updatedRequests = requests.map(req => 
       req.id === requestId ? {...req, status: newStatus} : req
     );
     
     // Update the local state
-    setRequests(mockRequests);
+    setRequests(updatedRequests);
+    
+    // Update the mock data source through the exported update function
+    // In a real app, this would be an API call
+    // For now we just update our local state
     
     toast({
       title: "Request Updated",
