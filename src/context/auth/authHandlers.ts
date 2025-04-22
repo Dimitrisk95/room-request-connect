@@ -94,22 +94,26 @@ export const createAuthHandlers = ({
     
     if (error) throw error;
     
-    // Insert the user using RPC function instead of direct table insert
-    // This will bypass RLS policies
-    // Fix the TypeScript error by explicitly typing the parameters object
-    const { data: userData, error: userError } = await supabase.rpc('create_new_user', {
-      user_name: name,
-      user_email: email,
-      user_password: password, 
-      user_role: role as string,  // Cast to string to match the expected type
-      user_hotel_id: insertHotelId
-    } as {  // Explicitly type the parameters object
+    // Define the type for the parameters to be passed to the RPC function
+    type CreateUserParams = {
       user_name: string;
       user_email: string;
       user_password: string;
       user_role: string;
       user_hotel_id: string;
-    });
+    };
+    
+    // Insert the user using RPC function with properly typed parameters
+    const { data: userData, error: userError } = await supabase.rpc<any>(
+      'create_new_user', 
+      {
+        user_name: name,
+        user_email: email,
+        user_password: password,
+        user_role: role,
+        user_hotel_id: insertHotelId
+      } as CreateUserParams
+    );
 
     if (userError) throw userError;
     
@@ -123,5 +127,3 @@ export const createAuthHandlers = ({
     createStaffAccount
   };
 };
-
-// --- The generateCode helper is no longer needed since we removed the signup code feature ---
