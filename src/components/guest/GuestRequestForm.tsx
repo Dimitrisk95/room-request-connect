@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RequestCategory, RequestPriority } from "@/types";
 
 const GuestRequestForm = () => {
   const { user } = useAuth();
@@ -31,8 +32,8 @@ const GuestRequestForm = () => {
   const [requestForm, setRequestForm] = useState({
     title: "",
     description: "",
-    category: "housekeeping",
-    priority: "medium" as "low" | "medium" | "high" | "urgent",
+    category: "housekeeping" as RequestCategory,
+    priority: "medium" as RequestPriority,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,8 +52,8 @@ const GuestRequestForm = () => {
       const newRequest = createRequest({
         ...requestForm,
         roomNumber: user.roomNumber,
-        guestId: user.id,
         guestName: user.name,
+        guestId: user.id,
       });
       
       toast({
@@ -64,8 +65,8 @@ const GuestRequestForm = () => {
       setRequestForm({
         title: "",
         description: "",
-        category: "housekeeping",
-        priority: "medium" as "low" | "medium" | "high" | "urgent",
+        category: "housekeeping" as RequestCategory,
+        priority: "medium" as RequestPriority,
       });
     } catch (error) {
       toast({

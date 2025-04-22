@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
-import { mockRequests, createRequest } from "@/context/requests/requestHandlers"; 
+import { mockRequests, Request } from "@/context/requests/requestHandlers"; 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,11 +14,12 @@ import {
   ArrowUpCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RequestStatus } from "@/types";
 
 const RequestsTable = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [requests, setRequests] = useState([...mockRequests]);
+  const [requests, setRequests] = useState<Request[]>([...mockRequests]);
   const [isStaffView, setIsStaffView] = useState(true);
 
   useEffect(() => {
@@ -27,7 +28,7 @@ const RequestsTable = () => {
     setIsStaffView(user?.role === "admin" || user?.role === "staff");
   }, [user]);
 
-  const handleStatusChange = (requestId: string, newStatus: "pending" | "in-progress" | "resolved" | "cancelled") => {
+  const handleStatusChange = (requestId: string, newStatus: RequestStatus) => {
     // Create a new array with the updated request
     const updatedRequests = requests.map(req => 
       req.id === requestId ? {...req, status: newStatus} : req
@@ -72,8 +73,8 @@ const RequestsTable = () => {
         return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 flex items-center gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
       case "in-progress":
         return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 flex items-center gap-1"><ArrowUpCircle className="h-3 w-3" /> In Progress</Badge>;
-      case "resolved":
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Resolved</Badge>;
+      case "completed":
+        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Completed</Badge>;
       case "cancelled":
         return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 flex items-center gap-1"><XCircle className="h-3 w-3" /> Cancelled</Badge>;
       default:
@@ -162,9 +163,9 @@ const RequestsTable = () => {
                         <Button 
                           size="sm" 
                           className="bg-green-600 hover:bg-green-700" 
-                          onClick={() => handleStatusChange(request.id, "resolved")}
+                          onClick={() => handleStatusChange(request.id, "completed")}
                         >
-                          Resolve
+                          Complete
                         </Button>
                       )}
                     </div>
