@@ -88,7 +88,7 @@ export const createAuthHandlers = ({
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
 
-    // RPC parameter and return types
+    // Define parameter type for the RPC function
     type CreateUserParams = {
       user_name: string;
       user_email: string;
@@ -97,15 +97,8 @@ export const createAuthHandlers = ({
       user_hotel_id?: string;
     };
 
-    type CreateUserReturn = {
-      id: string;
-      name: string;
-      email: string;
-      role: string;
-      hotel_id: string;
-    };
-
-    const { data: userData, error: userError } = await supabase.rpc<CreateUserReturn, CreateUserParams>(
+    // Call the RPC function with correct typing
+    const { data: userData, error: userError } = await supabase.rpc(
       'create_new_user',
       {
         user_name: name,
