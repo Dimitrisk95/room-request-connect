@@ -11,6 +11,14 @@ const HotelRegisterDialog: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"register" | "login">("register");
 
+  // This function handles the type conversion for tab changing
+  const handleTabChange = (value: string) => {
+    // Only set the tab state if the value is one of our allowed values
+    if (value === "register" || value === "login") {
+      setTab(value);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -31,7 +39,7 @@ const HotelRegisterDialog: React.FC = () => {
             </div>
           </DialogTitle>
         </DialogHeader>
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="register">Register Admin</TabsTrigger>
             <TabsTrigger value="login">Admin Login</TabsTrigger>
