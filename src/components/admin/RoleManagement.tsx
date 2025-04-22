@@ -6,21 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Shield, ShieldCheck, Key, Pencil, User } from "lucide-react";
+import { Shield, ShieldCheck, Key, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { UserRole } from "@/context/auth/types";
 
 type StaffMember = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "moderator" | "staff";
+  role: UserRole;
 };
 
 // Mock data - in a real app this would come from an API
 const mockStaffMembers: StaffMember[] = [
   { id: "1", name: "John Doe", email: "john@hotel.com", role: "admin" },
-  { id: "2", name: "Jane Smith", email: "jane@hotel.com", role: "moderator" },
+  { id: "2", name: "Jane Smith", email: "jane@hotel.com", role: "staff" },
   { id: "3", name: "Alice Johnson", email: "alice@hotel.com", role: "staff" },
   { id: "4", name: "Bob Williams", email: "bob@hotel.com", role: "staff" },
 ];
@@ -30,10 +31,10 @@ const RoleManagement = () => {
   const { toast } = useToast();
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>(mockStaffMembers);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-  const [newRole, setNewRole] = useState<"admin" | "moderator" | "staff">("staff");
+  const [newRole, setNewRole] = useState<UserRole>("staff");
   const [newPassword, setNewPassword] = useState("");
 
-  const handleRoleChange = async (staffId: string, newRole: "admin" | "moderator" | "staff") => {
+  const handleRoleChange = async (staffId: string, newRole: UserRole) => {
     // In a real app, this would be an API call
     setStaffMembers(staffMembers.map(staff => 
       staff.id === staffId ? { ...staff, role: newRole } : staff
@@ -63,26 +64,26 @@ const RoleManagement = () => {
     setSelectedStaff(null);
   };
 
-  const getPermissionDescription = (role: string) => {
+  const getPermissionDescription = (role: UserRole) => {
     switch (role) {
       case "admin":
         return "Full access to all systems";
-      case "moderator":
-        return "Can manage staff and handle requests";
       case "staff":
         return "Basic access to handle guest requests";
+      case "guest":
+        return "Limited access to request services";
       default:
         return "";
     }
   };
 
-  const getRoleIcon = (role: string) => {
+  const getRoleIcon = (role: UserRole) => {
     switch (role) {
       case "admin":
         return <Shield className="h-4 w-4 text-primary" />;
-      case "moderator":
-        return <ShieldCheck className="h-4 w-4 text-indigo-500" />;
       case "staff":
+        return <ShieldCheck className="h-4 w-4 text-indigo-500" />;
+      case "guest":
         return <User className="h-4 w-4 text-muted-foreground" />;
       default:
         return null;
@@ -163,10 +164,9 @@ const RoleManagement = () => {
                               id="role"
                               className="w-full p-2 border rounded-md"
                               value={newRole}
-                              onChange={(e) => setNewRole(e.target.value as "admin" | "moderator" | "staff")}
+                              onChange={(e) => setNewRole(e.target.value as UserRole)}
                             >
                               <option value="admin">Administrator</option>
-                              <option value="moderator">Moderator</option>
                               <option value="staff">Staff Member</option>
                             </select>
                           </div>

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole } from "./types";
 
@@ -20,7 +21,7 @@ async function validateStaffPassword(email: string, hotelCode: string, password:
   if (!user) return null;
 
   if (user.role === "admin" && password === "admin123") return user;
-  if (["staff", "moderator"].includes(user.role) && password === "staff123") return user; // for demo
+  if (user.role === "staff" && password === "staff123") return user; // for demo
 
   // Normally use bcrypt.compare()
   return null;
@@ -31,20 +32,15 @@ async function validateStaffPassword(email: string, hotelCode: string, password:
 export const createAuthHandlers = ({
   user,
   setUser,
-  signupCode,
-  setSignupCode,
 }: {
   user: User | null;
   setUser: (user: User | null) => void;
-  signupCode: string;
-  setSignupCode: (code: string) => void;
 }) => {
-  // Staff login: use hotel code + email + password, no role selection
+  // Staff login: use hotel code + email + password
   const login = async (
     email: string,
     password: string,
-    _role: any, // no longer used
-    hotelCode?: string
+    hotelCode: string
   ) => {
     if (!hotelCode) throw new Error("Hotel code required");
     const validUser = await validateStaffPassword(email, hotelCode, password);
@@ -55,7 +51,7 @@ export const createAuthHandlers = ({
     localStorage.setItem("user", JSON.stringify(validUser));
   };
 
-  // Guest login now uses hotelCode and roomCode only
+  // Guest login uses hotelCode and roomCode only
   const loginAsGuest = async (hotelCode: string, roomCode: string) => {
     const guestUser = {
       id: `guest-${Date.now()}`,
@@ -87,18 +83,18 @@ export const createAuthHandlers = ({
     if (!insertHotelId) throw new Error("Hotel ID is required");
 
     // Note: in real life you should hash password in backend! For now we save as plain text for demo brevity.
-    const { data, error } = await supabase.from("users").insert([{
+    const { data, error } = await supabase.from("users").insert({
       name,
       email,
       password_hash: password, // Call this out! Use bcrypt hash in production.
       role,
       hotel_id: insertHotelId
-    }]);
+    });
 
     if (error) throw error;
     
     // Fix the null check with a default return
-    return data ? data[0] : null;
+    return data || null;
   };
 
   return {
@@ -109,7 +105,4 @@ export const createAuthHandlers = ({
   };
 };
 
-// --- The generateCode helper remains as-is ---
-export const generateCode = () => {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-};
+// --- The generateCode helper is no longer needed since we removed the signup code feature ---
