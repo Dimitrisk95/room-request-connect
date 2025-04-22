@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context";
@@ -49,7 +50,6 @@ const Login = () => {
       await login(
         staffCredentials.email,
         staffCredentials.password,
-        undefined,
         staffCredentials.hotelCode
       );
       navigate("/dashboard");
