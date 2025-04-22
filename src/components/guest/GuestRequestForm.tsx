@@ -120,7 +120,7 @@ const GuestRequestForm = () => {
             <Label htmlFor="category">Category</Label>
             <Select
               value={requestForm.category}
-              onValueChange={(value: RequestCategory) =>
+              onValueChange={(value) =>
                 setRequestForm({ ...requestForm, category: value as RequestCategory })
               }
             >
@@ -145,7 +145,7 @@ const GuestRequestForm = () => {
             <Label htmlFor="priority">Priority</Label>
             <Select
               value={requestForm.priority}
-              onValueChange={(value: RequestPriority) =>
+              onValueChange={(value) =>
                 setRequestForm({ ...requestForm, priority: value as RequestPriority })
               }
             >

@@ -3,14 +3,12 @@ import { useState } from "react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { mockRequests } from "@/data/mockData";
+import { mockRequests } from "@/context/requests/requestHandlers";
 import { useAuth } from "@/context";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, CheckCircle, Clock, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search } from "lucide-react";
+import TasksList from "@/components/staff/TasksList";
+import StaffTeam from "@/components/staff/StaffTeam";
 
 const StaffView = () => {
   const { user } = useAuth();
@@ -46,38 +44,6 @@ const StaffView = () => {
       )
     : allRequests;
 
-  // Get priority badge color
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "urgent":
-        return "bg-destructive text-destructive-foreground";
-      case "high":
-        return "bg-warning text-warning-foreground";
-      case "medium":
-        return "bg-pending text-pending-foreground";
-      case "low":
-        return "bg-muted text-muted-foreground";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
-  // Get status badge color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-warning text-warning-foreground";
-      case "in-progress":
-        return "bg-pending text-pending-foreground";
-      case "resolved":
-        return "bg-success text-success-foreground";
-      case "cancelled":
-        return "bg-destructive text-destructive-foreground";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
   return (
     <DashboardShell>
       <div className="space-y-6">
@@ -112,50 +78,13 @@ const StaffView = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {myRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {myRequests.map((request) => (
-                      <div key={request.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">{request.title}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Room {request.roomNumber} • {request.guestName}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline" className={getPriorityColor(request.priority)}>
-                              {request.priority}
-                            </Badge>
-                            <Badge variant="outline" className={getStatusColor(request.status)}>
-                              {request.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <p className="mt-2 text-sm line-clamp-2">{request.description}</p>
-                        <div className="flex justify-between items-center mt-4">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            <span>
-                              {new Date(request.createdAt).toLocaleString()}
-                            </span>
-                          </div>
-                          <Button asChild>
-                            <Link to={`/request/${request.id}`}>Handle Request</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
-                      <CheckCircle className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <p>You have no assigned tasks</p>
-                    <p className="text-sm">Check the available tab for new requests</p>
-                  </div>
-                )}
+                <TasksList 
+                  requests={myRequests}
+                  title="My Tasks"
+                  description="Requests assigned to you that need attention"
+                  emptyMessage="You have no assigned tasks"
+                  emptyDescription="Check the available tab for new requests"
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -169,50 +98,13 @@ const StaffView = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {pendingRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {pendingRequests.map((request) => (
-                      <div key={request.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">{request.title}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Room {request.roomNumber} • {request.guestName}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline" className={getPriorityColor(request.priority)}>
-                              {request.priority}
-                            </Badge>
-                            <Badge variant="outline" className={getStatusColor(request.status)}>
-                              {request.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <p className="mt-2 text-sm line-clamp-2">{request.description}</p>
-                        <div className="flex justify-between items-center mt-4">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Bell className="h-4 w-4" />
-                            <span>
-                              {new Date(request.createdAt).toLocaleString()}
-                            </span>
-                          </div>
-                          <Button asChild>
-                            <Link to={`/request/${request.id}`}>Claim Request</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
-                      <CheckCircle className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <p>No pending requests</p>
-                    <p className="text-sm">All guest requests are being handled</p>
-                  </div>
-                )}
+                <TasksList 
+                  requests={pendingRequests}
+                  title="Available"
+                  description="Pending requests that need to be assigned"
+                  emptyMessage="No pending requests"
+                  emptyDescription="All guest requests are being handled"
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -226,97 +118,20 @@ const StaffView = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {completedRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {completedRequests.map((request) => (
-                      <div key={request.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">{request.title}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Room {request.roomNumber} • {request.guestName}
-                            </p>
-                          </div>
-                          <Badge variant="outline" className="bg-success text-success-foreground">
-                            Resolved
-                          </Badge>
-                        </div>
-                        <p className="mt-2 text-sm line-clamp-2">{request.description}</p>
-                        <div className="flex justify-between items-center mt-4">
-                          <div className="flex items-center gap-2 text-sm text-success">
-                            <CheckCircle className="h-4 w-4" />
-                            <span>
-                              Resolved on {new Date(request.resolvedAt || "").toLocaleString()}
-                            </span>
-                          </div>
-                          <Button variant="outline" asChild>
-                            <Link to={`/request/${request.id}`}>View Details</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>You haven't completed any requests yet</p>
-                  </div>
-                )}
+                <TasksList 
+                  requests={completedRequests}
+                  title="Completed"
+                  description="Requests you've successfully resolved"
+                  emptyMessage="You haven't completed any requests yet"
+                  emptyDescription=""
+                />
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
         {/* Staff Team section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Staff Team</CardTitle>
-            <CardDescription>
-              Your colleagues who are helping with guest requests
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-3 p-3 border rounded-md">
-                <Avatar>
-                  <AvatarFallback>SM</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium">Staff Member</div>
-                  <div className="text-sm text-muted-foreground">Maintenance</div>
-                </div>
-                <Badge variant="outline" className="ml-2 bg-success/10 text-success">
-                  Online
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 border rounded-md">
-                <Avatar>
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium">Jane Doe</div>
-                  <div className="text-sm text-muted-foreground">Housekeeping</div>
-                </div>
-                <Badge variant="outline" className="ml-2 bg-success/10 text-success">
-                  Online
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 border rounded-md">
-                <Avatar>
-                  <AvatarFallback>RS</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium">Robert Smith</div>
-                  <div className="text-sm text-muted-foreground">Room Service</div>
-                </div>
-                <Badge variant="outline" className="ml-2">
-                  Offline
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StaffTeam />
       </div>
     </DashboardShell>
   );
