@@ -1,10 +1,10 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { Hotel } from "lucide-react";
 import DrawerNavigation from "@/components/DrawerNavigation";
+import HotelRegisterDialog from "@/components/login/HotelRegisterDialog";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -24,20 +24,23 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col relative">
       <DrawerNavigation />
-      {/* Top section with logo and login button */}
+      {/* Top section with logo and login + hotel register button */}
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Hotel className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-primary">Room Request Connect</h1>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => navigate("/login?mode=staff")}
-          className="border-primary text-primary hover:bg-primary/10"
-        >
-          Staff Login
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate("/login?mode=staff")}
+            className="border-primary text-primary hover:bg-primary/10"
+          >
+            Staff Login
+          </Button>
+          <HotelRegisterDialog />
+        </div>
       </div>
 
       {/* Main content */}
