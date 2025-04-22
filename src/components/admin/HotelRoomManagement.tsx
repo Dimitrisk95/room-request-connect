@@ -10,52 +10,56 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Bed, Plus, Edit, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Room as RoomType } from "@/types";
 
-interface Room {
-  id: string;
-  roomNumber: string;
+// Fix for typing
+type RoomStatus = "vacant" | "occupied" | "maintenance" | "cleaning";
+type RoomInsert = {
+  room_number: string;
   floor: number;
   type: string;
-  status: "vacant" | "occupied" | "maintenance" | "cleaning";
-}
+  status: RoomStatus;
+  hotel_id: string;
+};
 
 const HotelRoomManagement = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<RoomType[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const [newRoom, setNewRoom] = useState({
     roomNumber: "",
     floor: 1,
-    type: "standard", // standard, deluxe, suite, etc.
-    status: "vacant" as const
+    type: "standard",
+    status: "vacant" as RoomStatus,
   });
 
   // Fetch rooms for the current hotel
   const fetchRooms = async () => {
     if (!user?.hotelId) return;
-    
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from("rooms")
         .select("*")
         .eq("hotel_id", user.hotelId);
-      
+
       if (error) throw error;
-      
-      // Transform to match our Room interface
-      const transformedRooms = data?.map(room => ({
-        id: room.id,
-        roomNumber: room.room_number,
-        floor: room.floor,
-        type: room.type,
-        status: room.status
-      })) || [];
-      
+
+      // Map supabase fields to UI Room interface
+      const transformedRooms: RoomType[] =
+        data?.map((room: any) => ({
+          id: room.id,
+          roomNumber: room.room_number,
+          floor: room.floor,
+          type: room.type,
+          status: room.status,
+          capacity: room.capacity,
+        })) || [];
       setRooms(transformedRooms);
     } catch (error) {
       console.error("Error fetching rooms:", error);
@@ -71,6 +75,7 @@ const HotelRoomManagement = () => {
 
   useEffect(() => {
     fetchRooms();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.hotelId]);
 
   const handleAddRoom = async (e: React.FormEvent) => {
@@ -82,16 +87,17 @@ const HotelRoomManagement = () => {
         throw new Error("Hotel ID is required");
       }
 
-      const { data, error } = await supabase
+      const roomToInsert: RoomInsert = {
+        room_number: newRoom.roomNumber,
+        floor: newRoom.floor,
+        type: newRoom.type,
+        status: newRoom.status,
+        hotel_id: user.hotelId,
+      };
+
+      const { error } = await supabase
         .from("rooms")
-        .insert([{
-          room_number: newRoom.roomNumber,
-          floor: newRoom.floor,
-          type: newRoom.type,
-          status: newRoom.status,
-          hotel_id: user.hotelId
-        }])
-        .select();
+        .insert([roomToInsert]);
 
       if (error) throw error;
 
@@ -105,7 +111,7 @@ const HotelRoomManagement = () => {
         roomNumber: "",
         floor: 1,
         type: "standard",
-        status: "vacant"
+        status: "vacant",
       });
       setShowAddDialog(false);
       fetchRooms();
@@ -121,7 +127,7 @@ const HotelRoomManagement = () => {
     }
   };
 
-  // Check if we need to show the "No hotel" message
+  // Show "No hotel" message if admin hasn't created a hotel yet
   if (!user?.hotelId) {
     return (
       <Card>
@@ -205,7 +211,7 @@ const HotelRoomManagement = () => {
                       id="status"
                       className="w-full p-2 border rounded-md"
                       value={newRoom.status}
-                      onChange={(e) => setNewRoom({ ...newRoom, status: e.target.value as any })}
+                      onChange={(e) => setNewRoom({ ...newRoom, status: e.target.value as RoomStatus })}
                       required
                     >
                       <option value="vacant">Vacant</option>
@@ -239,6 +245,7 @@ const HotelRoomManagement = () => {
                 <TableHead>Floor</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Capacity</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -263,6 +270,7 @@ const HotelRoomManagement = () => {
                       {room.status}
                     </span>
                   </TableCell>
+                  <TableCell>{room.capacity}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button variant="outline" size="icon">

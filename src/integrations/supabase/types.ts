@@ -27,6 +27,50 @@ export type Database = {
         }
         Relationships: []
       }
+      rooms: {
+        Row: {
+          capacity: number
+          created_at: string | null
+          floor: number
+          hotel_id: string
+          id: string
+          room_number: string
+          status: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string | null
+          floor?: number
+          hotel_id: string
+          id?: string
+          room_number: string
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          capacity?: number
+          created_at?: string | null
+          floor?: number
+          hotel_id?: string
+          id?: string
+          room_number?: string
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooms_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string | null
