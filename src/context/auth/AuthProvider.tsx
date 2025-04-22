@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import { AuthContextType, User, UserRole } from "./types";
@@ -18,14 +17,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return savedCode || generateCode();
   });
 
-  // Generate new signup code
   const generateNewSignupCode = () => {
     const newCode = generateCode();
     setSignupCode(newCode);
     localStorage.setItem("signupCode", newCode);
   };
 
-  // Generate new code at midnight every day
   useEffect(() => {
     if (!localStorage.getItem("signupCode")) {
       generateNewSignupCode();
@@ -55,7 +52,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setSignupCode,
   });
 
-  // Create a wrapper around createStaffAccount to match the type definition
   const createStaffAccountWrapper = async (
     name: string, 
     email: string, 
@@ -63,14 +59,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     role: UserRole = "staff",
     hotelId?: string
   ) => {
-    // If the user is an admin, use their hotel ID as default if none provided
-    const targetHotelId = hotelId || (user?.role === "admin" ? user.hotelId : "hotel1");
-    
+    const targetHotelId = hotelId || (user?.role === "admin" ? user.hotelId : "550e8400-e29b-41d4-a716-446655440000");
     if (!targetHotelId) {
       throw new Error("Hotel ID is required");
     }
-    
-    handlers.createStaffAccount(name, email, password, role, targetHotelId);
+    await handlers.createStaffAccount(name, email, password, role, targetHotelId);
   };
 
   return (
