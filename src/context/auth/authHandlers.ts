@@ -1,6 +1,5 @@
 
 import { User, UserRole } from "./types";
-import { useToast } from "@/hooks/use-toast";
 
 // Enhanced mock data with more realistic structure
 export const mockHotels = [
@@ -40,6 +39,22 @@ export const mockGuests = [
     roomNumber: "101",
     checkIn: "2025-04-20",
     checkOut: "2025-04-25"
+  }
+];
+
+// Add the missing mockRequests export
+export const mockRequests = [
+  {
+    id: "req-1",
+    title: "Extra towels needed",
+    description: "Could we get some extra towels please?",
+    roomNumber: "101",
+    guestId: "guest1",
+    guestName: "Jane Guest",
+    category: "housekeeping",
+    status: "pending" as "pending" | "in-progress" | "resolved" | "cancelled",
+    priority: "medium" as "low" | "medium" | "high" | "urgent",
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -103,4 +118,75 @@ export const addHotel = (
   
   mockHotels.push(newHotel);
   return newHotel;
+};
+
+// Add the missing createAuthHandlers function
+export const createAuthHandlers = ({ user, setUser, signupCode, setSignupCode }: {
+  user: User | null;
+  setUser: (user: User | null) => void;
+  signupCode: string;
+  setSignupCode: (code: string) => void;
+}) => {
+  // Login handler
+  const login = async (email: string, password: string, role: UserRole, hotelId?: string) => {
+    const user = mockUsers.find(u => u.email === email && u.password === password && u.role === role);
+    
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+    
+    const { password: _, ...userWithoutPassword } = user;
+    setUser(userWithoutPassword);
+    localStorage.setItem("user", JSON.stringify(userWithoutPassword));
+  };
+  
+  // Google login handler (mock)
+  const loginWithGoogle = async (signupCode: string) => {
+    // Mock Google login - in a real app this would integrate with Google OAuth
+    setUser({
+      id: `google-user-${Date.now()}`,
+      name: "Google User",
+      email: "google@example.com",
+      role: "staff",
+      hotelId: "hotel1"
+    });
+  };
+  
+  // Guest login handler
+  const loginAsGuest = async (roomCode: string, roomNumber: string) => {
+    // Mock guest login
+    setUser({
+      id: `guest-${Date.now()}`,
+      name: "Guest User",
+      email: `guest-${roomCode}@example.com`,
+      role: "guest",
+      roomNumber
+    });
+    localStorage.setItem("user", JSON.stringify({
+      id: `guest-${Date.now()}`,
+      name: "Guest User",
+      email: `guest-${roomCode}@example.com`,
+      role: "guest",
+      roomNumber
+    }));
+  };
+  
+  // Logout handler
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+  };
+  
+  return {
+    login,
+    loginWithGoogle,
+    loginAsGuest,
+    logout,
+    createStaffAccount
+  };
+};
+
+// Add the missing generateCode function
+export const generateCode = () => {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 };

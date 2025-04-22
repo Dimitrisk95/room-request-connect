@@ -36,9 +36,14 @@ const RequestsTable = () => {
     // Update the local state
     setRequests(updatedRequests);
     
-    // Update the mock data source through the exported update function
-    // In a real app, this would be an API call
-    // For now we just update our local state
+    // Also update the mock data (with a new array to avoid mutation)
+    const updatedMockRequests = mockRequests.map(req => 
+      req.id === requestId ? {...req, status: newStatus} : req
+    );
+    
+    // Since we can't reassign the imported mockRequests, update it by modifying its contents
+    mockRequests.length = 0;
+    mockRequests.push(...updatedMockRequests);
     
     toast({
       title: "Request Updated",
