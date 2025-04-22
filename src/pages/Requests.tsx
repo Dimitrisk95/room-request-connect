@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/context";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import RequestsTable from "@/components/requests/RequestsTable";
@@ -7,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
-import { mockRequests } from "@/context/auth/authHandlers";
+import { mockRequests } from "@/context/requests/requestHandlers";
 
 const Requests = () => {
   const { user } = useAuth();

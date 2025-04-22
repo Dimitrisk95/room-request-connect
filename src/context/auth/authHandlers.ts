@@ -19,7 +19,7 @@ async function validatePassword(email: string, password: string) {
   const user = await getUserByEmail(email);
   if (!user) return null;
 
-  // For the demo, we “fake” password check: accept password 'admin123' for the admin,
+  // For the demo, we "fake" password check: accept password 'admin123' for the admin,
   // 'staff123' for any staff, and bypass for others (you would hash/check on backend).
   if (user.role === "admin" && password === "admin123") return user;
   if (user.role === "staff" && password === "staff123") return user;
@@ -65,7 +65,7 @@ export const createAuthHandlers = ({
     });
   };
 
-  // Guest login as before (doesn’t use database for mock)
+  // Guest login as before (doesn't use database for mock)
   const loginAsGuest = async (roomCode: string, roomNumber: string) => {
     setUser({
       id: `guest-${Date.now()}`,
@@ -89,7 +89,7 @@ export const createAuthHandlers = ({
     localStorage.removeItem("user");
   };
 
-  // Create Staff Account using Supabase (“admin” only)
+  // Create Staff Account using Supabase ("admin" only)
   const createStaffAccount = async (
     name: string,
     email: string,
@@ -110,7 +110,9 @@ export const createAuthHandlers = ({
     }]);
 
     if (error) throw error;
-    return data?.[0];
+    
+    // Safely handle the potentially null data
+    return data?.[0] || null;
   };
 
   return {
