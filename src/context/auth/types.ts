@@ -16,5 +16,5 @@ export interface AuthContextType {
   login: (email: string, password: string, hotelCode: string) => Promise<void>;
   loginAsGuest: (hotelCode: string, roomCode: string) => Promise<void>;
   logout: () => Promise<void>;
-  createStaffAccount: (name: string, email: string, password: string, role?: UserRole, hotelId?: string) => Promise<any>; // Changed return type from Promise<void> to Promise<any>
+  createStaffAccount: (name: string, email: string, password: string, role?: UserRole, hotelId?: string) => Promise<any>;
 }

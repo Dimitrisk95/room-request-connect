@@ -15,32 +15,47 @@ export const createAuthHandlers = ({
     password: string,
     hotelCode: string
   ) => {
+    // Sign in with email and password
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Login error:", error.message);
+      throw error;
+    }
 
     // After successful login, fetch additional user details
     if (data.user) {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
 
-      if (userError) throw userError;
+        if (userError) throw userError;
+        
+        // If no user found in the users table, throw an error
+        if (!userData) {
+          throw new Error("User profile not found");
+        }
 
-      const userObject: User = {
-        id: data.user.id,
-        name: userData.name,
-        email: data.user.email!,
-        role: userData.role,
-        hotelId: userData.hotel_id,
-      };
+        const userObject: User = {
+          id: data.user.id,
+          name: userData.name,
+          email: data.user.email!,
+          role: userData.role,
+          hotelId: userData.hotel_id,
+        };
 
-      setUser(userObject);
+        setUser(userObject);
+        localStorage.setItem("user", JSON.stringify(userObject));
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        throw err;
+      }
     }
   };
 
@@ -60,12 +75,17 @@ export const createAuthHandlers = ({
 
   // Logout using Supabase method
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    localStorage.removeItem("user");
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      localStorage.removeItem("user");
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
+    }
   };
 
-  // Create Staff Account using Supabase authentication
+  // Create Staff Account using Supabase authentication with improved error handling
   const createStaffAccount = async (
     name: string,
     email: string,
@@ -73,37 +93,69 @@ export const createAuthHandlers = ({
     role: UserRole = "staff",
     hotelId?: string
   ) => {
-    // Sign up the user with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          role,
-          hotel_id: hotelId || "550e8400-e29b-41d4-a716-446655440000"
-        }
+    try {
+      // Check if user already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (existingUser) {
+        throw new Error("A user with this email already exists");
       }
-    });
 
-    if (authError) throw authError;
-
-    // Insert additional user details into users table
-    const { error: userError } = await supabase
-      .from('users')
-      .insert({
-        id: authData.user?.id,
-        name,
+      // Sign up the user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        role,
-        hotel_id: hotelId || "550e8400-e29b-41d4-a716-446655440000",
-        password_hash: 'placeholder' // In production, never store plain passwords
+        password,
+        options: {
+          data: {
+            name,
+            role,
+            hotel_id: hotelId || "550e8400-e29b-41d4-a716-446655440000"
+          }
+        }
       });
 
-    if (userError) throw userError;
+      if (authError) {
+        console.error("Auth signup error:", authError);
+        throw authError;
+      }
 
-    // Return void to match the updated type
-    return;
+      if (!authData.user) {
+        throw new Error("Failed to create user account");
+      }
+
+      // Insert additional user details into users table
+      const { error: userError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          name,
+          email,
+          role,
+          hotel_id: hotelId || "550e8400-e29b-41d4-a716-446655440000",
+          password_hash: 'placeholder' // In production, never store plain passwords
+        });
+
+      if (userError) {
+        console.error("User data insert error:", userError);
+        // If inserting user data fails, attempt to clean up the auth user
+        try {
+          // This would require admin privileges in production
+          console.warn("User table insert failed, but auth user was created");
+        } catch (cleanupErr) {
+          console.error("Failed to clean up auth user:", cleanupErr);
+        }
+        throw userError;
+      }
+
+      return authData.user;
+    } catch (error) {
+      console.error("Account creation error:", error);
+      throw error;
+    }
   };
 
   return {

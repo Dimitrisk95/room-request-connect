@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle } from "lucide-react";
 
 interface AdminRegistrationFormProps {
   onRegistered: () => void;
@@ -35,6 +36,7 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
   const { createStaffAccount } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -48,6 +50,7 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
 
   const handleSubmit = async (values: FormValues) => {
     setLoading(true);
+    setError(null);
     try {
       await createStaffAccount(
         values.name,
@@ -61,6 +64,7 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
       });
       onRegistered();
     } catch (error: any) {
+      setError(error.message || "Could not create admin account.");
       toast({
         title: "Registration failed",
         description: error.message || "Could not create admin account.",
@@ -82,6 +86,13 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-destructive/15 p-3 rounded-md flex items-start text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+            
             <FormField
               control={form.control}
               name="name"

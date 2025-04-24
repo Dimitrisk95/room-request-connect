@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
-import { Loader, Check } from "lucide-react";
+import { Loader, Check, AlertCircle } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -46,7 +47,9 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
 
   const handleSubmit = async (values: LoginFormValues) => {
     setLoading(true);
+    setError(null);
     try {
+      // Default hotel code for admin - this should match what's in the database
       await login(values.email, values.password, "550e8400-e29b-41d4-a716-446655440000");
       
       setShowSuccess(true);
@@ -61,10 +64,11 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
       setTimeout(() => {
         onSuccess();
       }, 1000);
-    } catch (error) {
+    } catch (error: any) {
+      setError(error.message || "Please check your email and password.");
       toast({
         title: "Login failed",
-        description: "Please check your email and password.",
+        description: error.message || "Please check your email and password.",
         variant: "destructive",
       });
     } finally {
@@ -76,6 +80,13 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-2">
+          {error && (
+            <div className="bg-destructive/15 p-3 rounded-md flex items-start text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
+          
           <FormField
             control={form.control}
             name="email"
