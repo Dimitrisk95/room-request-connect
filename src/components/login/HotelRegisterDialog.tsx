@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AdminRegistrationForm from "./AdminRegistrationForm";
 import AdminLoginForm from "./AdminLoginForm";
-import { Hotel, LogIn } from "lucide-react";
+import { Hotel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const HotelRegisterDialog: React.FC = () => {
@@ -35,16 +35,23 @@ const HotelRegisterDialog: React.FC = () => {
           <DialogTitle>
             <div className="flex items-center gap-2">
               <Hotel className="h-6 w-6 text-primary" />
-              <span>Hotel Admin</span>
+              <span>Hotel Admin Portal</span>
             </div>
           </DialogTitle>
+          <DialogDescription>
+            Register as a hotel administrator or login to your existing account.
+          </DialogDescription>
         </DialogHeader>
         <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="register">Register Admin</TabsTrigger>
-            <TabsTrigger value="login">Admin Login</TabsTrigger>
+            <TabsTrigger value="register" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Register Admin
+            </TabsTrigger>
+            <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Admin Login
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="register">
+          <TabsContent value="register" className="mt-4 space-y-4">
             <AdminRegistrationForm
               onRegistered={() => {
                 setTab("login");
@@ -52,7 +59,7 @@ const HotelRegisterDialog: React.FC = () => {
               onCancel={() => setOpen(false)}
             />
           </TabsContent>
-          <TabsContent value="login">
+          <TabsContent value="login" className="mt-4 space-y-4">
             <AdminLoginForm
               onSuccess={() => setOpen(false)}
             />

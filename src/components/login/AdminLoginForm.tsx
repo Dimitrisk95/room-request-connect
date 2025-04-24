@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
+import { Loader } from "lucide-react";
 
 interface AdminLoginFormProps {
   onSuccess: () => void;
@@ -23,16 +24,16 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Use a default hotel code for admin login.
       await login(form.email, form.password, "550e8400-e29b-41d4-a716-446655440000");
       toast({
-        title: "Admin login successful",
+        title: "Welcome back!",
+        description: "Successfully logged in to your admin account.",
       });
       onSuccess();
     } catch (error) {
       toast({
         title: "Login failed",
-        description: "Invalid email or password.",
+        description: "Please check your email and password.",
         variant: "destructive",
       });
     } finally {
@@ -42,28 +43,43 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-2">
-      <div>
+      <div className="space-y-2">
         <Input
           name="email"
           type="email"
           placeholder="Admin email"
           value={form.email}
           onChange={handleChange}
+          disabled={loading}
+          className="border-input/60 focus:border-primary"
           required
         />
       </div>
-      <div>
+      <div className="space-y-2">
         <Input
           name="password"
           type="password"
           placeholder="Password"
           value={form.password}
           onChange={handleChange}
+          disabled={loading}
+          className="border-input/60 focus:border-primary"
           required
         />
       </div>
-      <Button className="w-full" type="submit" disabled={loading}>
-        {loading ? "Logging in..." : "Login as Admin"}
+      <Button 
+        className="w-full bg-primary hover:bg-primary/90" 
+        type="submit" 
+        disabled={loading}
+      >
+        {loading ? (
+          <>
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
+            Logging in...
+          </>
+        ) : (
+          "Login as Admin"
+        )}
       </Button>
     </form>
   );
