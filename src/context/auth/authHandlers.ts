@@ -35,11 +35,15 @@ export const createAuthHandlers = ({
           .eq('email', email)
           .maybeSingle();
 
-        if (userError) throw userError;
+        if (userError) {
+          console.error("Error fetching user data:", userError);
+          throw userError;
+        }
         
-        // If no user found in the users table, throw an error
+        // If no user found in the users table, throw a specific error
         if (!userData) {
-          throw new Error("User profile not found");
+          console.error("User exists in auth but not in users table:", email);
+          throw new Error("User profile not found. Please contact support.");
         }
 
         const userObject: User = {
@@ -52,6 +56,7 @@ export const createAuthHandlers = ({
 
         setUser(userObject);
         localStorage.setItem("user", JSON.stringify(userObject));
+        return userObject;
       } catch (err) {
         console.error("Error fetching user data:", err);
         throw err;
@@ -71,6 +76,7 @@ export const createAuthHandlers = ({
     };
     setUser(guestUser);
     localStorage.setItem("user", JSON.stringify(guestUser));
+    return guestUser;
   };
 
   // Logout using Supabase method
@@ -94,15 +100,28 @@ export const createAuthHandlers = ({
     hotelId?: string
   ) => {
     try {
-      // Check if user already exists
-      const { data: existingUser } = await supabase
+      console.log("Creating staff account for:", email, role);
+
+      // First check if email already exists in auth
+      const { data: { users }, error: userCheckError } = await supabase.auth.admin.listUsers();
+      
+      if (userCheckError) {
+        console.error("Error checking existing users:", userCheckError);
+      } else if (users?.some(u => u.email === email)) {
+        throw new Error("A user with this email already exists in the authentication system");
+      }
+
+      // Check if user already exists in our custom users table
+      const { data: existingUser, error: userTableError } = await supabase
         .from('users')
         .select('email')
         .eq('email', email)
         .maybeSingle();
       
-      if (existingUser) {
-        throw new Error("A user with this email already exists");
+      if (userTableError) {
+        console.error("Error checking users table:", userTableError);
+      } else if (existingUser) {
+        throw new Error("A user with this email already exists in the users table");
       }
 
       // Sign up the user with Supabase Auth
@@ -127,8 +146,10 @@ export const createAuthHandlers = ({
         throw new Error("Failed to create user account");
       }
 
+      console.log("Auth user created:", authData.user.id);
+
       // Insert additional user details into users table
-      const { error: userError } = await supabase
+      const { data: insertedUser, error: userError } = await supabase
         .from('users')
         .insert({
           id: authData.user.id,
@@ -137,20 +158,23 @@ export const createAuthHandlers = ({
           role,
           hotel_id: hotelId || "550e8400-e29b-41d4-a716-446655440000",
           password_hash: 'placeholder' // In production, never store plain passwords
-        });
+        })
+        .select()
+        .single();
 
       if (userError) {
         console.error("User data insert error:", userError);
         // If inserting user data fails, attempt to clean up the auth user
         try {
-          // This would require admin privileges in production
-          console.warn("User table insert failed, but auth user was created");
+          console.warn("User table insert failed, but auth user was created. User ID:", authData.user.id);
         } catch (cleanupErr) {
           console.error("Failed to clean up auth user:", cleanupErr);
         }
         throw userError;
       }
 
+      console.log("User successfully created in users table:", insertedUser);
+      
       return authData.user;
     } catch (error) {
       console.error("Account creation error:", error);

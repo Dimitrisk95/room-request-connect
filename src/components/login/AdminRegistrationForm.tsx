@@ -52,22 +52,40 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
     setLoading(true);
     setError(null);
     try {
+      console.log("Starting admin account creation for:", values.email);
       await createStaffAccount(
         values.name,
         values.email,
         values.password,
         "admin"
       );
+      
+      console.log("Admin account created successfully");
       toast({
         title: "Admin account created",
         description: "You can now login as admin.",
       });
       onRegistered();
     } catch (error: any) {
-      setError(error.message || "Could not create admin account.");
+      console.error("Registration error:", error);
+      
+      // Extract meaningful error message
+      let errorMessage = "Could not create admin account.";
+      
+      if (error.message) {
+        if (error.message.includes("already exists")) {
+          errorMessage = error.message;
+        } else if (error.message.includes("User already registered")) {
+          errorMessage = "A user with this email is already registered. Try logging in instead.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Registration failed",
-        description: error.message || "Could not create admin account.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

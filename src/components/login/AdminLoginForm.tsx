@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 interface AdminLoginFormProps {
   onSuccess: () => void;
@@ -33,6 +34,7 @@ type LoginFormValues = z.infer<typeof loginFormSchema>;
 const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
   const { login } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,9 +51,11 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
     setLoading(true);
     setError(null);
     try {
+      console.log("Attempting login for:", values.email);
       // Default hotel code for admin - this should match what's in the database
       await login(values.email, values.password, "550e8400-e29b-41d4-a716-446655440000");
       
+      console.log("Login successful");
       setShowSuccess(true);
       
       // Show success toast
@@ -62,13 +66,31 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
       
       // Delay closing the dialog to show success state
       setTimeout(() => {
+        navigate("/dashboard");
         onSuccess();
       }, 1000);
     } catch (error: any) {
-      setError(error.message || "Please check your email and password.");
+      console.error("Login error:", error);
+      
+      // Extract meaningful error message
+      let errorMessage = "Please check your email and password.";
+      
+      if (error.message) {
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Invalid email or password. Please check your credentials.";
+        } else if (error.message.includes("not found")) {
+          errorMessage = "User account not found. Please register first."; 
+        } else if (error.message.includes("profile not found")) {
+          errorMessage = "User profile is incomplete. Please contact support.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Login failed",
-        description: error.message || "Please check your email and password.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
