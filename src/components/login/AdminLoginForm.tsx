@@ -166,17 +166,6 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
               "Login as Admin"
             )}
           </Button>
-          
-          <div className="text-center mt-2">
-            <button 
-              type="button"
-              className="text-sm text-primary hover:underline" 
-              onClick={() => form.reset()}
-              disabled={loading || showSuccess}
-            >
-              Forgot password?
-            </button>
-          </div>
         </form>
       </Form>
       

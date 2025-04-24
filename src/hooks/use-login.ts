@@ -15,12 +15,14 @@ export type GuestCredentials = {
   roomCode: string;
 };
 
+export type LoginErrorType = string | null;
+
 export const useLogin = () => {
   const { login, loginAsGuest, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<LoginErrorType>(null);
 
   const handleStaffLogin = async (credentials: LoginCredentials) => {
     setIsLoading(true);
@@ -86,11 +88,16 @@ export const useLogin = () => {
     }
   };
 
+  const resetLoginError = () => {
+    setLoginError(null);
+  };
+
   return {
     isLoading,
     loginError,
     handleStaffLogin,
     handleGuestLogin,
+    resetLoginError,
     isAuthenticated,
     user
   };

@@ -1,14 +1,18 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLogin } from "@/hooks/use-login";
+import { useLoginMode } from "@/hooks/use-login-mode"; 
+import { useIsMobile } from "@/hooks/use-mobile";
+
 import DrawerNavigation from "@/components/DrawerNavigation";
 import GuestHotelConnectForm from "@/components/login/GuestHotelConnectForm";
 import AdminRegistrationForm from "@/components/login/AdminRegistrationForm";
-import { useIsMobile } from "@/hooks/use-mobile";
 import LoginHeader from "@/components/login/LoginHeader";
 import LoginError from "@/components/login/LoginError";
 import StaffLoginForm from "@/components/login/StaffLoginForm";
+import LoginModeToggle from "@/components/login/LoginModeToggle";
+import HotelRegisterDialog from "@/components/login/HotelRegisterDialog";
 
 const Login = () => {
   const {
@@ -16,32 +20,20 @@ const Login = () => {
     loginError,
     handleStaffLogin,
     handleGuestLogin,
+    resetLoginError,
     isAuthenticated,
     user
   } = useLogin();
+  const { mode } = useLoginMode();
   const navigate = useNavigate();
   const [showAdminRegister, setShowAdminRegister] = useState(false);
   const isMobile = useIsMobile();
   
-  const [searchParams] = useSearchParams();
-  const modeParam = (searchParams.get("mode") === "guest" || searchParams.get("mode") === "staff")
-    ? searchParams.get("mode")
-    : null;
-  const [mode, setMode] = useState<"staff" | "guest" | null>(modeParam as "staff" | "guest" | null);
-
   const [staffCredentials, setStaffCredentials] = useState({
     hotelCode: "",
     email: "",
     password: "",
   });
-
-  useEffect(() => {
-    if (!modeParam) {
-      navigate("/login?mode=staff", { replace: true });
-    } else {
-      setMode(modeParam as "staff" | "guest");
-    }
-  }, [modeParam, navigate]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -63,12 +55,21 @@ const Login = () => {
     await handleStaffLogin(staffCredentials);
   };
 
+  const handleShowAdminRegister = () => {
+    resetLoginError();
+    setShowAdminRegister(true);
+  };
+
+  const handleHideAdminRegister = () => {
+    setShowAdminRegister(false);
+  };
+
   const renderContent = () => {
     if (showAdminRegister && !isMobile) {
       return (
         <AdminRegistrationForm
           onRegistered={() => setShowAdminRegister(false)}
-          onCancel={() => setShowAdminRegister(false)}
+          onCancel={handleHideAdminRegister}
         />
       );
     }
@@ -97,18 +98,23 @@ const Login = () => {
       <DrawerNavigation />
       <div className="w-full max-w-md px-4">
         <LoginHeader />
-        <LoginError error={loginError} />
         
-        {!isMobile && !showAdminRegister && (
-          <div className="mb-4 flex justify-end">
+        {loginError && <LoginError error={loginError} />}
+        
+        {!isMobile && mode === "staff" && !showAdminRegister && (
+          <div className="flex justify-between items-center mb-4">
+            <HotelRegisterDialog />
             <button
               className="text-primary underline text-sm hover:text-primary/80"
-              onClick={() => setShowAdminRegister(true)}
+              onClick={handleShowAdminRegister}
             >
               Register as Admin
             </button>
           </div>
         )}
+        
+        {!showAdminRegister && <LoginModeToggle currentMode={mode} onSwitch={(newMode) => navigate(`/login?mode=${newMode}`)} />}
+        
         {renderContent()}
       </div>
     </div>
