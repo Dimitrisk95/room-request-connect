@@ -7,12 +7,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 import DrawerNavigation from "@/components/DrawerNavigation";
 import GuestHotelConnectForm from "@/components/login/GuestHotelConnectForm";
-import AdminRegistrationForm from "@/components/login/AdminRegistrationForm";
 import LoginHeader from "@/components/login/LoginHeader";
 import LoginError from "@/components/login/LoginError";
 import StaffLoginForm from "@/components/login/StaffLoginForm";
 import LoginModeToggle from "@/components/login/LoginModeToggle";
-import HotelRegisterDialog from "@/components/login/HotelRegisterDialog";
 
 const Login = () => {
   const {
@@ -24,9 +22,8 @@ const Login = () => {
     isAuthenticated,
     user
   } = useLogin();
-  const { mode } = useLoginMode();
+  const { mode, switchMode } = useLoginMode();
   const navigate = useNavigate();
-  const [showAdminRegister, setShowAdminRegister] = useState(false);
   const isMobile = useIsMobile();
   
   const [staffCredentials, setStaffCredentials] = useState({
@@ -55,44 +52,6 @@ const Login = () => {
     await handleStaffLogin(staffCredentials);
   };
 
-  const handleShowAdminRegister = () => {
-    resetLoginError();
-    setShowAdminRegister(true);
-  };
-
-  const handleHideAdminRegister = () => {
-    setShowAdminRegister(false);
-  };
-
-  const renderContent = () => {
-    if (showAdminRegister && !isMobile) {
-      return (
-        <AdminRegistrationForm
-          onRegistered={() => setShowAdminRegister(false)}
-          onCancel={handleHideAdminRegister}
-        />
-      );
-    }
-
-    if (mode === "guest") {
-      return (
-        <GuestHotelConnectForm
-          isLoading={isLoading}
-          onConnect={handleCombinedGuestConnect}
-        />
-      );
-    }
-
-    return (
-      <StaffLoginForm
-        staffCredentials={staffCredentials}
-        setStaffCredentials={setStaffCredentials}
-        isLoading={isLoading}
-        handleStaffLogin={handleStaffLoginSubmit}
-      />
-    );
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-background relative">
       <DrawerNavigation />
@@ -101,21 +60,33 @@ const Login = () => {
         
         {loginError && <LoginError error={loginError} />}
         
-        {!isMobile && mode === "staff" && !showAdminRegister && (
-          <div className="flex justify-between items-center mb-4">
-            <HotelRegisterDialog />
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-sm">
+            Need an account?{" "}
             <button
-              className="text-primary underline text-sm hover:text-primary/80"
-              onClick={handleShowAdminRegister}
+              className="text-primary underline hover:text-primary/80"
+              onClick={() => navigate("/register")}
             >
-              Register as Admin
+              Register here
             </button>
           </div>
+        </div>
+        
+        <LoginModeToggle currentMode={mode} onSwitch={switchMode} />
+        
+        {mode === "guest" ? (
+          <GuestHotelConnectForm
+            isLoading={isLoading}
+            onConnect={handleCombinedGuestConnect}
+          />
+        ) : (
+          <StaffLoginForm
+            staffCredentials={staffCredentials}
+            setStaffCredentials={setStaffCredentials}
+            isLoading={isLoading}
+            handleStaffLogin={handleStaffLoginSubmit}
+          />
         )}
-        
-        {!showAdminRegister && <LoginModeToggle currentMode={mode} onSwitch={(newMode) => navigate(`/login?mode=${newMode}`)} />}
-        
-        {renderContent()}
       </div>
     </div>
   );

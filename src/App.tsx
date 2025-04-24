@@ -8,6 +8,7 @@ import { AuthProvider } from "./context";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import RoomManagement from "./pages/RoomManagement";
 import Calendar from "./pages/Calendar";
@@ -31,6 +32,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/guest/:roomCode" element={<GuestView />} />
             
             {/* Protected routes */}

@@ -1,10 +1,10 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { Hotel, UserCircle, ArrowRight, Building, Settings, Users } from "lucide-react";
 import DrawerNavigation from "@/components/DrawerNavigation";
-import HotelRegisterDialog from "@/components/login/HotelRegisterDialog";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -24,7 +24,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col relative">
       <DrawerNavigation />
-      {/* Top section with logo and login + hotel register button */}
+      {/* Top section with logo and login + register buttons */}
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Hotel className="h-8 w-8 text-primary" />
@@ -39,7 +39,14 @@ const Index = () => {
           >
             Staff Login
           </Button>
-          <HotelRegisterDialog />
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => navigate("/register")}
+            className="bg-primary text-white hover:bg-primary/90"
+          >
+            Register
+          </Button>
         </div>
       </div>
 
@@ -101,7 +108,14 @@ const Index = () => {
           </div>
           
           <div className="flex justify-center">
-            <HotelRegisterDialog />
+            <Button 
+              onClick={() => navigate("/register")} 
+              size="lg"
+              className="bg-primary text-white hover:bg-primary/90"
+            >
+              Register Your Hotel
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
