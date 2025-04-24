@@ -102,7 +102,8 @@ export const createAuthHandlers = ({
 
     if (userError) throw userError;
 
-    return authData.user;
+    // Return void to match the updated type
+    return;
   };
 
   return {
@@ -112,4 +113,3 @@ export const createAuthHandlers = ({
     createStaffAccount
   };
 };
-

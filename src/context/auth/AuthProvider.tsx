@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!targetHotelId) {
       throw new Error("Hotel ID is required");
     }
-    return await handlers.createStaffAccount(name, email, password, role, targetHotelId);
+    await handlers.createStaffAccount(name, email, password, role, targetHotelId);
   };
 
   return (
@@ -102,12 +102,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       value={{
         user,
         isAuthenticated,
-        ...handlers,
+        login: handlers.login,
+        loginAsGuest: handlers.loginAsGuest,
+        logout: handlers.logout,
         createStaffAccount: createStaffAccountWrapper
-      } as AuthContextType}
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
-
