@@ -1,9 +1,8 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
-import { Hotel, UserCircle, ArrowRight, BuildingHotel, Settings, Users } from "lucide-react";
+import { Hotel, UserCircle, ArrowRight, Building, Settings, Users } from "lucide-react";
 import DrawerNavigation from "@/components/DrawerNavigation";
 import HotelRegisterDialog from "@/components/login/HotelRegisterDialog";
 
@@ -72,7 +71,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
               <div className="p-3 rounded-full bg-primary/10 inline-block mb-4">
-                <BuildingHotel className="h-6 w-6 text-primary" />
+                <Building className="h-6 w-6 text-primary" />
               </div>
               <h4 className="font-bold text-gray-800 mb-2">Hotel Management</h4>
               <p className="text-gray-600 text-sm">
