@@ -13,8 +13,8 @@ export interface User {
 export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, hotelCode: string) => Promise<void>;
-  loginAsGuest: (hotelCode: string, roomCode: string) => Promise<void>;
+  login: (email: string, password: string, hotelCode: string) => Promise<User>; // Updated return type
+  loginAsGuest: (hotelCode: string, roomCode: string) => Promise<User>; // Updated return type
   logout: () => Promise<void>;
   createStaffAccount: (name: string, email: string, password: string, role?: UserRole, hotelId?: string) => Promise<any>;
 }

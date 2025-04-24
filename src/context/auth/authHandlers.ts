@@ -61,6 +61,9 @@ export const createAuthHandlers = ({
         console.error("Error fetching user data:", err);
         throw err;
       }
+    } else {
+      // Ensure we handle the case where data.user is undefined
+      throw new Error("Login failed. No user data returned.");
     }
   };
 
@@ -103,11 +106,13 @@ export const createAuthHandlers = ({
       console.log("Creating staff account for:", email, role);
 
       // First check if email already exists in auth
-      const { data: { users }, error: userCheckError } = await supabase.auth.admin.listUsers();
+      const { data, error: userCheckError } = await supabase.auth.admin.listUsers();
+      
+      const users = data?.users || [];
       
       if (userCheckError) {
         console.error("Error checking existing users:", userCheckError);
-      } else if (users?.some(u => u.email === email)) {
+      } else if (users.some(u => u.email === email)) {
         throw new Error("A user with this email already exists in the authentication system");
       }
 

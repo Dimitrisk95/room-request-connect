@@ -161,12 +161,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // If still initializing, you could show a loading spinner
-  // Commenting out for now as it might cause a flash
-  // if (isInitializing) {
-  //   return <div>Loading authentication...</div>;
-  // }
-
   return (
     <AuthContext.Provider
       value={{
