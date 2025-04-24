@@ -31,10 +31,12 @@ const HotelRegisterDialog: React.FC = () => {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader>
+        <DialogHeader className="text-center sm:text-left">
           <DialogTitle>
-            <div className="flex items-center gap-2">
-              <Hotel className="h-6 w-6 text-primary" />
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Hotel className="h-6 w-6 text-primary" />
+              </div>
               <span>Hotel Admin Portal</span>
             </div>
           </DialogTitle>
@@ -43,27 +45,35 @@ const HotelRegisterDialog: React.FC = () => {
           </DialogDescription>
         </DialogHeader>
         <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="register" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsList className="grid grid-cols-2 mb-4 rounded-lg p-1 bg-muted/60">
+            <TabsTrigger 
+              value="register" 
+              className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+            >
               Register Admin
             </TabsTrigger>
-            <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger 
+              value="login" 
+              className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+            >
               Admin Login
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="register" className="mt-4 space-y-4">
-            <AdminRegistrationForm
-              onRegistered={() => {
-                setTab("login");
-              }}
-              onCancel={() => setOpen(false)}
-            />
-          </TabsContent>
-          <TabsContent value="login" className="mt-4 space-y-4">
-            <AdminLoginForm
-              onSuccess={() => setOpen(false)}
-            />
-          </TabsContent>
+          <div className="p-1 mt-2">
+            <TabsContent value="register" className="mt-0 space-y-4 animate-in fade-in-50 duration-200">
+              <AdminRegistrationForm
+                onRegistered={() => {
+                  setTab("login");
+                }}
+                onCancel={() => setOpen(false)}
+              />
+            </TabsContent>
+            <TabsContent value="login" className="mt-0 space-y-4 animate-in fade-in-50 duration-200">
+              <AdminLoginForm
+                onSuccess={() => setOpen(false)}
+              />
+            </TabsContent>
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>
