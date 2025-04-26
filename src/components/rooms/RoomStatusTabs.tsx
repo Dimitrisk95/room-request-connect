@@ -43,7 +43,7 @@ const RoomStatusTabs = ({ roomsData, filterRooms, getStatusColor, onRoomClick }:
       <TabsContent value="occupied" className="space-y-6">
         <FloorSection
           floor={0}
-          rooms={filterRooms(roomsData.filter((r) => r.status === "occupied"))}
+          rooms={filterRooms(roomsData.filter((r) => r.status === "occupied"), null)}
           getStatusColor={getStatusColor}
           onRoomClick={onRoomClick}
         />
@@ -52,7 +52,7 @@ const RoomStatusTabs = ({ roomsData, filterRooms, getStatusColor, onRoomClick }:
       <TabsContent value="vacant" className="space-y-6">
         <FloorSection
           floor={0}
-          rooms={filterRooms(roomsData.filter((r) => r.status === "vacant"))}
+          rooms={filterRooms(roomsData.filter((r) => r.status === "vacant"), null)}
           getStatusColor={getStatusColor}
           onRoomClick={onRoomClick}
         />
@@ -64,7 +64,8 @@ const RoomStatusTabs = ({ roomsData, filterRooms, getStatusColor, onRoomClick }:
           rooms={filterRooms(
             roomsData.filter((r) =>
               ["maintenance", "cleaning"].includes(r.status)
-            )
+            ),
+            null
           )}
           getStatusColor={getStatusColor}
           onRoomClick={onRoomClick}
