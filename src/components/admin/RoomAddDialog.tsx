@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -9,21 +9,23 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TablesInsert } from "@/integrations/supabase/types";
+import type { Room } from "@/types";
 
 interface RoomAddDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   onRoomAdded: () => void;
+  editingRoom?: Room | null;
+  onEditComplete?: () => void;
 }
 
-// Define the room status type to match our Room type
 type RoomStatus = "vacant" | "occupied" | "maintenance" | "cleaning";
 
-const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
+const RoomAddDialog = ({ open, setOpen, onRoomAdded, editingRoom, onEditComplete }: RoomAddDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isAdding, setIsAdding] = useState(false);
-  const [newRoom, setNewRoom] = useState({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [room, setRoom] = useState({
     roomNumber: "",
     floor: 1,
     type: "standard",
@@ -31,34 +33,75 @@ const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
     capacity: 2,
   });
 
-  const handleAddRoom = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (editingRoom) {
+      setRoom({
+        roomNumber: editingRoom.roomNumber,
+        floor: editingRoom.floor,
+        type: editingRoom.type,
+        status: editingRoom.status,
+        capacity: editingRoom.capacity,
+      });
+    } else {
+      setRoom({
+        roomNumber: "",
+        floor: 1,
+        type: "standard",
+        status: "vacant",
+        capacity: 2,
+      });
+    }
+  }, [editingRoom]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsAdding(true);
+    setIsSubmitting(true);
 
     try {
       if (!user?.hotelId) {
         throw new Error("Hotel ID is required");
       }
 
-      // Use generated type for "rooms" table inserts.
-      const roomToInsert: TablesInsert<"rooms"> = {
-        room_number: newRoom.roomNumber,
-        floor: newRoom.floor,
-        type: newRoom.type,
-        status: newRoom.status,
-        hotel_id: user.hotelId,
-        capacity: newRoom.capacity,
-      };
+      if (editingRoom) {
+        // Update existing room
+        const { error } = await supabase
+          .from("rooms")
+          .update({
+            room_number: room.roomNumber,
+            floor: room.floor,
+            type: room.type,
+            status: room.status,
+            capacity: room.capacity,
+          })
+          .eq('id', editingRoom.id);
 
-      const { error } = await supabase.from("rooms").insert([roomToInsert]);
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Room added successfully",
-        description: `Room ${newRoom.roomNumber} has been added.`,
-      });
+        toast({
+          title: "Room updated successfully",
+          description: `Room ${room.roomNumber} has been updated.`,
+        });
+      } else {
+        // Create new room
+        const roomToInsert: TablesInsert<"rooms"> = {
+          room_number: room.roomNumber,
+          floor: room.floor,
+          type: room.type,
+          status: room.status,
+          hotel_id: user.hotelId,
+          capacity: room.capacity,
+        };
 
-      setNewRoom({
+        const { error } = await supabase.from("rooms").insert([roomToInsert]);
+        if (error) throw error;
+
+        toast({
+          title: "Room added successfully",
+          description: `Room ${room.roomNumber} has been added.`,
+        });
+      }
+
+      setRoom({
         roomNumber: "",
         floor: 1,
         type: "standard",
@@ -67,15 +110,18 @@ const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
       });
       setOpen(false);
       onRoomAdded();
+      if (editingRoom && onEditComplete) {
+        onEditComplete();
+      }
     } catch (error) {
-      console.error("Error adding room:", error);
+      console.error("Error saving room:", error);
       toast({
-        title: "Failed to add room",
-        description: "There was an error adding the room. Please try again.",
+        title: "Failed to save room",
+        description: "There was an error saving the room. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsAdding(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -89,19 +135,19 @@ const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Room</DialogTitle>
+          <DialogTitle>{editingRoom ? 'Edit Room' : 'Add New Room'}</DialogTitle>
           <DialogDescription>
-            Add a new room to your hotel
+            {editingRoom ? 'Update room details' : 'Add a new room to your hotel'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleAddRoom}>
+        <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="roomNumber">Room Number</Label>
               <Input
                 id="roomNumber"
-                value={newRoom.roomNumber}
-                onChange={(e) => setNewRoom({ ...newRoom, roomNumber: e.target.value })}
+                value={room.roomNumber}
+                onChange={(e) => setRoom({ ...room, roomNumber: e.target.value })}
                 placeholder="e.g., 101"
                 required
               />
@@ -112,8 +158,8 @@ const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
                 id="floor"
                 type="number"
                 min="1"
-                value={newRoom.floor}
-                onChange={(e) => setNewRoom({ ...newRoom, floor: parseInt(e.target.value) })}
+                value={room.floor}
+                onChange={(e) => setRoom({ ...room, floor: parseInt(e.target.value) })}
                 required
               />
             </div>
@@ -122,8 +168,8 @@ const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
               <select
                 id="type"
                 className="w-full p-2 border rounded-md bg-background"
-                value={newRoom.type}
-                onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })}
+                value={room.type}
+                onChange={(e) => setRoom({ ...room, type: e.target.value })}
                 required
               >
                 <option value="standard">Standard</option>
@@ -136,8 +182,8 @@ const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
               <select
                 id="status"
                 className="w-full p-2 border rounded-md bg-background"
-                value={newRoom.status}
-                onChange={(e) => setNewRoom({ ...newRoom, status: e.target.value as RoomStatus })}
+                value={room.status}
+                onChange={(e) => setRoom({ ...room, status: e.target.value as RoomStatus })}
                 required
               >
                 <option value="vacant">Vacant</option>
@@ -152,15 +198,15 @@ const RoomAddDialog = ({ open, setOpen, onRoomAdded }: RoomAddDialogProps) => {
                 id="capacity"
                 type="number"
                 min="1"
-                value={newRoom.capacity}
-                onChange={(e) => setNewRoom({ ...newRoom, capacity: parseInt(e.target.value) })}
+                value={room.capacity}
+                onChange={(e) => setRoom({ ...room, capacity: parseInt(e.target.value) })}
                 required
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isAdding}>
-              {isAdding ? "Adding..." : "Add Room"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (editingRoom ? "Updating..." : "Adding...") : (editingRoom ? "Update Room" : "Add Room")}
             </Button>
           </DialogFooter>
         </form>

@@ -16,6 +16,7 @@ const HotelRoomManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
 
   // Fetch rooms for the current hotel
   const fetchRooms = async () => {
@@ -26,7 +27,6 @@ const HotelRoomManagement = () => {
 
     setIsLoading(true);
     try {
-      // Use the generated type for safer access
       const { data, error } = await supabase
         .from("rooms")
         .select("*")
@@ -34,13 +34,11 @@ const HotelRoomManagement = () => {
 
       if (error) throw error;
 
-      // Map directly to the app's Room type, ensuring status is correctly typed
       const transformedRooms: Room[] = (data as Tables<"rooms">[] | null)?.map((room) => ({
         id: room.id,
         roomNumber: room.room_number,
         floor: room.floor,
         type: room.type,
-        // Cast the status to the correct type
         status: room.status as "vacant" | "occupied" | "maintenance" | "cleaning",
         capacity: room.capacity,
       })) || [];
@@ -62,6 +60,11 @@ const HotelRoomManagement = () => {
     fetchRooms();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.hotelId]);
+
+  const handleEditRoom = (room: Room) => {
+    setEditingRoom(room);
+    setShowAddDialog(true);
+  };
 
   if (!user?.hotelId) {
     return (
@@ -93,9 +96,16 @@ const HotelRoomManagement = () => {
             open={showAddDialog}
             setOpen={setShowAddDialog}
             onRoomAdded={fetchRooms}
+            editingRoom={editingRoom}
+            onEditComplete={() => setEditingRoom(null)}
           />
         </div>
-        <RoomsTable rooms={rooms} isLoading={isLoading} />
+        <RoomsTable 
+          rooms={rooms} 
+          isLoading={isLoading} 
+          onEdit={handleEditRoom}
+          onRoomDeleted={fetchRooms}
+        />
       </CardContent>
     </Card>
   );
