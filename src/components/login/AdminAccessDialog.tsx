@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AdminRegistrationForm from "./AdminRegistrationForm";
 import AdminLoginForm from "./AdminLoginForm";
-import { Hotel } from "lucide-react";
+import { Hotel, UserCircle } from "lucide-react";
 
 const AdminAccessDialog = () => {
   const [open, setOpen] = useState(false);
