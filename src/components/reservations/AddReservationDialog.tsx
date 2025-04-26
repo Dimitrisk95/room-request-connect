@@ -1,16 +1,14 @@
 
-import { useState } from "react";
-import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockRooms, mockReservations } from "@/data/mockData";
-import { DateRange, Reservation } from "@/types";
-import { useToast } from "@/hooks/use-toast";
-import { isRoomAvailable, formatDateToString } from "@/utils/reservationUtils";
+import { mockRooms } from "@/data/mockData";
+import { Reservation } from "@/types";
+import { isRoomAvailable } from "@/utils/reservationUtils";
 import ReservationDatesStep from "./ReservationDatesStep";
 import ReservationRoomStep from "./ReservationRoomStep";
 import ReservationGuestStep from "./ReservationGuestStep";
+import { useReservationForm } from "@/hooks/useReservationForm";
 
 interface AddReservationDialogProps {
   open: boolean;
@@ -23,101 +21,29 @@ export function AddReservationDialog({
   onOpenChange, 
   onReservationAdded 
 }: AddReservationDialogProps) {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>("dates");
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: undefined,
-    to: undefined,
-  });
-  const [selectedRoom, setSelectedRoom] = useState<string>("");
-  const [guestName, setGuestName] = useState<string>("");
-  const [guestEmail, setGuestEmail] = useState<string>("");
-  const [guestPhone, setGuestPhone] = useState<string>("");
-  const [adults, setAdults] = useState<number>(1);
-  const [children, setChildren] = useState<number>(0);
+  const {
+    activeTab,
+    setActiveTab,
+    dateRange,
+    selectedRoom,
+    guestName,
+    guestEmail,
+    guestPhone,
+    adults,
+    children,
+    handleSubmit,
+    handleRoomSelect,
+    handleCalendarSelect,
+    setGuestName,
+    setGuestEmail,
+    setGuestPhone,
+    setAdults,
+    setChildren,
+  } = useReservationForm(onReservationAdded, onOpenChange);
 
-  // Filter available rooms based on the selected date range
   const availableRooms = mockRooms.filter((room) =>
-    isRoomAvailable(room, dateRange, mockReservations)
+    isRoomAvailable(room, dateRange, [])
   );
-
-  const handleSubmit = () => {
-    if (!dateRange.from || !dateRange.to || !selectedRoom || !guestName) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Create a new reservation
-    const newReservation: Reservation = {
-      id: `res-${Date.now()}`,
-      roomId: `room-${selectedRoom}`,
-      roomNumber: selectedRoom,
-      guestId: `guest-${Date.now()}`,
-      guestName: guestName,
-      checkIn: formatDateToString(dateRange.from),
-      checkOut: formatDateToString(dateRange.to),
-      status: "confirmed",
-      adults: adults,
-      children: children,
-      totalAmount: Math.floor(Math.random() * 1000) + 100, // Random amount for demo
-      paidAmount: 0,
-      notes: guestEmail || guestPhone ? `Email: ${guestEmail}, Phone: ${guestPhone}` : undefined
-    };
-
-    // Notify parent component about the new reservation
-    if (onReservationAdded) {
-      onReservationAdded(newReservation);
-    }
-
-    toast({
-      title: "Reservation created",
-      description: `Successfully booked Room ${selectedRoom} for ${guestName} from ${format(dateRange.from, "PP")} to ${format(dateRange.to, "PP")}`,
-    });
-    
-    resetForm();
-    onOpenChange(false);
-  };
-
-  const resetForm = () => {
-    setDateRange({ from: undefined, to: undefined });
-    setSelectedRoom("");
-    setGuestName("");
-    setGuestEmail("");
-    setGuestPhone("");
-    setAdults(1);
-    setChildren(0);
-    setActiveTab("dates");
-  };
-
-  const handleRoomSelect = (roomNumber: string) => {
-    setSelectedRoom(roomNumber);
-    if (roomNumber) {
-      // Automatically move to the next tab when a room is selected
-      setActiveTab("guest");
-    }
-  };
-
-  const handleCalendarSelect = (range: { from?: Date; to?: Date } | undefined) => {
-    if (range) {
-      setDateRange({
-        from: range.from,
-        to: range.to,
-      });
-      
-      // If both dates are selected, automatically move to the room tab
-      if (range.from && range.to) {
-        setActiveTab("room");
-      }
-    }
-  };
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -128,7 +54,7 @@ export function AddReservationDialog({
             Create a new reservation by selecting dates, room, and guest information.
           </DialogDescription>
         </DialogHeader>
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
           <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="dates">1. Select Dates</TabsTrigger>
             <TabsTrigger value="room" disabled={!dateRange.from || !dateRange.to}>
