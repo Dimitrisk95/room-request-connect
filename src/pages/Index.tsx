@@ -1,10 +1,10 @@
-
-import { useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { Hotel, UserCircle, ArrowRight, Building, Settings, Users } from "lucide-react";
 import DrawerNavigation from "@/components/DrawerNavigation";
+import AdminAccessDialog from "@/components/login/AdminAccessDialog";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -39,14 +39,7 @@ const Index = () => {
           >
             Staff Login
           </Button>
-          <Button
-            size="sm"
-            variant="default"
-            onClick={() => navigate("/register")}
-            className="bg-primary text-white hover:bg-primary/90"
-          >
-            Register
-          </Button>
+          <AdminAccessDialog />
         </div>
       </div>
 
