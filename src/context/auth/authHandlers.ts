@@ -105,17 +105,6 @@ export const createAuthHandlers = ({
     try {
       console.log("Creating staff account for:", email, role);
 
-      // First check if email already exists in auth
-      const { data, error: userCheckError } = await supabase.auth.admin.listUsers();
-      
-      const users = data?.users || [];
-      
-      if (userCheckError) {
-        console.error("Error checking existing users:", userCheckError);
-      } else if (users.some(u => u.email === email)) {
-        throw new Error("A user with this email already exists in the authentication system");
-      }
-
       // Check if user already exists in our custom users table
       const { data: existingUser, error: userTableError } = await supabase
         .from('users')
@@ -125,8 +114,9 @@ export const createAuthHandlers = ({
       
       if (userTableError) {
         console.error("Error checking users table:", userTableError);
+        throw userTableError;
       } else if (existingUser) {
-        throw new Error("A user with this email already exists in the users table");
+        throw new Error("A user with this email already exists");
       }
 
       // Sign up the user with Supabase Auth
@@ -137,7 +127,7 @@ export const createAuthHandlers = ({
           data: {
             name,
             role,
-            hotel_id: hotelId || "550e8400-e29b-41d4-a716-446655440000"
+            hotel_id: hotelId || null
           }
         }
       });
@@ -161,7 +151,7 @@ export const createAuthHandlers = ({
           name,
           email,
           role,
-          hotel_id: hotelId || "550e8400-e29b-41d4-a716-446655440000",
+          hotel_id: hotelId || null,
           password_hash: 'placeholder' // In production, never store plain passwords
         })
         .select()

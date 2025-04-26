@@ -5,8 +5,6 @@ import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -14,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import DrawerNavigation from "@/components/DrawerNavigation";
 import LoginHeader from "@/components/login/LoginHeader";
+import { Input } from "@/components/ui/input";
 
 // Registration form schema with validation
 const formSchema = z.object({
@@ -21,7 +20,6 @@ const formSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm your password"),
-  hotelCode: z.string().min(3, "Hotel code is required"),
 }).refine(
   (data) => data.password === data.confirmPassword,
   {
@@ -46,7 +44,6 @@ const Register = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      hotelCode: "",
     },
   });
 
@@ -59,8 +56,7 @@ const Register = () => {
         values.name,
         values.email,
         values.password,
-        "admin",
-        values.hotelCode
+        "admin"
       );
       
       console.log("Admin account created successfully");
@@ -181,20 +177,6 @@ const Register = () => {
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="Confirm your password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="hotelCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hotel Code</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your hotel code" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
