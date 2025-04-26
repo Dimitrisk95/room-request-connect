@@ -10,6 +10,7 @@ import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { registerFormSchema, type RegisterFormValues } from "./schema";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function RegisterForm() {
   const { createStaffAccount } = useAuth();
@@ -55,7 +56,7 @@ export function RegisterForm() {
         if (error.message.includes("already exists")) {
           errorMessage = error.message;
         } else if (error.message.includes("User already registered")) {
-          errorMessage = "A user with this email is already registered. Try logging in instead.";
+          errorMessage = "A user with this email is already registered. Please try logging in instead.";
         } else {
           errorMessage = error.message;
         }
@@ -76,10 +77,10 @@ export function RegisterForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {error && (
-          <div className="bg-destructive/15 p-3 rounded-md flex items-start text-sm text-destructive">
-            <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-            <p>{error}</p>
-          </div>
+          <Alert variant="destructive" className="text-sm">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
         
         <FormField

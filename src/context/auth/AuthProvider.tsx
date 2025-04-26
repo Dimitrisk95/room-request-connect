@@ -150,11 +150,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ) => {
     try {
       console.log("Creating staff account:", email, role);
-      const targetHotelId = hotelId || (user?.role === "admin" ? user.hotelId : "550e8400-e29b-41d4-a716-446655440000");
-      if (!targetHotelId) {
-        throw new Error("Hotel ID is required");
-      }
-      return await handlers.createStaffAccount(name, email, password, role, targetHotelId);
+      // For admin accounts being created through registration,
+      // we don't require a hotelId initially - they will create one after login
+      return await handlers.createStaffAccount(name, email, password, role, hotelId);
     } catch (error) {
       console.error("Staff account creation error:", error);
       throw error;
@@ -172,7 +170,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         createStaffAccount: createStaffAccountWrapper
       }}
     >
-      {children}
+      {!isInitializing ? children : <div>Loading...</div>}
     </AuthContext.Provider>
   );
 };

@@ -9,17 +9,49 @@ import RoleManagement from "@/components/admin/RoleManagement";
 import HotelCreation from "@/components/admin/HotelCreation";
 import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("hotel-creation");
+  const navigate = useNavigate();
+
+  if (!user) {
+    return (
+      <DashboardShell>
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle>Authentication Required</CardTitle>
+              <CardDescription>
+                Please log in to access the admin dashboard.
+              </CardDescription>
+              <Button 
+                className="mt-4" 
+                onClick={() => navigate("/login")}
+              >
+                Go to Login
+              </Button>
+            </CardHeader>
+          </Card>
+        </div>
+      </DashboardShell>
+    );
+  }
 
   if (user?.role !== "admin") {
     return (
       <DashboardShell>
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p>Only administrators can access the admin dashboard.</p>
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl text-red-600">Access Denied</CardTitle>
+              <CardDescription>
+                Only administrators can access the admin dashboard. Your current role is {user?.role}.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </div>
       </DashboardShell>
     );
@@ -87,6 +119,15 @@ const AdminDashboard = () => {
                   To manage staff accounts, please go to the staff management page
                 </CardDescription>
               </CardHeader>
+              <div className="px-6 pb-6">
+                <Button 
+                  onClick={() => navigate("/staff-management")} 
+                  className="w-full"
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Go to Staff Management
+                </Button>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>

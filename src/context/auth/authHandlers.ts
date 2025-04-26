@@ -105,21 +105,7 @@ export const createAuthHandlers = ({
     try {
       console.log("Creating staff account for:", email, role);
 
-      // Check if user already exists in our custom users table
-      const { data: existingUser, error: userTableError } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
-      
-      if (userTableError) {
-        console.error("Error checking users table:", userTableError);
-        throw userTableError;
-      } else if (existingUser) {
-        throw new Error("A user with this email already exists");
-      }
-
-      // Sign up the user with Supabase Auth
+      // First try to sign up the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -133,6 +119,11 @@ export const createAuthHandlers = ({
       });
 
       if (authError) {
+        // Special handling for "User already registered" error
+        if (authError.message.includes("User already registered")) {
+          throw new Error("A user with this email already exists. Please use a different email or login instead.");
+        }
+        
         console.error("Auth signup error:", authError);
         throw authError;
       }
@@ -142,6 +133,22 @@ export const createAuthHandlers = ({
       }
 
       console.log("Auth user created:", authData.user.id);
+
+      // Check if the user already exists in our custom users table
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+        
+      // If user already exists in our users table, delete the old entry
+      if (existingUser) {
+        console.log("User exists in users table, updating entry.");
+        await supabase
+          .from('users')
+          .delete()
+          .eq('email', email);
+      }
 
       // Insert additional user details into users table
       const { data: insertedUser, error: userError } = await supabase
