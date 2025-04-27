@@ -17,4 +17,5 @@ export interface AuthContextType {
   loginAsGuest: (hotelCode: string, roomCode: string) => Promise<User>; // Updated return type
   logout: () => Promise<void>;
   createStaffAccount: (name: string, email: string, password: string, role?: UserRole, hotelId?: string) => Promise<any>;
+  updateUser: (updatedUser: User) => void; // Added this line
 }

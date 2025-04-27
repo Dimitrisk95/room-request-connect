@@ -141,6 +141,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser,
   });
 
+  // Add updateUser method
+  const updateUser = (updatedUser: User) => {
+    console.log("Updating user state:", updatedUser);
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
   const createStaffAccountWrapper = async (
     name: string, 
     email: string, 
@@ -167,7 +174,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login: handlers.login,
         loginAsGuest: handlers.loginAsGuest,
         logout: handlers.logout,
-        createStaffAccount: createStaffAccountWrapper
+        createStaffAccount: createStaffAccountWrapper,
+        updateUser // Add updateUser to the context
       }}
     >
       {!isInitializing ? children : <div>Loading...</div>}
