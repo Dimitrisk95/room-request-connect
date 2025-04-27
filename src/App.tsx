@@ -20,6 +20,7 @@ import AdminSetup from "./pages/AdminSetup";
 import Requests from "./pages/Requests";
 import RequestDetails from "./pages/RequestDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/rooms" element={<ProtectedRoute><RoomManagement /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/staff" element={<ProtectedRoute><StaffView /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/staff-management" element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <StaffManagement />

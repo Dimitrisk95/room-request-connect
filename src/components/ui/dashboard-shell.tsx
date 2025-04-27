@@ -1,6 +1,7 @@
+
 import React, { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Hotel, LogOut, MessageSquare, User, Users, Shield, Building } from "lucide-react";
+import { Calendar, Hotel, LogOut, MessageSquare, User, Users, Shield, Building, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
@@ -20,11 +21,11 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Requests", href: "/requests", icon: MessageSquare },
     { name: "Staff", href: "/staff", icon: Users },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
   
-  // Admin-only navigation items
+  // Admin-only navigation items - removed Admin Dashboard entry
   const adminNavigation = [
-    { name: "Admin Dashboard", href: "/admin", icon: Shield },
     { name: "Staff Management", href: "/staff-management", icon: User },
   ];
   
