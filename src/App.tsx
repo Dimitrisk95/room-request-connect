@@ -22,6 +22,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Settings from "./pages/Settings";
 import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
 import GuestConnect from "./pages/GuestConnect";
+import AdminLogin from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/connect" element={<GuestConnect />} />
               <Route path="/register" element={<Register />} />
               <Route path="/guest/:roomCode" element={<GuestView />} />
