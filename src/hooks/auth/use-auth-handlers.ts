@@ -1,4 +1,3 @@
-
 import { User, UserRole } from "@/context/auth/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -172,6 +171,18 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
       }
 
       console.log("User successfully created in users table:", insertedUser);
+      
+      // Send password setup email
+      const { error: emailError } = await supabase.functions.invoke('send-password-setup', {
+        body: { email, name }
+      });
+
+      if (emailError) {
+        console.error("Error sending password setup email:", emailError);
+        // We don't throw here as the account was created successfully
+      }
+
+      console.log("User successfully created and email sent");
       
       return authData.user;
     } catch (error) {
