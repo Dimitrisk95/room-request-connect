@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,11 +28,11 @@ const RoomsSetupStep: React.FC<RoomsSetupStepProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [createdRooms, setCreatedRooms] = useState(roomsData.createdRooms);
 
-  const handleRoomsAdded = async (count: number) => {
+  const handleRoomsAdded = (count: number) => {
     setCreatedRooms(prev => prev + count);
     updateRoomsData({ 
       addRooms: true,
-      createdRooms: roomsData.createdRooms + count
+      createdRooms: createdRooms + count
     });
     toast({
       title: "Rooms added successfully",
@@ -108,7 +107,7 @@ const RoomsSetupStep: React.FC<RoomsSetupStepProps> = ({
         <RoomAddDialog 
           open={isDialogOpen} 
           onOpenChange={setIsDialogOpen}
-          onRoomAdded={handleRoomsAdded}
+          onRoomsAdded={handleRoomsAdded}
         />
       )}
     </div>
