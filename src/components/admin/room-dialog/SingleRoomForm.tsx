@@ -13,12 +13,19 @@ interface SingleRoomFormProps {
 }
 
 export const SingleRoomForm = ({ onSubmit, editingRoom, isSubmitting }: SingleRoomFormProps) => {
-  const [room, setRoom] = useState({
+  const [room, setRoom] = useState<{
+    roomNumber: string;
+    floor: number;
+    type: string;
+    bedType: Room["bedType"];
+    status: Room["status"];
+    capacity: number;
+  }>({
     roomNumber: "",
     floor: 1,
     type: "standard",
-    bedType: "single" as const,
-    status: "vacant" as const,
+    bedType: "single",
+    status: "vacant",
     capacity: 2,
   });
 
@@ -97,7 +104,10 @@ export const SingleRoomForm = ({ onSubmit, editingRoom, isSubmitting }: SingleRo
               id="bedType"
               className="w-full p-2 border rounded-md bg-background"
               value={room.bedType}
-              onChange={(e) => setRoom({ ...room, bedType: e.target.value as Room["bedType"] })}
+              onChange={(e) => {
+                const bedType = e.target.value as Room["bedType"];
+                setRoom({ ...room, bedType });
+              }}
             >
               <option value="single">Single</option>
               <option value="double">Double</option>
@@ -114,7 +124,10 @@ export const SingleRoomForm = ({ onSubmit, editingRoom, isSubmitting }: SingleRo
             id="status"
             className="w-full p-2 border rounded-md bg-background"
             value={room.status}
-            onChange={(e) => setRoom({ ...room, status: e.target.value as Room["status"] })}
+            onChange={(e) => {
+              const status = e.target.value as Room["status"];
+              setRoom({ ...room, status });
+            }}
           >
             <option value="vacant">Available</option>
             <option value="occupied">Occupied</option>

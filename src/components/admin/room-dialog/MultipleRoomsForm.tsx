@@ -16,12 +16,19 @@ interface MultipleRoomsFormProps {
 }
 
 export const MultipleRoomsForm = ({ onSubmit, isSubmitting }: MultipleRoomsFormProps) => {
-  const [multipleRooms, setMultipleRooms] = useState({
+  const [multipleRooms, setMultipleRooms] = useState<{
+    roomNumbers: string;
+    floor: number;
+    type: string;
+    bedType: Room["bedType"];
+    status: Room["status"];
+    capacity: number;
+  }>({
     roomNumbers: "",
     floor: 1,
     type: "standard",
-    bedType: "single" as const,
-    status: "vacant" as const,
+    bedType: "single",
+    status: "vacant",
     capacity: 2,
   });
 
@@ -92,7 +99,10 @@ export const MultipleRoomsForm = ({ onSubmit, isSubmitting }: MultipleRoomsFormP
               id="multiBedType"
               className="w-full p-2 border rounded-md bg-background"
               value={multipleRooms.bedType}
-              onChange={(e) => setMultipleRooms({ ...multipleRooms, bedType: e.target.value as Room["bedType"] })}
+              onChange={(e) => {
+                const bedType = e.target.value as Room["bedType"];
+                setMultipleRooms({ ...multipleRooms, bedType });
+              }}
             >
               <option value="single">Single</option>
               <option value="double">Double</option>
@@ -110,7 +120,10 @@ export const MultipleRoomsForm = ({ onSubmit, isSubmitting }: MultipleRoomsFormP
             id="multiStatus"
             className="w-full p-2 border rounded-md bg-background"
             value={multipleRooms.status}
-            onChange={(e) => setMultipleRooms({ ...multipleRooms, status: e.target.value as Room["status"] })}
+            onChange={(e) => {
+              const status = e.target.value as Room["status"];
+              setMultipleRooms({ ...multipleRooms, status });
+            }}
           >
             <option value="vacant">Available</option>
             <option value="occupied">Occupied</option>
