@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Shield } from "lucide-react";
-import { AuthUser } from "@/types";
+import { User } from "@/types";
 
 interface ProfileSettingsProps {
-  user: AuthUser | null;
+  user: User | null;
 }
 
 const ProfileSettings = ({ user }: ProfileSettingsProps) => {
