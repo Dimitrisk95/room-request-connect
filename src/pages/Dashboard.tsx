@@ -1,9 +1,8 @@
 
-import { Link } from "react-router-dom";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { RecentRequests } from "@/components/dashboard/RecentRequests";
-import { TodaySchedule } from "@/components/dashboard/TodaySchedule";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 const Dashboard = () => {
@@ -19,11 +18,8 @@ const Dashboard = () => {
   return (
     <DashboardShell>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          {/* Removed "Manage Rooms" button */}
-        </div>
-
+        <DashboardHeader />
+        
         <DashboardStats 
           occupiedRooms={occupiedRooms}
           totalRooms={totalRooms}
@@ -33,13 +29,11 @@ const Dashboard = () => {
           todayCheckOuts={todayCheckOuts}
         />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <RecentRequests pendingRequests={pendingRequests} />
-          <TodaySchedule 
-            todayCheckIns={todayCheckIns}
-            todayCheckOuts={todayCheckOuts}
-          />
-        </div>
+        <DashboardContent 
+          pendingRequests={pendingRequests}
+          todayCheckIns={todayCheckIns}
+          todayCheckOuts={todayCheckOuts}
+        />
       </div>
     </DashboardShell>
   );
