@@ -17,6 +17,7 @@ export interface Room {
   floor: number;
   capacity: number;
   status: "vacant" | "occupied" | "maintenance" | "cleaning";
+  bedType?: "single" | "double" | "queen" | "king" | "twin" | "suite";
   currentGuest?: Guest;
 }
 
