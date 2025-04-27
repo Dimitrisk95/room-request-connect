@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useToast } from "./use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,12 +21,24 @@ export type LoginErrorType = string | null;
 export const useLogin = () => {
   const { login, loginAsGuest, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<LoginErrorType>(null);
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  
+  // Check if there's a showPasswordSetup state from navigation
+  const locationState = location.state as { showPasswordSetup?: boolean, email?: string } | null;
+  
+  useEffect(() => {
+    if (locationState?.showPasswordSetup && locationState?.email) {
+      setNeedsPasswordSetup(true);
+      setUserEmail(locationState.email);
+    }
+  }, [locationState]);
+  
   const isNewAdmin = searchParams.get('newAdmin') === 'true';
   
   useEffect(() => {
@@ -36,6 +49,17 @@ export const useLogin = () => {
       });
     }
   }, [isNewAdmin, toast]);
+
+  useEffect(() => {
+    if (isAuthenticated && !needsPasswordSetup) {
+      console.log("User already authenticated, redirecting");
+      if (user?.role === "guest") {
+        navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [isAuthenticated, needsPasswordSetup, user, navigate]);
 
   const handleStaffLogin = async (credentials: LoginCredentials) => {
     setIsLoading(true);

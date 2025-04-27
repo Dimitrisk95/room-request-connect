@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useLogin } from "@/hooks/use-login";
 import { useLoginMode } from "@/hooks/use-login-mode"; 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,6 +11,7 @@ import LoginError from "@/components/login/LoginError";
 import StaffLoginForm from "@/components/login/StaffLoginForm";
 import LoginModeToggle from "@/components/login/LoginModeToggle";
 import PasswordSetupForm from "@/components/login/PasswordSetupForm";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const {
@@ -28,24 +28,12 @@ const Login = () => {
   } = useLogin();
   const { mode, switchMode } = useLoginMode();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   
   const [staffCredentials, setStaffCredentials] = useState({
     hotelCode: "",
     email: "",
     password: "",
   });
-
-  useEffect(() => {
-    if (isAuthenticated && !needsPasswordSetup) {
-      console.log("User already authenticated, redirecting");
-      if (user?.role === "guest") {
-        navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
-      } else {
-        navigate("/dashboard");
-      }
-    }
-  }, [isAuthenticated, needsPasswordSetup, user, navigate]);
 
   const handleCombinedGuestConnect = async (hotelCode: string, roomCode: string) => {
     await handleGuestLogin({ hotelCode, roomCode });
