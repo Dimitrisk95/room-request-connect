@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
 import { UserPlus } from "lucide-react";
@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardShell from "@/components/ui/dashboard-shell";
+import { StaffTable } from "@/components/admin/staff/StaffTable";
+import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/context/auth/types";
 
 const StaffManagement = () => {
   const { user, createStaffAccount } = useAuth();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
+  const [staffMembers, setStaffMembers] = useState<any[]>([]);
   
   const [newStaff, setNewStaff] = useState({
     name: "",
@@ -21,6 +24,29 @@ const StaffManagement = () => {
     password: "",
     role: "staff" as UserRole
   });
+
+  const fetchStaffMembers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setStaffMembers(data || []);
+    } catch (error) {
+      console.error('Error fetching staff members:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch staff members",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchStaffMembers();
+  }, []);
 
   if (user?.role !== "admin") {
     return (
@@ -38,7 +64,6 @@ const StaffManagement = () => {
     setIsCreating(true);
 
     try {
-      // Pass the user's hotelId to ensure staff are created for the admin's hotel
       await createStaffAccount(
         newStaff.name,
         newStaff.email,
@@ -58,6 +83,9 @@ const StaffManagement = () => {
         password: "",
         role: "staff"
       });
+
+      // Refresh the staff list
+      fetchStaffMembers();
     } catch (error) {
       toast({
         title: "Failed to create account",
@@ -71,14 +99,31 @@ const StaffManagement = () => {
 
   return (
     <DashboardShell>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Staff Management</h1>
-        
-        <Card className="max-w-md">
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Staff Management</h1>
+        </div>
+
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Create Staff Account</CardTitle>
+            <CardTitle>Current Staff Members</CardTitle>
             <CardDescription>
-              Add new staff members to the hotel management system
+              View and manage your hotel staff members
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <StaffTable 
+              staffMembers={staffMembers} 
+              onStaffUpdated={fetchStaffMembers}
+            />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Staff Member</CardTitle>
+            <CardDescription>
+              Create a new staff account for your hotel
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleCreateStaff}>
