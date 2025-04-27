@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { Hotel, UserCircle, ArrowRight, Building, Settings, Users } from "lucide-react";
-import DrawerNavigation from "@/components/DrawerNavigation";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -21,7 +20,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col relative">
-      <DrawerNavigation />
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Hotel className="h-8 w-8 text-primary" />
