@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Steps } from "@/components/ui/steps";
 import { Hotel, Check, Users, Bed } from "lucide-react";
