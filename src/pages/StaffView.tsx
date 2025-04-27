@@ -1,36 +1,63 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { mockRequests } from "@/context/requests/requestHandlers";
+import { fetchRequests, Request } from "@/context/requests/requestHandlers";
 import { useAuth } from "@/context";
 import { Search } from "lucide-react";
 import TasksList from "@/components/staff/TasksList";
 import StaffTeam from "@/components/staff/StaffTeam";
+import { useToast } from "@/hooks/use-toast";
 
 const StaffView = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    if (user?.hotelId) {
+      loadRequests();
+    }
+  }, [user?.hotelId]);
+
+  const loadRequests = async () => {
+    try {
+      setLoading(true);
+      const fetchedRequests = await fetchRequests(user?.hotelId || '');
+      setRequests(fetchedRequests);
+    } catch (error) {
+      console.error('Error loading requests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load requests. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Filter requests that are assigned to the current staff member
-  const myRequests = mockRequests.filter(
+  const myRequests = requests.filter(
     req => req.assignedTo === user?.id && req.status !== "resolved" && req.status !== "cancelled"
   );
   
   // Filter pending requests that are not assigned to anyone
-  const pendingRequests = mockRequests.filter(
+  const pendingRequests = requests.filter(
     req => !req.assignedTo && req.status === "pending"
   );
   
   // Filter resolved requests that were handled by the current staff member
-  const completedRequests = mockRequests.filter(
+  const completedRequests = requests.filter(
     req => req.resolvedBy === user?.id && req.status === "resolved"
   );
   
   // All requests for search
-  const allRequests = [...myRequests, ...pendingRequests, ...mockRequests.filter(
+  const allRequests = [...myRequests, ...pendingRequests, ...requests.filter(
     req => !myRequests.includes(req) && !pendingRequests.includes(req)
   )];
   
@@ -43,6 +70,24 @@ const StaffView = () => {
         req.guestName.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : allRequests;
+
+  if (loading) {
+    return (
+      <DashboardShell>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold tracking-tight">Staff Dashboard</h1>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Loading</CardTitle>
+              <CardDescription>Fetching request data...</CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>

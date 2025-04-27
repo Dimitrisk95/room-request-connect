@@ -49,11 +49,11 @@ const GuestRequestForm = () => {
 
     setIsSubmitting(true);
     try {
-      const newRequest = createRequest({
+      await createRequest({
         ...requestForm,
         roomNumber: user.roomNumber,
         guestName: user.name,
-        guestId: user.id,
+        hotelId: user.hotelId || '',
       });
       
       toast({

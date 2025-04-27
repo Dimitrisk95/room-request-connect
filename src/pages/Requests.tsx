@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/context";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import RequestsTable from "@/components/requests/RequestsTable";
@@ -5,8 +6,7 @@ import GuestRequestForm from "@/components/guest/GuestRequestForm";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { useState, useEffect } from "react";
-import { mockRequests } from "@/context/requests/requestHandlers";
+import { useState } from "react";
 
 const Requests = () => {
   const { user } = useAuth();
@@ -22,9 +22,8 @@ const Requests = () => {
   const handleRefresh = () => {
     setIsRefreshing(true);
     
-    // Simulate API refresh
+    // In a real app, this would refresh from an API
     setTimeout(() => {
-      // In a real app, this would refresh from an API
       setIsRefreshing(false);
       toast({
         title: "Refreshed",
