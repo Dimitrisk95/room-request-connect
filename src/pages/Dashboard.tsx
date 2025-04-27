@@ -1,7 +1,6 @@
 
 import { Link } from "react-router-dom";
 import DashboardShell from "@/components/ui/dashboard-shell";
-import { Button } from "@/components/ui/button";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentRequests } from "@/components/dashboard/RecentRequests";
 import { TodaySchedule } from "@/components/dashboard/TodaySchedule";
@@ -22,9 +21,7 @@ const Dashboard = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <Button asChild>
-            <Link to="/rooms">Manage Rooms</Link>
-          </Button>
+          {/* Removed "Manage Rooms" button */}
         </div>
 
         <DashboardStats 
