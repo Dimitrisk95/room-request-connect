@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -29,7 +28,6 @@ export const useLogin = () => {
   const [userEmail, setUserEmail] = useState("");
   const isNewAdmin = searchParams.get('newAdmin') === 'true';
   
-  // Show a welcome message for new admins
   useEffect(() => {
     if (isNewAdmin) {
       toast({
@@ -52,7 +50,6 @@ export const useLogin = () => {
         credentials.hotelCode
       );
 
-      // Check if the user needs to set up their password
       const { data: userData, error: userDataError } = await supabase
         .from('users')
         .select('needs_password_setup')
@@ -61,13 +58,15 @@ export const useLogin = () => {
 
       if (userDataError) {
         console.error("Error checking needs_password_setup:", userDataError);
-      } else if (userData?.needs_password_setup) {
+        throw userDataError;
+      }
+
+      if (userData?.needs_password_setup) {
         setNeedsPasswordSetup(true);
         setUserEmail(credentials.email);
         return; // Stop here, showing password setup form
       }
       
-      // If user is admin and has no hotel, redirect to setup
       if (loggedInUser.role === "admin" && !loggedInUser.hotelId) {
         navigate("/setup");
       } else {

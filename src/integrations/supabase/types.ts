@@ -202,6 +202,7 @@ export type Database = {
           hotel_id: string | null
           id: string
           name: string
+          needs_password_setup: boolean | null
           password_hash: string
           role: Database["public"]["Enums"]["user_role"]
           room_number: string | null
@@ -215,6 +216,7 @@ export type Database = {
           hotel_id?: string | null
           id?: string
           name: string
+          needs_password_setup?: boolean | null
           password_hash: string
           role?: Database["public"]["Enums"]["user_role"]
           room_number?: string | null
@@ -228,6 +230,7 @@ export type Database = {
           hotel_id?: string | null
           id?: string
           name?: string
+          needs_password_setup?: boolean | null
           password_hash?: string
           role?: Database["public"]["Enums"]["user_role"]
           room_number?: string | null
