@@ -9,6 +9,15 @@ export interface User {
   roomNumber?: string;
 }
 
+// Staff related types
+export interface StaffMember {
+  id: string;
+  name: string;
+  email: string;
+  role: "admin" | "staff";
+  created_at?: string;
+}
+
 // Room related types
 export interface Room {
   id: string;
