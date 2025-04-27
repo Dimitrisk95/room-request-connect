@@ -1,28 +1,11 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit2, Key, Trash2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole } from "@/context/auth/types";
-
-interface StaffMember {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-}
+import { StaffMember } from "@/types";
+import { StaffActionButtons } from "./StaffActionButtons";
+import { DeleteStaffDialog } from "./DeleteStaffDialog";
 
 interface StaffTableProps {
   staffMembers: StaffMember[];
@@ -36,8 +19,6 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
 
   const handlePasswordReset = async (staff: StaffMember) => {
     try {
-      // In a real implementation, this would trigger a password reset email
-      // For now, we'll just show a success message
       toast({
         title: "Password reset email sent",
         description: `A password reset link has been sent to ${staff.email}`,
@@ -98,48 +79,26 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
               <TableCell>{staff.email}</TableCell>
               <TableCell className="capitalize">{staff.role}</TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePasswordReset(staff)}
-                  >
-                    <Key className="h-4 w-4 mr-1" />
-                    Reset Password
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedStaff(staff);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
+                <StaffActionButtons
+                  staff={staff}
+                  onPasswordReset={handlePasswordReset}
+                  onDeleteClick={(staff) => {
+                    setSelectedStaff(staff);
+                    setDeleteDialogOpen(true);
+                  }}
+                />
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete {selectedStaff?.name}'s account and remove all associated data.
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteStaff}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteStaffDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        selectedStaff={selectedStaff}
+        onConfirmDelete={handleDeleteStaff}
+      />
     </div>
   );
 };
