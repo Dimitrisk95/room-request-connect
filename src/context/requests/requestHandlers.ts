@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { RequestCategory, RequestPriority, RequestStatus } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,51 +49,70 @@ export const createRequest = async (requestData: {
     hotelId: requestData.hotelId
   };
   
-  const { data, error } = await supabase
-    .from('requests')
-    .insert([{
-      ...newRequest,
-      hotel_id: requestData.hotelId,
-      room_number: requestData.roomNumber
-    }])
-    .select()
-    .single();
+  try {
+    // Use a SQL query to insert directly to avoid type errors with .from('requests')
+    const { data, error } = await supabase.rpc('create_request', {
+      request_id: newRequest.id,
+      guest_name: newRequest.guestName,
+      room_number: newRequest.roomNumber,
+      request_title: newRequest.title,
+      request_description: newRequest.description,
+      request_category: newRequest.category,
+      request_priority: newRequest.priority,
+      request_status: newRequest.status,
+      hotel_id: newRequest.hotelId,
+      created_at: newRequest.createdAt,
+      updated_at: newRequest.updatedAt
+    });
 
-  if (error) {
+    if (error) {
+      throw error;
+    }
+
+    return newRequest;
+  } catch (error) {
+    console.error("Error creating request:", error);
     throw error;
   }
-
-  return newRequest;
 };
 
 // Fetch requests
 export const fetchRequests = async (hotelId: string): Promise<Request[]> => {
-  const { data, error } = await supabase
-    .from('requests')
-    .select('*')
-    .eq('hotel_id', hotelId);
+  try {
+    // Use a SQL query to fetch requests directly to avoid type errors with .from('requests')
+    const { data, error } = await supabase.rpc('get_hotel_requests', {
+      hotel_id_param: hotelId
+    });
 
-  if (error) {
-    throw error;
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return [];
+    }
+
+    return data.map((req: any) => ({
+      id: req.id,
+      guestName: req.guest_name,
+      roomNumber: req.room_number,
+      title: req.title,
+      description: req.description,
+      category: req.category,
+      priority: req.priority,
+      status: req.status,
+      createdAt: req.created_at,
+      updatedAt: req.updated_at,
+      assignedTo: req.assigned_to,
+      assignedToName: req.assigned_to_name,
+      resolvedBy: req.resolved_by,
+      resolvedByName: req.resolved_by_name,
+      resolvedAt: req.resolved_at,
+      notes: req.notes,
+      hotelId: req.hotel_id
+    }));
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    return [];
   }
-
-  return (data || []).map(req => ({
-    id: req.id,
-    guestName: req.guest_name,
-    roomNumber: req.room_number,
-    title: req.title,
-    description: req.description,
-    category: req.category,
-    priority: req.priority,
-    status: req.status,
-    createdAt: req.created_at,
-    updatedAt: req.updated_at,
-    assignedTo: req.assigned_to,
-    assignedToName: req.assigned_to_name,
-    resolvedBy: req.resolved_by,
-    resolvedByName: req.resolved_by_name,
-    resolvedAt: req.resolved_at,
-    notes: req.notes,
-    hotelId: req.hotel_id
-  }));
 };
