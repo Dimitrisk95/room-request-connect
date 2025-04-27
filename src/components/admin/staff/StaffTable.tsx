@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { StaffMember } from "@/types";
 import { StaffActionButtons } from "./StaffActionButtons";
 import { DeleteStaffDialog } from "./DeleteStaffDialog";
+import { EditStaffDialog } from "./EditStaffDialog";
 
 interface StaffTableProps {
   staffMembers: StaffMember[];
@@ -15,6 +17,7 @@ interface StaffTableProps {
 export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) => {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
   const handlePasswordReset = async (staff: StaffMember) => {
@@ -30,6 +33,11 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditStaff = (staff: StaffMember) => {
+    setSelectedStaff(staff);
+    setEditDialogOpen(true);
   };
 
   const handleDeleteStaff = async () => {
@@ -69,6 +77,7 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>Permissions</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -77,7 +86,24 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
             <TableRow key={staff.id}>
               <TableCell className="font-medium">{staff.name}</TableCell>
               <TableCell>{staff.email}</TableCell>
-              <TableCell className="capitalize">{staff.role}</TableCell>
+              <TableCell className="capitalize">
+                <Badge variant={staff.role === 'admin' ? 'default' : 'secondary'}>
+                  {staff.role}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-2">
+                  {staff.can_manage_rooms && (
+                    <Badge variant="outline">Manage Rooms</Badge>
+                  )}
+                  {staff.can_manage_staff && (
+                    <Badge variant="outline">Manage Staff</Badge>
+                  )}
+                  {!staff.can_manage_rooms && !staff.can_manage_staff && (
+                    <span className="text-muted-foreground text-sm">No special permissions</span>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="text-right">
                 <StaffActionButtons
                   staff={staff}
@@ -86,6 +112,7 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
                     setSelectedStaff(staff);
                     setDeleteDialogOpen(true);
                   }}
+                  onEditClick={handleEditStaff}
                 />
               </TableCell>
             </TableRow>
@@ -98,6 +125,13 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
         onOpenChange={setDeleteDialogOpen}
         selectedStaff={selectedStaff}
         onConfirmDelete={handleDeleteStaff}
+      />
+
+      <EditStaffDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        staff={selectedStaff}
+        onStaffUpdated={onStaffUpdated}
       />
     </div>
   );

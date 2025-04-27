@@ -2,45 +2,39 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
-import { UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardShell from "@/components/ui/dashboard-shell";
-import { StaffTable } from "@/components/admin/staff/StaffTable";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole } from "@/context/auth/types";
+import { StaffTable } from "@/components/admin/staff/StaffTable";
+import { AddStaffDialog } from "@/components/admin/staff/AddStaffDialog";
+import { StaffMember } from "@/types";
+import { Shield } from "lucide-react";
 
 const StaffManagement = () => {
-  const { user, createStaffAccount } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [isCreating, setIsCreating] = useState(false);
-  const [staffMembers, setStaffMembers] = useState<any[]>([]);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const [newStaff, setNewStaff] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "staff" as UserRole
-  });
-
   const fetchStaffMembers = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('id, name, email, role, created_at, can_manage_rooms, can_manage_staff')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setStaffMembers(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching staff members:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch staff members",
+        description: error.message || "Failed to fetch staff members",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -59,134 +53,40 @@ const StaffManagement = () => {
     );
   }
 
-  const handleCreateStaff = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-
-    try {
-      await createStaffAccount(
-        newStaff.name,
-        newStaff.email,
-        newStaff.password,
-        newStaff.role,
-        user.hotelId
-      );
-      
-      toast({
-        title: "Staff account created",
-        description: `${newStaff.name} has been added as ${newStaff.role}.`,
-      });
-      
-      setNewStaff({
-        name: "",
-        email: "",
-        password: "",
-        role: "staff"
-      });
-
-      // Refresh the staff list
-      fetchStaffMembers();
-    } catch (error) {
-      toast({
-        title: "Failed to create account",
-        description: "There was an error creating the staff account.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
   return (
     <DashboardShell>
       <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Staff Management</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold flex items-center">
+            <Shield className="mr-2 h-6 w-6 text-primary" />
+            Staff Management
+          </h1>
+          <AddStaffDialog onStaffAdded={fetchStaffMembers} />
         </div>
 
-        <Card className="mb-6">
+        <Card>
           <CardHeader>
-            <CardTitle>Current Staff Members</CardTitle>
+            <CardTitle>Staff Members</CardTitle>
             <CardDescription>
-              View and manage your hotel staff members
+              Manage your hotel staff members and their permissions
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <StaffTable 
-              staffMembers={staffMembers} 
-              onStaffUpdated={fetchStaffMembers}
-            />
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : staffMembers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No staff members found. Use the "Add Staff Member" button to create your first staff account.
+              </div>
+            ) : (
+              <StaffTable 
+                staffMembers={staffMembers} 
+                onStaffUpdated={fetchStaffMembers}
+              />
+            )}
           </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Add New Staff Member</CardTitle>
-            <CardDescription>
-              Create a new staff account for your hotel
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleCreateStaff}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={newStaff.name}
-                  onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newStaff.email}
-                  onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={newStaff.password}
-                  onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <select
-                  id="role"
-                  className="w-full p-2 border rounded-md"
-                  value={newStaff.role}
-                  onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value as UserRole })}
-                >
-                  <option value="staff">Staff Member</option>
-                  <option value="admin">Administrator</option>
-                </select>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isCreating}>
-                {isCreating ? (
-                  "Creating Account..."
-                ) : (
-                  <>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Create Account
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </form>
         </Card>
       </div>
     </DashboardShell>

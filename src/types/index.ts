@@ -1,4 +1,3 @@
-
 // User related types
 export interface User {
   id: string;
@@ -16,6 +15,8 @@ export interface StaffMember {
   email: string;
   role: "admin" | "staff";
   created_at?: string;
+  can_manage_rooms?: boolean;
+  can_manage_staff?: boolean;
 }
 
 // Room related types

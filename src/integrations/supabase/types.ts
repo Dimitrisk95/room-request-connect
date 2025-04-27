@@ -151,8 +151,52 @@ export type Database = {
           },
         ]
       }
+      user_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          modified_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          modified_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          modified_by?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_audit_log_modified_by_fkey"
+            columns: ["modified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
+          can_manage_rooms: boolean | null
+          can_manage_staff: boolean | null
           created_at: string | null
           email: string
           hotel_id: string | null
@@ -164,6 +208,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          can_manage_rooms?: boolean | null
+          can_manage_staff?: boolean | null
           created_at?: string | null
           email: string
           hotel_id?: string | null
@@ -175,6 +221,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          can_manage_rooms?: boolean | null
+          can_manage_staff?: boolean | null
           created_at?: string | null
           email?: string
           hotel_id?: string | null
