@@ -30,6 +30,7 @@ const HotelRoomManagement = () => {
     roomTypes,
   } = useHotelRooms();
 
+  // Check if the user has access to a hotel
   if (!user?.hotelId) {
     return (
       <Card>
@@ -42,6 +43,9 @@ const HotelRoomManagement = () => {
       </Card>
     );
   }
+
+  // Additional permissions check for room creation
+  const canCreateRooms = user?.role === "admin" || user?.role === "staff";
 
   return (
     <Card className="w-full">
@@ -58,10 +62,12 @@ const HotelRoomManagement = () => {
             roomTypes={roomTypes}
           />
           
-          <Button onClick={handleAddRoomClick}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Room
-          </Button>
+          {canCreateRooms && (
+            <Button onClick={handleAddRoomClick}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Room
+            </Button>
+          )}
         </div>
         
         <RoomsTable 
