@@ -16,6 +16,7 @@ import GuestView from "./pages/GuestView";
 import StaffView from "./pages/StaffView";
 import StaffManagement from "./pages/StaffManagement";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminSetup from "./pages/AdminSetup";
 import Requests from "./pages/Requests";
 import RequestDetails from "./pages/RequestDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -37,6 +38,7 @@ const App = () => (
             
             {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/setup" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSetup /></ProtectedRoute>} />
             <Route path="/rooms" element={<ProtectedRoute><RoomManagement /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/staff" element={<ProtectedRoute><StaffView /></ProtectedRoute>} />

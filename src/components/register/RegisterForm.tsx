@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +45,7 @@ export function RegisterForm() {
         title: "Registration successful",
         description: "Your admin account has been created. You can now log in.",
       });
-      navigate("/login?mode=staff");
+      navigate("/login?mode=staff&newAdmin=true");
     } catch (error: any) {
       console.error("Registration error:", error);
       

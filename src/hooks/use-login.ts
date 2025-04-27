@@ -1,7 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "./use-toast";
 
 export type LoginCredentials = {
@@ -20,9 +20,21 @@ export type LoginErrorType = string | null;
 export const useLogin = () => {
   const { login, loginAsGuest, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<LoginErrorType>(null);
+  const isNewAdmin = searchParams.get('newAdmin') === 'true';
+  
+  // Show a welcome message for new admins
+  useEffect(() => {
+    if (isNewAdmin) {
+      toast({
+        title: "Welcome to Hotel Connect!",
+        description: "Please log in to set up your hotel.",
+      });
+    }
+  }, [isNewAdmin, toast]);
 
   const handleStaffLogin = async (credentials: LoginCredentials) => {
     setIsLoading(true);
@@ -31,12 +43,18 @@ export const useLogin = () => {
     try {
       console.log("Attempting staff login for:", credentials.email);
       localStorage.setItem("selectedHotel", credentials.hotelCode);
-      await login(
+      const loggedInUser = await login(
         credentials.email,
         credentials.password,
         credentials.hotelCode
       );
-      navigate("/dashboard");
+      
+      // If user is admin and has no hotel, redirect to setup
+      if (loggedInUser.role === "admin" && !loggedInUser.hotelId) {
+        navigate("/setup");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error("Staff login error:", error);
       let errorMessage = "Invalid credentials. Please try again.";
