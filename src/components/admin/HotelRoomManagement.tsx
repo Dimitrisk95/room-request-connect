@@ -1,6 +1,8 @@
 
 import { useAuth } from "@/context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import RoomAddDialog from "./RoomAddDialog";
 import RoomsTable from "./RoomsTable";
 import { useHotelRooms } from "@/hooks/useHotelRooms";
@@ -45,16 +47,22 @@ const HotelRoomManagement = () => {
     <Card className="w-full">
       <RoomManagementHeader />
       <CardContent>
-        <RoomFilterBar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          filterType={filterType}
-          onFilterTypeChange={setFilterType}
-          filterStatus={filterStatus}
-          onFilterStatusChange={setFilterStatus}
-          onAddClick={handleAddRoomClick}
-          roomTypes={roomTypes}
-        />
+        <div className="flex justify-between items-center mb-6">
+          <RoomFilterBar
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filterType={filterType}
+            onFilterTypeChange={setFilterType}
+            filterStatus={filterStatus}
+            onFilterStatusChange={setFilterStatus}
+            roomTypes={roomTypes}
+          />
+          
+          <Button onClick={handleAddRoomClick}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Room
+          </Button>
+        </div>
         
         <RoomsTable 
           rooms={rooms} 

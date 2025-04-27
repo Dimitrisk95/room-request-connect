@@ -1,8 +1,6 @@
 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
 
 interface RoomFilterBarProps {
   searchTerm: string;
@@ -11,7 +9,7 @@ interface RoomFilterBarProps {
   onFilterTypeChange: (value: string) => void;
   filterStatus: string;
   onFilterStatusChange: (value: string) => void;
-  onAddClick: () => void;
+  onAddClick?: () => void;  // Make this optional since we're not using it
   roomTypes: string[];
 }
 
