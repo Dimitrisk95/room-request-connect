@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
@@ -24,7 +23,6 @@ const HotelRoomManagement = () => {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  // Fetch rooms for the current hotel
   const fetchRooms = async () => {
     if (!user?.hotelId) {
       setRooms([]);
@@ -78,7 +76,6 @@ const HotelRoomManagement = () => {
     setShowAddDialog(true);
   };
 
-  // Filter rooms based on search term, room type and status
   const filteredRooms = rooms.filter(room => {
     const matchesSearch = room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          room.type.toLowerCase().includes(searchTerm.toLowerCase());
