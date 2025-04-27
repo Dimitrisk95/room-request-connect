@@ -36,6 +36,74 @@ export type Database = {
         }
         Relationships: []
       }
+      requests: {
+        Row: {
+          assigned_to: string | null
+          assigned_to_name: string | null
+          category: string
+          created_at: string | null
+          description: string
+          guest_name: string
+          hotel_id: string | null
+          id: string
+          notes: string[] | null
+          priority: string
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_by_name: string | null
+          room_number: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          assigned_to_name?: string | null
+          category: string
+          created_at?: string | null
+          description: string
+          guest_name: string
+          hotel_id?: string | null
+          id?: string
+          notes?: string[] | null
+          priority: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_by_name?: string | null
+          room_number: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          assigned_to_name?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string
+          guest_name?: string
+          hotel_id?: string | null
+          id?: string
+          notes?: string[] | null
+          priority?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_by_name?: string | null
+          room_number?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           bed_type: string | null
@@ -141,6 +209,44 @@ export type Database = {
           user_hotel_id?: string
         }
         Returns: Json
+      }
+      create_request: {
+        Args: {
+          request_id: string
+          guest_name: string
+          room_number: string
+          request_title: string
+          request_description: string
+          request_category: string
+          request_priority: string
+          request_status: string
+          hotel_id: string
+          created_at: string
+          updated_at: string
+        }
+        Returns: Json
+      }
+      get_hotel_requests: {
+        Args: { hotel_id_param: string }
+        Returns: {
+          assigned_to: string | null
+          assigned_to_name: string | null
+          category: string
+          created_at: string | null
+          description: string
+          guest_name: string
+          hotel_id: string | null
+          id: string
+          notes: string[] | null
+          priority: string
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_by_name: string | null
+          room_number: string
+          status: string
+          title: string
+          updated_at: string | null
+        }[]
       }
     }
     Enums: {

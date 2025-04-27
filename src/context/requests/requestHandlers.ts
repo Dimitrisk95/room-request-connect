@@ -49,40 +49,36 @@ export const createRequest = async (requestData: {
     hotelId: requestData.hotelId
   };
   
-  try {
-    // Use a SQL query to insert directly to avoid type errors with .from('requests')
-    const { data, error } = await supabase.rpc('create_request', {
-      request_id: newRequest.id,
-      guest_name: newRequest.guestName,
-      room_number: newRequest.roomNumber,
-      request_title: newRequest.title,
-      request_description: newRequest.description,
-      request_category: newRequest.category,
-      request_priority: newRequest.priority,
-      request_status: newRequest.status,
-      hotel_id: newRequest.hotelId,
-      created_at: newRequest.createdAt,
-      updated_at: newRequest.updatedAt
-    });
+  const { data, error } = await supabase.from('requests').insert([{
+    id: newRequest.id,
+    guest_name: newRequest.guestName,
+    room_number: newRequest.roomNumber,
+    title: newRequest.title,
+    description: newRequest.description,
+    category: newRequest.category,
+    priority: newRequest.priority,
+    status: newRequest.status,
+    hotel_id: newRequest.hotelId,
+    created_at: newRequest.createdAt,
+    updated_at: newRequest.updatedAt
+  }]).select().single();
 
-    if (error) {
-      throw error;
-    }
-
-    return newRequest;
-  } catch (error) {
+  if (error) {
     console.error("Error creating request:", error);
     throw error;
   }
+
+  return newRequest;
 };
 
 // Fetch requests
 export const fetchRequests = async (hotelId: string): Promise<Request[]> => {
   try {
-    // Use a SQL query to fetch requests directly to avoid type errors with .from('requests')
-    const { data, error } = await supabase.rpc('get_hotel_requests', {
-      hotel_id_param: hotelId
-    });
+    const { data, error } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('hotel_id', hotelId)
+      .order('created_at', { ascending: false });
 
     if (error) {
       throw error;
@@ -92,15 +88,15 @@ export const fetchRequests = async (hotelId: string): Promise<Request[]> => {
       return [];
     }
 
-    return data.map((req: any) => ({
+    return data.map(req => ({
       id: req.id,
       guestName: req.guest_name,
       roomNumber: req.room_number,
       title: req.title,
       description: req.description,
-      category: req.category,
-      priority: req.priority,
-      status: req.status,
+      category: req.category as RequestCategory,
+      priority: req.priority as RequestPriority,
+      status: req.status as RequestStatus,
       createdAt: req.created_at,
       updatedAt: req.updated_at,
       assignedTo: req.assigned_to,

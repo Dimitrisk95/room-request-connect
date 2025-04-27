@@ -34,7 +34,7 @@ export const useRoomManagement = () => {
         roomNumber: room.room_number,
         type: room.type,
         status: room.status as "vacant" | "occupied" | "maintenance" | "cleaning",
-        bedType: room.bed_type,
+        bedType: room.bed_type as "single" | "double" | "queen" | "king" | "twin" | "suite",
         floor: room.floor,
         capacity: room.capacity,
         hotelId: room.hotel_id
@@ -85,6 +85,6 @@ export const useRoomManagement = () => {
     setShowAddReservation,
     filterRooms,
     getStatusColor,
-    fetchRooms, // Add this to allow manual refresh
+    fetchRooms,
   };
 };
