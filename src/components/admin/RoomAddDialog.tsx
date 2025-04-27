@@ -13,13 +13,14 @@ import { MultipleRoomsForm } from "./room-dialog/MultipleRoomsForm";
 
 interface RoomAddDialogProps {
   open: boolean;
-  setOpen: (open: boolean) => void;
-  onRoomAdded: () => void;
+  onOpenChange: (open: boolean) => void;
+  onRoomAdded?: () => void;
+  onRoomsAdded?: (count: number) => void;
   editingRoom?: Room | null;
   onEditComplete?: () => void;
 }
 
-export const RoomAddDialog = ({ open, setOpen, onRoomAdded, editingRoom, onEditComplete }: RoomAddDialogProps) => {
+export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, editingRoom, onEditComplete }: RoomAddDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,8 +74,9 @@ export const RoomAddDialog = ({ open, setOpen, onRoomAdded, editingRoom, onEditC
         });
       }
 
-      setOpen(false);
-      onRoomAdded();
+      onOpenChange(false);
+      if (onRoomAdded) onRoomAdded();
+      if (onRoomsAdded) onRoomsAdded(1);
       if (editingRoom && onEditComplete) {
         onEditComplete();
       }
@@ -125,8 +127,9 @@ export const RoomAddDialog = ({ open, setOpen, onRoomAdded, editingRoom, onEditC
         description: `${numbers.length} rooms have been added.`,
       });
 
-      setOpen(false);
-      onRoomAdded();
+      onOpenChange(false);
+      if (onRoomAdded) onRoomAdded();
+      if (onRoomsAdded) onRoomsAdded(numbers.length);
     } catch (error) {
       console.error("Error saving rooms:", error);
       toast({
@@ -140,7 +143,7 @@ export const RoomAddDialog = ({ open, setOpen, onRoomAdded, editingRoom, onEditC
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />

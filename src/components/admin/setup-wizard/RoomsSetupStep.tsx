@@ -106,9 +106,9 @@ const RoomsSetupStep: React.FC<RoomsSetupStepProps> = ({
 
       {user?.hotelId && (
         <RoomAddDialog 
-          isOpen={isDialogOpen} 
-          onClose={() => setIsDialogOpen(false)}
-          onRoomsAdded={handleRoomsAdded}
+          open={isDialogOpen} 
+          onOpenChange={setIsDialogOpen}
+          onRoomAdded={handleRoomsAdded}
         />
       )}
     </div>
