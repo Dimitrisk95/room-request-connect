@@ -67,11 +67,6 @@ export const RoomFilterBar = ({
             </SelectContent>
           </Select>
         </div>
-        
-        <Button onClick={onAddClick}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Rooms
-        </Button>
       </div>
     </div>
   );
