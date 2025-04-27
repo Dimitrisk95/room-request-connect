@@ -7,6 +7,7 @@ import RoomSearch from "@/components/rooms/RoomSearch";
 import RoomStatusTabs from "@/components/rooms/RoomStatusTabs";
 import { Reservation } from "@/types";
 import { useState, useEffect } from "react";
+import { RoomManagementHeader } from "@/components/admin/rooms/RoomManagementHeader";
 
 const RoomManagement = () => {
   const {
@@ -32,6 +33,8 @@ const RoomManagement = () => {
   return (
     <DashboardShell>
       <div className="space-y-6">
+        <RoomManagementHeader />
+        
         <RoomSearch
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}

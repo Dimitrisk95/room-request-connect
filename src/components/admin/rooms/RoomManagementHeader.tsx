@@ -1,19 +1,25 @@
 
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Bed } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context";
 
 export const RoomManagementHeader = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   return (
-    <CardHeader>
-      <CardTitle className="flex items-center">
-        <Bed className="mr-2 h-5 w-5" />
-        Hotel Room Management
-      </CardTitle>
-      <CardDescription>
-        Manage the rooms in your hotel
-      </CardDescription>
-    </CardHeader>
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-bold tracking-tight">Room Management</h2>
+      {user?.role === "admin" && (
+        <Button 
+          variant="outline"
+          onClick={() => navigate("/admin/rooms")}
+        >
+          <Settings className="mr-2 h-4 w-4" />
+          Edit Rooms
+        </Button>
+      )}
+    </div>
   );
 };
-
-export default RoomManagementHeader;
