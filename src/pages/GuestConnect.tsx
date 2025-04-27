@@ -19,7 +19,7 @@ const GuestConnect = () => {
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Hotel className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-primary">Room Request Connect</h1>
+              <h1 className="text-2xl font-bold text-primary">Roomlix</h1>
             </div>
             <h2 className="text-xl font-semibold tracking-tight">
               Connect to Your Room
@@ -31,20 +31,8 @@ const GuestConnect = () => {
 
           <GuestHotelConnectForm
             isLoading={isLoading}
-            onConnect={handleGuestLogin}
+            onConnect={(hotelCode, roomCode) => handleGuestLogin({ hotelCode, roomCode })}
           />
-          
-          <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Are you hotel staff?{" "}
-              <button
-                onClick={() => navigate("/login")}
-                className="text-primary underline hover:text-primary/90"
-              >
-                Login here
-              </button>
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -52,3 +40,4 @@ const GuestConnect = () => {
 };
 
 export default GuestConnect;
+

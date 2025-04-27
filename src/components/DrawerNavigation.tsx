@@ -19,14 +19,14 @@ export default function DrawerNavigation() {
     {
       label: "Guest Access",
       icon: <User className="mr-2" />,
-      route: "/login?mode=guest",
-      active: location.pathname === "/login" && location.search.includes("mode=guest")
+      route: "/connect",
+      active: location.pathname === "/connect"
     },
     {
       label: "Staff Login",
       icon: <LogIn className="mr-2" />,
-      route: "/login?mode=staff",
-      active: location.pathname === "/login" && location.search.includes("mode=staff")
+      route: "/login",
+      active: location.pathname === "/login"
     },
     {
       label: "Hotel Info",
@@ -41,7 +41,7 @@ export default function DrawerNavigation() {
       <DrawerTrigger asChild>
         <Button
           variant="outline"
-          className="fixed left-4 top-4 z-50" // Removed md:hidden to show on all screen sizes
+          className="fixed left-4 top-4 z-50"
           size="icon"
           aria-label="Open navigation menu"
         >
@@ -51,7 +51,7 @@ export default function DrawerNavigation() {
       <DrawerContent className="flex flex-col gap-0 w-64 max-w-full md:w-80">
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
-            <span className="text-lg font-bold">Room Request Connect</span>
+            <span className="text-lg font-bold">Roomlix</span>
           </DrawerTitle>
           <DrawerDescription className="text-muted-foreground">
             Navigate
@@ -78,3 +78,4 @@ export default function DrawerNavigation() {
     </Drawer>
   );
 }
+

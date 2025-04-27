@@ -48,7 +48,7 @@ const Login = () => {
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Hotel className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-primary">Room Request Connect</h1>
+              <h1 className="text-2xl font-bold text-primary">Roomlix</h1>
             </div>
             <h2 className="text-xl font-semibold tracking-tight">
               Staff Login
@@ -66,27 +66,6 @@ const Login = () => {
             isLoading={isLoading}
             handleStaffLogin={handleStaffLoginSubmit}
           />
-          
-          <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Are you a guest?{" "}
-              <button
-                onClick={() => navigate("/connect")}
-                className="text-primary underline hover:text-primary/90"
-              >
-                Connect to your room
-              </button>
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Need an account?{" "}
-              <button
-                onClick={() => navigate("/register")}
-                className="text-primary underline hover:text-primary/90"
-              >
-                Register here
-              </button>
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -94,3 +73,4 @@ const Login = () => {
 };
 
 export default Login;
+

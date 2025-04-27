@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,13 +27,13 @@ const Index = () => {
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Hotel className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-primary">Room Request Connect</h1>
+          <h1 className="text-2xl font-bold text-primary">Roomlix</h1>
         </div>
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to Room Request Connect</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to Roomlix</h2>
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <Button
             size="lg"
@@ -113,12 +114,13 @@ const Index = () => {
       <div className="w-full p-6 text-center text-gray-500 text-sm border-t border-gray-100">
         <div className="mb-2">
           <Hotel className="h-5 w-5 text-primary inline-block mr-2" />
-          <span className="font-semibold text-gray-700">Room Request Connect</span>
+          <span className="font-semibold text-gray-700">Roomlix</span>
         </div>
-        © 2025 Room Request Connect - Making your stay comfortable
+        © 2025 Roomlix - Making your stay comfortable
       </div>
     </div>
   );
 };
 
 export default Index;
+
