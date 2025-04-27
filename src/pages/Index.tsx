@@ -22,7 +22,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col relative">
       <DrawerNavigation />
-      {/* Top section with logo and admin/staff login */}
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Hotel className="h-8 w-8 text-primary" />
@@ -50,7 +49,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to Roomlix</h2>
         <Button
@@ -63,7 +61,6 @@ const Index = () => {
         </Button>
       </div>
 
-      {/* Hotel owners section */}
       <div className="bg-gray-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -118,7 +115,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <div className="w-full p-6 text-center text-gray-500 text-sm border-t border-gray-100">
         <div className="mb-2">
           <Hotel className="h-5 w-5 text-primary inline-block mr-2" />

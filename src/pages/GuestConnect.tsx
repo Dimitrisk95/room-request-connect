@@ -1,8 +1,8 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Hotel } from "lucide-react";
-import DrawerNavigation from "@/components/DrawerNavigation";
+import { Hotel, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import GuestHotelConnectForm from "@/components/login/GuestHotelConnectForm";
 import { useLogin } from "@/hooks/use-login";
 
@@ -12,7 +12,14 @@ const GuestConnect = () => {
   
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      <DrawerNavigation />
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute left-4 top-4"
+        onClick={() => navigate("/")}
+      >
+        <ArrowLeft className="h-6 w-6" />
+      </Button>
       
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
         <div className="w-full max-w-md space-y-6">
@@ -40,4 +47,3 @@ const GuestConnect = () => {
 };
 
 export default GuestConnect;
-
