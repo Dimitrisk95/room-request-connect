@@ -6,7 +6,7 @@ import { useToast } from "./use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export type LoginCredentials = {
-  hotelCode: string;
+  hotelCode?: string;
   email: string;
   password: string;
 };
@@ -67,25 +67,43 @@ export const useLogin = () => {
 
     try {
       console.log("Attempting staff login for:", credentials.email);
-      localStorage.setItem("selectedHotel", credentials.hotelCode);
+      
+      // Find user's hotel by email
+      const { data: userData, error: userDataError } = await supabase
+        .from('users')
+        .select('hotel_id')
+        .eq('email', credentials.email)
+        .single();
+      
+      if (userDataError) {
+        console.error("Error finding user's hotel:", userDataError);
+        throw new Error("User not found. Please check your email or contact your administrator.");
+      }
+      
+      // Use the hotel ID from the user's profile
+      const hotelId = userData?.hotel_id;
+      if (hotelId) {
+        localStorage.setItem("selectedHotel", hotelId);
+      }
+      
       const loggedInUser = await login(
         credentials.email,
         credentials.password,
-        credentials.hotelCode
+        hotelId || ""
       );
 
-      const { data: userData, error: userDataError } = await supabase
+      const { data: userSetupData, error: userSetupError } = await supabase
         .from('users')
         .select('needs_password_setup')
         .eq('email', credentials.email)
         .single();
 
-      if (userDataError) {
-        console.error("Error checking needs_password_setup:", userDataError);
-        throw userDataError;
+      if (userSetupError) {
+        console.error("Error checking needs_password_setup:", userSetupError);
+        throw userSetupError;
       }
 
-      if (userData?.needs_password_setup) {
+      if (userSetupData?.needs_password_setup) {
         setNeedsPasswordSetup(true);
         setUserEmail(credentials.email);
         return; // Stop here, showing password setup form

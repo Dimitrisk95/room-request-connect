@@ -18,14 +18,16 @@ const Login = () => {
   } = useLogin();
 
   const [staffCredentials, setStaffCredentials] = useState({
-    hotelCode: "",
     email: "",
     password: "",
   });
 
   const handleStaffLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleStaffLogin(staffCredentials);
+    await handleStaffLogin({
+      ...staffCredentials,
+      hotelCode: "" // Pass empty string since we're removing the field
+    });
   };
 
   // Redirect if already authenticated
@@ -73,4 +75,3 @@ const Login = () => {
 };
 
 export default Login;
-

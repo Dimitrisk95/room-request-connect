@@ -16,7 +16,7 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
   const login = async (
     email: string,
     password: string,
-    hotelCode: string
+    hotelCode?: string
   ) => {
     // Sign in with email and password
     const { data, error } = await supabase.auth.signInWithPassword({

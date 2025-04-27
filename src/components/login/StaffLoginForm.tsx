@@ -7,12 +7,10 @@ import { Mail } from "lucide-react";
 
 interface StaffLoginFormProps {
   staffCredentials: {
-    hotelCode: string;
     email: string;
     password: string;
   };
   setStaffCredentials: React.Dispatch<React.SetStateAction<{
-    hotelCode: string;
     email: string;
     password: string;
   }>>;
@@ -36,22 +34,6 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
       </CardHeader>
       <form onSubmit={handleStaffLogin}>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="hotelCode">Hotel Code</Label>
-            <Input
-              id="hotelCode"
-              type="text"
-              placeholder="Enter hotel code"
-              value={staffCredentials.hotelCode}
-              onChange={(e) =>
-                setStaffCredentials({
-                  ...staffCredentials,
-                  hotelCode: e.target.value,
-                })
-              }
-              required
-            />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -82,6 +64,9 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
               }
               required
             />
+            <p className="text-xs text-muted-foreground">
+              First time login? Contact your administrator to set up your password.
+            </p>
           </div>
         </CardContent>
         <CardFooter className="mt-2">
