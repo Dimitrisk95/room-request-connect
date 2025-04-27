@@ -1,18 +1,15 @@
-
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { Hotel, UserCircle, ArrowRight, Building, Settings, Users } from "lucide-react";
 import DrawerNavigation from "@/components/DrawerNavigation";
-import AdminAccessDialog from "@/components/login/AdminAccessDialog";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If already authenticated, redirect to appropriate dashboard
     if (isAuthenticated) {
       if (user?.role === "guest") {
         navigate(`/guest/${user.roomNumber}`);
@@ -25,38 +22,36 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col relative">
       <DrawerNavigation />
-      {/* Top section with logo and login + register buttons */}
+      {/* Top section with logo */}
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Hotel className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-primary">Room Request Connect</h1>
         </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate("/login?mode=staff")}
-            className="border-primary text-primary hover:bg-primary/10"
-          >
-            Staff Login
-          </Button>
-          <AdminAccessDialog />
-        </div>
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to our Hotel Services</h2>
-        <p className="text-gray-600 max-w-md mb-8">
-          Connect to your room to make service requests, view hotel information, and enjoy your stay.
-        </p>
-        <Button
-          size="lg"
-          onClick={() => navigate("/login?mode=guest")}
-          className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-lg"
-        >
-          Connect to Your Room
-        </Button>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to Room Request Connect</h2>
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <Button
+            size="lg"
+            onClick={() => navigate("/connect")}
+            className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-lg"
+          >
+            Connect to Your Room
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate("/login")}
+            className="border-primary text-primary hover:bg-primary/10 px-8 py-6 text-lg"
+          >
+            Staff Login
+            <UserCircle className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Hotel owners section */}

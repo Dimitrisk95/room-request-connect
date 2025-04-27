@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,7 +20,8 @@ import Requests from "./pages/Requests";
 import RequestDetails from "./pages/RequestDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Settings from "./pages/Settings";
-import HotelRoomManagement from "./components/admin/HotelRoomManagement";
+import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
+import GuestConnect from "./pages/GuestConnect";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +36,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/connect" element={<GuestConnect />} />
               <Route path="/register" element={<Register />} />
               <Route path="/guest/:roomCode" element={<GuestView />} />
               
