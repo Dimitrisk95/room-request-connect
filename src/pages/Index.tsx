@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context";
 import { Hotel, UserCircle, ArrowRight, Building, Settings, Users } from "lucide-react";
 import DrawerNavigation from "@/components/DrawerNavigation";
+import AdminAccessDialog from "@/components/login/AdminAccessDialog";
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -23,36 +24,37 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col relative">
       <DrawerNavigation />
-      {/* Top section with logo */}
+      {/* Top section with logo and admin/staff login */}
       <div className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Hotel className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold text-primary">Roomlix</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <AdminAccessDialog />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate("/login")}
+            className="border-primary text-primary hover:bg-primary/10"
+          >
+            Staff Login
+            <UserCircle className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to Roomlix</h2>
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <Button
-            size="lg"
-            onClick={() => navigate("/connect")}
-            className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-lg"
-          >
-            Connect to Your Room
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => navigate("/login")}
-            className="border-primary text-primary hover:bg-primary/10 px-8 py-6 text-lg"
-          >
-            Staff Login
-            <UserCircle className="ml-2 h-5 w-5" />
-          </Button>
-        </div>
+        <Button
+          size="lg"
+          onClick={() => navigate("/connect")}
+          className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-lg"
+        >
+          Connect to Your Room
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
       </div>
 
       {/* Hotel owners section */}
@@ -123,4 +125,3 @@ const Index = () => {
 };
 
 export default Index;
-
