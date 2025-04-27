@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const HotelCreation = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [hotelName, setHotelName] = useState("");
 
@@ -21,43 +23,49 @@ const HotelCreation = () => {
 
     try {
       // Create new hotel in the hotels table
-      const { data, error } = await supabase
+      const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
         .insert([{ name: hotelName }])
         .select('id, name')
         .single();
 
-      if (error) throw error;
-
-      // If successful, update the user's hotel_id if they don't have one
-      if (user && !user.hotelId && data) {
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({ hotel_id: data.id })
-          .eq("id", user.id);
-
-        if (updateError) throw updateError;
-
-        // Update local user state with the new hotel ID
-        if (user) {
-          localStorage.setItem(
-            "user",
-            JSON.stringify({ ...user, hotelId: data.id })
-          );
+      if (hotelError) {
+        if (hotelError.code === '23505') {
+          throw new Error('A hotel with this name already exists. Please choose a different name.');
         }
+        throw hotelError;
+      }
+
+      if (!hotelData) {
+        throw new Error('Failed to create hotel');
+      }
+
+      // Update the user's hotel_id
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ hotel_id: hotelData.id })
+        .eq("id", user?.id);
+
+      if (updateError) throw updateError;
+
+      // Update local user state
+      if (user) {
+        const updatedUser = { ...user, hotelId: hotelData.id };
+        updateUser(updatedUser);
       }
 
       toast({
         title: "Hotel created successfully",
-        description: `${hotelName} has been added to your hotels.`,
+        description: `${hotelName} has been created. You can now manage your hotel settings.`,
       });
       
-      setHotelName("");
-    } catch (error) {
+      // Navigate to hotel settings
+      navigate("/admin?tab=hotel-settings");
+    } catch (error: any) {
       console.error("Error creating hotel:", error);
       toast({
         title: "Failed to create hotel",
-        description: "There was an error creating the hotel. Please try again.",
+        description: error.message || "There was an error creating the hotel. Please try again.",
         variant: "destructive",
       });
     } finally {

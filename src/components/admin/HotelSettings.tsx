@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Save } from "lucide-react";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   hotelName: z.string().min(2, {
@@ -34,37 +35,79 @@ const HotelSettings = () => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Default values would come from API in a real implementation
-  const defaultValues: FormValues = {
-    hotelName: user?.hotelId || "Your Hotel Name",
-    address: "123 Hotel Street, City, Country",
-    contactEmail: "contact@yourhotel.com",
-    contactPhone: "+1 123 456 7890",
-  };
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues,
+    defaultValues: {
+      hotelName: "",
+      address: "",
+      contactEmail: "",
+      contactPhone: "",
+    },
   });
 
+  useEffect(() => {
+    const fetchHotelData = async () => {
+      if (user?.hotelId) {
+        const { data, error } = await supabase
+          .from("hotels")
+          .select("*")
+          .eq("id", user.hotelId)
+          .single();
+
+        if (error) {
+          toast({
+            title: "Error loading hotel data",
+            description: "Failed to load hotel settings. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data) {
+          form.reset({
+            hotelName: data.name,
+            address: data.address || "",
+            contactEmail: data.contact_email || "",
+            contactPhone: data.contact_phone || "",
+          });
+        }
+      }
+    };
+
+    fetchHotelData();
+  }, [user?.hotelId]);
+
   const onSubmit = async (data: FormValues) => {
-    setIsSaving(true);
+    if (!user?.hotelId) return;
     
+    setIsSaving(true);
     try {
-      // In a real app, this would save to a database
-      console.log("Saving hotel settings:", data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const { error } = await supabase
+        .from("hotels")
+        .update({
+          name: data.hotelName,
+          address: data.address,
+          contact_email: data.contactEmail,
+          contact_phone: data.contactPhone,
+        })
+        .eq("id", user.hotelId);
+
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('A hotel with this name already exists. Please choose a different name.');
+        }
+        throw error;
+      }
+
       toast({
         title: "Settings saved",
         description: "Your hotel settings have been updated successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error saving hotel settings:", error);
       toast({
         title: "Failed to save settings",
-        description: "There was an error saving your hotel settings.",
+        description: error.message || "There was an error saving your hotel settings.",
         variant: "destructive",
       });
     } finally {
@@ -95,9 +138,6 @@ const HotelSettings = () => {
                   <FormControl>
                     <Input placeholder="Enter hotel name" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    This will be displayed throughout the application.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

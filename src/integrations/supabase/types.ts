@@ -11,16 +11,25 @@ export type Database = {
     Tables: {
       hotels: {
         Row: {
+          address: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
           id: string
           name: string
         }
         Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           id?: string
           name: string
         }
         Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           id?: string
           name?: string
