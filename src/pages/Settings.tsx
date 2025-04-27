@@ -7,6 +7,7 @@ import { User, Hotel } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileSettings from "@/components/settings/ProfileSettings";
+import AccountSettings from "@/components/settings/AccountSettings";
 import HotelSettingsForm from "@/components/settings/HotelSettingsForm";
 
 const Settings = () => {
@@ -61,15 +62,15 @@ const Settings = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground">
-            Manage your profile and hotel settings
+            Manage your account and hotel settings
           </p>
         </div>
 
-        <Tabs defaultValue="profile">
+        <Tabs defaultValue="account">
           <TabsList>
-            <TabsTrigger value="profile" className="flex items-center">
+            <TabsTrigger value="account" className="flex items-center">
               <User className="mr-2 h-4 w-4" />
-              Profile
+              Account
             </TabsTrigger>
             {isAdmin && (
               <TabsTrigger value="hotel" className="flex items-center">
@@ -79,8 +80,8 @@ const Settings = () => {
             )}
           </TabsList>
 
-          <TabsContent value="profile" className="space-y-4 mt-4">
-            <ProfileSettings user={user} />
+          <TabsContent value="account" className="space-y-4 mt-4">
+            <AccountSettings user={user} />
           </TabsContent>
 
           {isAdmin && (

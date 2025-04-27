@@ -18,38 +18,37 @@ export const StaffActionButtons = ({
   onEditClick,
   currentUserId,
 }: StaffActionButtonsProps) => {
-  // Check if the staff member is the admin (hide edit/delete for admin)
   const isAdmin = staff.role === 'admin';
   
   return (
     <div className="flex justify-end gap-2">
       {!isAdmin && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEditClick(staff)}
-        >
-          <Edit className="h-4 w-4 mr-1" />
-          Edit
-        </Button>
-      )}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPasswordReset(staff)}
-      >
-        <Key className="h-4 w-4 mr-1" />
-        Reset Password
-      </Button>
-      {!isAdmin && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDeleteClick(staff)}
-        >
-          <Trash2 className="h-4 w-4 mr-1" />
-          Delete
-        </Button>
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEditClick(staff)}
+          >
+            <Edit className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPasswordReset(staff)}
+          >
+            <Key className="h-4 w-4 mr-1" />
+            Reset Password
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDeleteClick(staff)}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete
+          </Button>
+        </>
       )}
     </div>
   );
