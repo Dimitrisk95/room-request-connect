@@ -24,52 +24,6 @@ const RoomManagement = () => {
   const [roomDetailsOpen, setRoomDetailsOpen] = useState(false);
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
-  // Get stored reservations from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem('hotel-reservations');
-    if (stored) {
-      try {
-        setReservations(JSON.parse(stored));
-      } catch (e) {
-        console.error("Failed to parse stored reservations", e);
-      }
-    }
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'hotel-reservations' && e.newValue) {
-        try {
-          setReservations(JSON.parse(e.newValue));
-        } catch (e) {
-          console.error("Failed to parse stored reservations from other page", e);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Store reservations when they change
-  useEffect(() => {
-    localStorage.setItem('hotel-reservations', JSON.stringify(reservations));
-  }, [reservations]);
-
-  const handleReservationAdded = (newReservation: Reservation) => {
-    setReservations(prev => {
-      const exists = prev.findIndex(r => r.id === newReservation.id);
-      if (exists >= 0) {
-        const updated = [...prev];
-        updated[exists] = newReservation;
-        return updated;
-      }
-      return [...prev, newReservation];
-    });
-  };
-
-  const handleReservationDeleted = (reservationId: string) => {
-    setReservations(prev => prev.filter(r => r.id !== reservationId));
-  };
-
   const handleRoomClick = (room: any) => {
     setSelectedRoom(room);
     setRoomDetailsOpen(true);
@@ -97,15 +51,19 @@ const RoomManagement = () => {
         onOpenChange={setRoomDetailsOpen}
         room={selectedRoom}
         reservations={reservations}
-        onReservationAdded={handleReservationAdded}
-        onReservationUpdated={handleReservationAdded}
-        onReservationDeleted={handleReservationDeleted}
+        onReservationAdded={(res) => setReservations([...reservations, res])}
+        onReservationUpdated={(res) => {
+          setReservations(prev => prev.map(r => r.id === res.id ? res : r));
+        }}
+        onReservationDeleted={(id) => {
+          setReservations(prev => prev.filter(r => r.id !== id));
+        }}
       />
 
       <AddReservationDialog
         open={showAddReservation}
         onOpenChange={setShowAddReservation}
-        onReservationAdded={handleReservationAdded}
+        onReservationAdded={(res) => setReservations([...reservations, res])}
       />
     </DashboardShell>
   );

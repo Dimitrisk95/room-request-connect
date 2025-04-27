@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
-import { mockRequests, Request } from "@/context/requests/requestHandlers"; 
+import { fetchRequests, Request } from "@/context/requests/requestHandlers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,14 +18,36 @@ import { RequestStatus } from "@/types";
 const RequestsTable = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [requests, setRequests] = useState<Request[]>([...mockRequests]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isStaffView, setIsStaffView] = useState(true);
 
   useEffect(() => {
-    // In a real app, this would fetch data from an API
-    setRequests([...mockRequests]);
+    if (user?.hotelId) {
+      loadRequests();
+    }
+  }, [user?.hotelId]);
+
+  useEffect(() => {
     setIsStaffView(user?.role === "admin" || user?.role === "staff");
   }, [user]);
+
+  const loadRequests = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedRequests = await fetchRequests(user?.hotelId || '');
+      setRequests(fetchedRequests);
+    } catch (error) {
+      console.error('Error loading requests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load requests. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleStatusChange = (requestId: string, newStatus: RequestStatus) => {
     // Create a new array with the updated request
@@ -36,15 +57,6 @@ const RequestsTable = () => {
     
     // Update the local state
     setRequests(updatedRequests);
-    
-    // Also update the mock data (with a new array to avoid mutation)
-    const updatedMockRequests = mockRequests.map(req => 
-      req.id === requestId ? {...req, status: newStatus} : req
-    );
-    
-    // Since we can't reassign the imported mockRequests, update it by modifying its contents
-    mockRequests.length = 0;
-    mockRequests.push(...updatedMockRequests);
     
     toast({
       title: "Request Updated",
@@ -91,6 +103,22 @@ const RequestsTable = () => {
       minute: '2-digit'
     }).format(date);
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Requests</CardTitle>
+          <CardDescription>
+            Fetching the latest guest requests...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p>Loading...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (requests.length === 0) {
     return (

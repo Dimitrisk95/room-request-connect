@@ -1,28 +1,58 @@
-
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Calendar, Hotel, User, CheckCircle, AlertCircle } from "lucide-react";
-import { mockRequests, mockRooms, mockReservations } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context";
 
 const Dashboard = () => {
-  // Filter data for dashboard stats
-  const occupiedRooms = mockRooms.filter(room => room.status === "occupied");
-  const pendingRequests = mockRequests.filter(request => request.status === "pending");
-  const todayCheckIns = mockReservations.filter(reservation => {
-    return reservation.checkIn === new Date().toISOString().split('T')[0] && 
-           reservation.status === "confirmed";
-  });
-  const todayCheckOuts = mockReservations.filter(reservation => {
-    return reservation.checkOut === new Date().toISOString().split('T')[0] && 
-           reservation.status === "checked-in";
-  });
+  const { user } = useAuth();
+  const [occupiedRooms, setOccupiedRooms] = useState<number>(0);
+  const [totalRooms, setTotalRooms] = useState<number>(0);
+  const [pendingRequests, setTotalPendingRequests] = useState<number>(0);
+  const [todayCheckIns, setTodayCheckIns] = useState<number>(0);
+  const [todayCheckOuts, setTodayCheckOuts] = useState<number>(0);
+  const [urgentRequests, setUrgentRequests] = useState<number>(0);
 
-  // Get urgent requests
-  const urgentRequests = mockRequests.filter(
-    req => req.priority === "urgent" && ["pending", "in-progress"].includes(req.status)
-  );
+  useEffect(() => {
+    if (user?.hotelId) {
+      fetchDashboardData();
+    }
+  }, [user?.hotelId]);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch rooms data
+      const { data: roomsData } = await supabase
+        .from('rooms')
+        .select('status')
+        .eq('hotel_id', user?.hotelId);
+
+      if (roomsData) {
+        setTotalRooms(roomsData.length);
+        setOccupiedRooms(roomsData.filter(room => room.status === 'occupied').length);
+      }
+
+      // Fetch requests data
+      const { data: requestsData } = await supabase
+        .from('requests')
+        .select('*')
+        .eq('hotel_id', user?.hotelId);
+
+      if (requestsData) {
+        setTotalPendingRequests(requestsData.filter(req => req.status === 'pending').length);
+        setUrgentRequests(requestsData.filter(req => 
+          req.priority === 'urgent' && ['pending', 'in-progress'].includes(req.status)
+        ).length);
+      }
+
+      // Add more data fetching as needed for check-ins and check-outs
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
 
   return (
     <DashboardShell>
@@ -44,9 +74,9 @@ const Dashboard = () => {
               <Hotel className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{occupiedRooms.length}/{mockRooms.length}</div>
+              <div className="text-2xl font-bold">{occupiedRooms}/{totalRooms}</div>
               <p className="text-xs text-muted-foreground">
-                {Math.round((occupiedRooms.length / mockRooms.length) * 100)}% occupancy rate
+                {Math.round((occupiedRooms / totalRooms) * 100)}% occupancy rate
               </p>
             </CardContent>
           </Card>
@@ -59,9 +89,9 @@ const Dashboard = () => {
               <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingRequests.length}</div>
+              <div className="text-2xl font-bold">{pendingRequests}</div>
               <p className="text-xs text-muted-foreground">
-                {urgentRequests.length} urgent requests
+                {urgentRequests} urgent requests
               </p>
             </CardContent>
           </Card>
@@ -74,7 +104,7 @@ const Dashboard = () => {
               <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{todayCheckIns.length}</div>
+              <div className="text-2xl font-bold">{todayCheckIns}</div>
               <p className="text-xs text-muted-foreground">
                 Expected today
               </p>
@@ -89,7 +119,7 @@ const Dashboard = () => {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{todayCheckOuts.length}</div>
+              <div className="text-2xl font-bold">{todayCheckOuts}</div>
               <p className="text-xs text-muted-foreground">
                 Departing today
               </p>
