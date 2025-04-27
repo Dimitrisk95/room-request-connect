@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserPlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) => {
   const { createStaffAccount, user } = useAuth();
@@ -26,7 +27,6 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
     role: "staff" as "admin" | "staff",
     can_manage_rooms: false,
     can_manage_staff: false,
@@ -37,42 +37,43 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
     setIsSubmitting(true);
     
     try {
+      // Generate a temporary random password (user won't need to know this)
+      const tempPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+      
       await createStaffAccount(
         formData.name,
         formData.email,
-        formData.password,
+        tempPassword,
         formData.role,
         user?.hotelId
       );
       
-      // Update the privileges in a separate call since createStaffAccount doesn't support them directly
-      if (formData.can_manage_rooms || formData.can_manage_staff) {
-        const { data: newStaff } = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', formData.email)
-          .single();
+      // Update the user to mark it as needing password setup
+      const { data: newStaff } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', formData.email)
+        .single();
           
-        if (newStaff) {
-          await supabase
-            .from('users')
-            .update({
-              can_manage_rooms: formData.can_manage_rooms,
-              can_manage_staff: formData.can_manage_staff
-            })
-            .eq('id', newStaff.id);
-        }
+      if (newStaff) {
+        await supabase
+          .from('users')
+          .update({
+            can_manage_rooms: formData.can_manage_rooms,
+            can_manage_staff: formData.can_manage_staff,
+            needs_password_setup: true
+          })
+          .eq('id', newStaff.id);
       }
       
       toast({
         title: "Staff account created",
-        description: `${formData.name} has been added successfully.`,
+        description: `${formData.name} has been added successfully. They will need to set up their password on first login.`,
       });
       
       setFormData({
         name: "",
         email: "",
-        password: "",
         role: "staff",
         can_manage_rooms: false,
         can_manage_staff: false,
@@ -103,7 +104,7 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
         <DialogHeader>
           <DialogTitle>Add New Staff Member</DialogTitle>
           <DialogDescription>
-            Create a new account for a staff member. They will receive login credentials.
+            Create a new account for a staff member. They will receive an email to set up their password.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -132,21 +133,6 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    minLength={8}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Password must be at least 8 characters.
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
                   <select
                     id="role"
@@ -157,6 +143,9 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
                     <option value="staff">Staff Member</option>
                     <option value="admin">Administrator</option>
                   </select>
+                  <p className="text-xs text-muted-foreground">
+                    Staff members will be prompted to set up their password on their first login.
+                  </p>
                 </div>
               </div>
               
@@ -198,5 +187,3 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
     </Dialog>
   );
 };
-
-import { supabase } from "@/integrations/supabase/client";

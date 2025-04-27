@@ -11,6 +11,7 @@ import LoginHeader from "@/components/login/LoginHeader";
 import LoginError from "@/components/login/LoginError";
 import StaffLoginForm from "@/components/login/StaffLoginForm";
 import LoginModeToggle from "@/components/login/LoginModeToggle";
+import PasswordSetupForm from "@/components/login/PasswordSetupForm";
 
 const Login = () => {
   const {
@@ -20,7 +21,10 @@ const Login = () => {
     handleGuestLogin,
     resetLoginError,
     isAuthenticated,
-    user
+    user,
+    needsPasswordSetup,
+    userEmail,
+    handlePasswordSetupComplete
   } = useLogin();
   const { mode, switchMode } = useLoginMode();
   const navigate = useNavigate();
@@ -33,7 +37,7 @@ const Login = () => {
   });
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !needsPasswordSetup) {
       console.log("User already authenticated, redirecting");
       if (user?.role === "guest") {
         navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
@@ -41,7 +45,7 @@ const Login = () => {
         navigate("/dashboard");
       }
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, needsPasswordSetup, user, navigate]);
 
   const handleCombinedGuestConnect = async (hotelCode: string, roomCode: string) => {
     await handleGuestLogin({ hotelCode, roomCode });
@@ -51,6 +55,23 @@ const Login = () => {
     e.preventDefault();
     await handleStaffLogin(staffCredentials);
   };
+
+  // If the user needs to set up their password, show the password setup form
+  if (needsPasswordSetup) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-full max-w-md px-4">
+          <LoginHeader />
+          <div className="mt-6">
+            <PasswordSetupForm 
+              email={userEmail} 
+              onComplete={handlePasswordSetupComplete}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background relative">

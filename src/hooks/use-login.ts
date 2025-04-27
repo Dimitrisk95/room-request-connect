@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "./use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export type LoginCredentials = {
   hotelCode: string;
@@ -24,6 +25,8 @@ export const useLogin = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<LoginErrorType>(null);
+  const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const isNewAdmin = searchParams.get('newAdmin') === 'true';
   
   // Show a welcome message for new admins
@@ -48,6 +51,21 @@ export const useLogin = () => {
         credentials.password,
         credentials.hotelCode
       );
+
+      // Check if the user needs to set up their password
+      const { data: userData, error: userDataError } = await supabase
+        .from('users')
+        .select('needs_password_setup')
+        .eq('email', credentials.email)
+        .single();
+
+      if (userDataError) {
+        console.error("Error checking needs_password_setup:", userDataError);
+      } else if (userData?.needs_password_setup) {
+        setNeedsPasswordSetup(true);
+        setUserEmail(credentials.email);
+        return; // Stop here, showing password setup form
+      }
       
       // If user is admin and has no hotel, redirect to setup
       if (loggedInUser.role === "admin" && !loggedInUser.hotelId) {
@@ -106,6 +124,15 @@ export const useLogin = () => {
     }
   };
 
+  const handlePasswordSetupComplete = () => {
+    setNeedsPasswordSetup(false);
+    navigate("/dashboard");
+    toast({
+      title: "Welcome to Hotel Connect",
+      description: "Your password has been set successfully.",
+    });
+  };
+
   const resetLoginError = () => {
     setLoginError(null);
   };
@@ -117,6 +144,9 @@ export const useLogin = () => {
     handleGuestLogin,
     resetLoginError,
     isAuthenticated,
-    user
+    user,
+    needsPasswordSetup,
+    userEmail,
+    handlePasswordSetupComplete
   };
 };

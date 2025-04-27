@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { StaffMember } from "@/types";
-import { Key, Trash2, Edit } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
 
 interface StaffActionButtonsProps {
   staff: StaffMember;
@@ -31,14 +31,6 @@ export const StaffActionButtons = ({
           >
             <Edit className="h-4 w-4 mr-1" />
             Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPasswordReset(staff)}
-          >
-            <Key className="h-4 w-4 mr-1" />
-            Reset Password
           </Button>
           <Button
             variant="outline"
