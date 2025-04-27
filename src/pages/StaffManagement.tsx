@@ -25,7 +25,9 @@ const StaffManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setStaffMembers(data || []);
+      // Filter out "guest" role users for staff management page
+      const staffData = data?.filter(user => user.role === 'admin' || user.role === 'staff') || [];
+      setStaffMembers(staffData as StaffMember[]);
     } catch (error: any) {
       console.error('Error fetching staff members:', error);
       toast({
