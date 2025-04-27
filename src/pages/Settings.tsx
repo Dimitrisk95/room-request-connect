@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,8 +22,8 @@ const Settings = () => {
     contactPhone: ""
   });
 
-  // Load hotel data when component mounts
-  useState(() => {
+  // Change useState to useEffect to load hotel data when component mounts
+  useEffect(() => {
     const fetchHotelData = async () => {
       if (!user?.hotelId) return;
 
