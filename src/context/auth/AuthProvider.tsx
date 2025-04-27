@@ -5,6 +5,7 @@ import { AuthContextType, User, UserRole } from "./types";
 import { createAuthHandlers } from "./authHandlers";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -141,7 +142,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser,
   });
 
-  // Add updateUser method
+  // Wrapper for logout to ensure redirect
+  const logoutWrapper = async () => {
+    try {
+      await handlers.logout();
+      // Redirect to home page after logout
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   const updateUser = (updatedUser: User) => {
     console.log("Updating user state:", updatedUser);
     setUser(updatedUser);
@@ -157,8 +168,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ) => {
     try {
       console.log("Creating staff account:", email, role);
-      // For admin accounts being created through registration,
-      // we don't require a hotelId initially - they will create one after login
       return await handlers.createStaffAccount(name, email, password, role, hotelId);
     } catch (error) {
       console.error("Staff account creation error:", error);
@@ -173,9 +182,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated,
         login: handlers.login,
         loginAsGuest: handlers.loginAsGuest,
-        logout: handlers.logout,
+        logout: logoutWrapper, // Use the wrapper that redirects
         createStaffAccount: createStaffAccountWrapper,
-        updateUser // Add updateUser to the context
+        updateUser
       }}
     >
       {!isInitializing ? children : <div>Loading...</div>}
