@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,9 +11,10 @@ import { EditStaffDialog } from "./EditStaffDialog";
 interface StaffTableProps {
   staffMembers: StaffMember[];
   onStaffUpdated: () => void;
+  currentUserId: string;
 }
 
-export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) => {
+export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: StaffTableProps) => {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -113,6 +113,7 @@ export const StaffTable = ({ staffMembers, onStaffUpdated }: StaffTableProps) =>
                     setDeleteDialogOpen(true);
                   }}
                   onEditClick={handleEditStaff}
+                  currentUserId={currentUserId}
                 />
               </TableCell>
             </TableRow>

@@ -25,7 +25,8 @@ const StaffManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      // Filter out "guest" role users for staff management page
+      
+      // Only show the admin and staff members, filter out guests
       const staffData = data?.filter(user => user.role === 'admin' || user.role === 'staff') || [];
       setStaffMembers(staffData as StaffMember[]);
     } catch (error: any) {
@@ -44,6 +45,7 @@ const StaffManagement = () => {
     fetchStaffMembers();
   }, []);
 
+  // Only admin can access this page
   if (user?.role !== "admin") {
     return (
       <DashboardShell>
@@ -86,6 +88,7 @@ const StaffManagement = () => {
               <StaffTable 
                 staffMembers={staffMembers} 
                 onStaffUpdated={fetchStaffMembers}
+                currentUserId={user?.id}
               />
             )}
           </CardContent>

@@ -8,6 +8,7 @@ interface StaffActionButtonsProps {
   onPasswordReset: (staff: StaffMember) => void;
   onDeleteClick: (staff: StaffMember) => void;
   onEditClick: (staff: StaffMember) => void;
+  currentUserId: string;
 }
 
 export const StaffActionButtons = ({
@@ -15,13 +16,14 @@ export const StaffActionButtons = ({
   onPasswordReset,
   onDeleteClick,
   onEditClick,
+  currentUserId,
 }: StaffActionButtonsProps) => {
-  // Only show edit and delete buttons for non-admin users
-  const showEditDelete = staff.role !== 'admin';
-
+  // Check if the staff member is the admin (hide edit/delete for admin)
+  const isAdmin = staff.role === 'admin';
+  
   return (
     <div className="flex justify-end gap-2">
-      {showEditDelete && (
+      {!isAdmin && (
         <Button
           variant="outline"
           size="sm"
@@ -39,7 +41,7 @@ export const StaffActionButtons = ({
         <Key className="h-4 w-4 mr-1" />
         Reset Password
       </Button>
-      {showEditDelete && (
+      {!isAdmin && (
         <Button
           variant="outline"
           size="sm"
