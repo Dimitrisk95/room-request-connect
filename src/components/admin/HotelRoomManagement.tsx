@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
@@ -43,7 +44,7 @@ const HotelRoomManagement = () => {
         roomNumber: room.room_number,
         floor: room.floor,
         type: room.type,
-        bedType: (room.bed_type as "single" | "double" | "queen" | "king" | "twin" | "suite") || "single",
+        bedType: room.bed_type as "single" | "double" | "queen" | "king" | "twin" | "suite",
         status: room.status as "vacant" | "occupied" | "maintenance" | "cleaning",
         capacity: room.capacity,
       })) || [];
