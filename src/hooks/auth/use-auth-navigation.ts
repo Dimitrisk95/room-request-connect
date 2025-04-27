@@ -14,13 +14,16 @@ export const useAuthNavigation = () => {
     if (!user) return;
 
     if (user.role === "guest") {
-      navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
+      window.location.href = `/guest/${user.hotelId}/${user.roomNumber}`;
     } else if (user.role === "admin" && !user.hotelId) {
-      navigate("/setup");
+      window.location.href = "/setup";
     } else {
-      navigate("/dashboard");
+      window.location.href = "/dashboard";
     }
-  }, [navigate]);
+    
+    // Using window.location.href instead of navigate to ensure a full page refresh
+    // This fixes the interactivity issue after first login
+  }, []);
 
   const navigateAfterLogout = useCallback(() => {
     // Hard redirect to ensure clean state

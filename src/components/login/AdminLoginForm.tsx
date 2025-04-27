@@ -64,11 +64,11 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
         description: "Successfully logged in to your admin account.",
       });
       
-      // Delay closing the dialog to show success state
-      setTimeout(() => {
-        navigate("/dashboard");
-        onSuccess();
-      }, 1000);
+      // Remove the setTimeout to fix the interactivity issue
+      // Just call navigateAfterLogin directly
+      navigate("/dashboard");
+      onSuccess();
+      
     } catch (error: any) {
       console.error("Login error:", error);
       
