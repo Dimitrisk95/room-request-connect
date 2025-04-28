@@ -30,7 +30,7 @@ const StaffManagement = () => {
         return;
       }
 
-      // Only fetch staff members for the current user's hotel
+      // Only fetch staff members for the current user's hotel, excluding admin accounts
       const { data, error } = await supabase
         .from('users')
         .select('id, name, email, role, created_at, can_manage_rooms, can_manage_staff, hotel_id')
@@ -59,19 +59,21 @@ const StaffManagement = () => {
     }
   }, [user?.hotelId]);
 
-  // Only admin can access this page
-  if (user?.role !== "admin") {
+  // Only admin or staff with staff management permission can access this page
+  const canManageStaff = user?.role === "admin" || user?.can_manage_staff;
+  
+  if (!canManageStaff) {
     return (
       <DashboardShell>
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p>Only administrators can access the staff management page.</p>
+          <p>You don't have permission to access the staff management page.</p>
         </div>
       </DashboardShell>
     );
   }
 
-  // No hotel associated with the admin
+  // No hotel associated with the account
   if (!user?.hotelId) {
     return (
       <DashboardShell>

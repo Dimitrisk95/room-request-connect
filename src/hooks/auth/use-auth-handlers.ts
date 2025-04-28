@@ -1,3 +1,4 @@
+
 import { User, UserRole } from "@/context/auth/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -54,6 +55,9 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
           email: data.user.email!,
           role: userData.role,
           hotelId: userData.hotel_id,
+          // Include permission flags
+          can_manage_rooms: userData.can_manage_rooms || false,
+          can_manage_staff: userData.can_manage_staff || false
         };
 
         updateUser(userObject);

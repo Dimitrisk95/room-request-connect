@@ -8,6 +8,9 @@ export interface User {
   role: UserRole;
   hotelId?: string;
   roomNumber?: string;
+  // Permission flags
+  can_manage_rooms?: boolean;
+  can_manage_staff?: boolean;
 }
 
 export interface AuthContextType {

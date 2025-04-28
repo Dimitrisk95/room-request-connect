@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,7 +51,7 @@ function App() {
               <Route path="/staff" element={<ProtectedRoute><StaffView /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/staff-management" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute requiresStaffManage={true}>
                   <StaffManagement />
                 </ProtectedRoute>
               } />
@@ -62,9 +63,9 @@ function App() {
               <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
               <Route path="/request/:id" element={<ProtectedRoute><RequestDetails /></ProtectedRoute>} />
               
-              {/* Catch-all route */}
+              {/* Room management route accessible to admins and staff with room manage permission */}
               <Route path="/admin/rooms" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute requiresRoomManage={true}>
                   <HotelRoomManagement />
                 </ProtectedRoute>
               } />

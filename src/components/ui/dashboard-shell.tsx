@@ -24,15 +24,18 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
     { name: "Settings", href: "/settings", icon: Settings },
   ];
   
-  // Admin-only navigation items - removed Admin Dashboard entry
-  const adminNavigation = [
-    { name: "Staff Management", href: "/staff-management", icon: User },
-  ];
+  // Admin-only and permitted staff navigation items
+  const permissionBasedNavigation = [];
   
-  // Combine navigation based on user role
-  const navigation = user?.role === "admin" 
-    ? [...baseNavigation, ...adminNavigation] 
-    : baseNavigation;
+  // Add Staff Management link for users with permission
+  if (user?.role === "admin" || user?.can_manage_staff) {
+    permissionBasedNavigation.push(
+      { name: "Staff Management", href: "/staff-management", icon: User }
+    );
+  }
+  
+  // Combine navigation based on user role and permissions
+  const navigation = [...baseNavigation, ...permissionBasedNavigation];
 
   return (
     <div className="flex h-screen overflow-hidden">

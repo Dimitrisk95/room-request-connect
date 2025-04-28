@@ -10,6 +10,7 @@ export const RoomManagementHeader = () => {
   const { user } = useAuth();
   
   const isAdminRoomsPage = location.pathname === "/admin/rooms";
+  const canManageRooms = user?.role === "admin" || user?.can_manage_rooms;
   
   return (
     <div className="flex justify-between items-center mb-6">
@@ -29,7 +30,7 @@ export const RoomManagementHeader = () => {
         </h2>
       </div>
       
-      {!isAdminRoomsPage && user?.role === "admin" && (
+      {!isAdminRoomsPage && canManageRooms && (
         <Button 
           variant="outline"
           onClick={() => navigate("/admin/rooms")}

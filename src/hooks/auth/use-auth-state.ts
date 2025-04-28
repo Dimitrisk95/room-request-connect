@@ -84,6 +84,9 @@ export const useAuthState = () => {
                   email: newSession.user!.email!,
                   role: userData.role,
                   hotelId: userData.hotel_id,
+                  // Include permission flags
+                  can_manage_rooms: userData.can_manage_rooms || false,
+                  can_manage_staff: userData.can_manage_staff || false
                 };
 
                 console.log("Setting authenticated user:", userObject.email);
@@ -137,6 +140,9 @@ export const useAuthState = () => {
                 email: data.session!.user.email!,
                 role: userData.role,
                 hotelId: userData.hotel_id,
+                // Include permission flags
+                can_manage_rooms: userData.can_manage_rooms || false,
+                can_manage_staff: userData.can_manage_staff || false
               };
 
               console.log("Found existing auth session:", userObject.email);
