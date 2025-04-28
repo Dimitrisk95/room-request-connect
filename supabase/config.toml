@@ -79,5 +79,7 @@ secret = ""
 [functions]
 [functions.delete-staff]
 verify_jwt = true
+[functions.delete-user-auth]
+verify_jwt = true
 [functions.setup-staff-deletion]
 verify_jwt = false

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -63,28 +62,54 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
     try {
       setIsProcessing(true);
       
-      // Try to use the database function (using 'as any' to bypass TypeScript check)
+      // Step 1: Try to use the database function to delete from the users table
       try {
         const { data, error: rpcError } = await supabase.rpc(
           'delete_user_and_related_data' as any, 
           { user_id_param: selectedStaff.id }
         );
         
-        if (!rpcError) {
-          toast({
-            title: "Staff member deleted",
-            description: `${selectedStaff.name} has been removed from the system.`,
-          });
-          onStaffUpdated();
-          return;
+        if (rpcError) {
+          console.error("RPC function error:", rpcError);
+          // Fall back to regular deletion
+          await manualDeletion(selectedStaff);
         }
       } catch (rpcErr) {
         console.error("RPC function error:", rpcErr);
         // Fall back to regular deletion
+        await manualDeletion(selectedStaff);
       }
       
-      // If RPC fails, fall back to the old method with manual cleanup
-      await manualDeletion(selectedStaff);
+      // Step 2: Delete the user from Supabase Auth system
+      try {
+        const { error: authDeleteError } = await supabase.functions.invoke('delete-user-auth', {
+          body: { 
+            userId: selectedStaff.id,
+            email: selectedStaff.email
+          }
+        });
+        
+        if (authDeleteError) {
+          console.error("Error deleting user from Auth:", authDeleteError);
+          // We continue anyway because the main users table is already deleted
+          // We'll just show a warning
+          toast({
+            title: "Partial deletion",
+            description: "User removed from system but may still exist in authentication database.",
+            variant: "warning",
+          });
+        }
+      } catch (authErr) {
+        console.error("Error calling delete-user-auth function:", authErr);
+        // We continue anyway as above
+      }
+      
+      toast({
+        title: "Staff member deleted",
+        description: `${selectedStaff.name} has been removed from the system.`,
+      });
+      
+      onStaffUpdated();
       
     } catch (error: any) {
       console.error("Error deleting staff:", error);
@@ -117,12 +142,7 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
         });
         
         if (!functionError) {
-          toast({
-            title: "Staff member deleted",
-            description: `${staff.name} has been removed from the system.`,
-          });
-          onStaffUpdated();
-          return;
+          return; // Success via edge function
         } else {
           throw functionError;
         }
@@ -141,13 +161,6 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
     if (error) {
       throw error;
     }
-
-    toast({
-      title: "Staff member deleted",
-      description: `${staff.name} has been removed from the system.`,
-    });
-    
-    onStaffUpdated();
   };
 
   return (
