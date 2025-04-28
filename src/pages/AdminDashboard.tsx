@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building, Shield, UserPlus, Bed } from "lucide-react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import HotelSettings from "@/components/admin/HotelSettings";
-import RoleManagement from "@/components/admin/RoleManagement";
+import RoleManagement from "@/components/admin/role-management";
 import HotelCreation from "@/components/admin/HotelCreation";
 import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
