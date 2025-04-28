@@ -18,7 +18,7 @@ export const useStaffDeletion = ({
     try {
       setIsProcessing(true);
       
-      // Step 1: Try to use the database function to delete from the users table
+      // Step 1: Delete from database first
       try {
         const { data, error: rpcError } = await supabase.rpc(
           'delete_user_and_related_data' as any, 
@@ -47,9 +47,11 @@ export const useStaffDeletion = ({
         
         if (authDeleteError) {
           console.error("Error deleting user from Auth:", authDeleteError);
+          throw authDeleteError;
         }
-      } catch (authErr) {
+      } catch (authErr: any) {
         console.error("Error calling delete-user-auth function:", authErr);
+        throw new Error(`Failed to delete user from authentication system: ${authErr.message || authErr}`);
       }
       
       onSuccess();

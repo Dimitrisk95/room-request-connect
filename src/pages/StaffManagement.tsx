@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,13 +35,12 @@ const StaffManagement = () => {
         .from('users')
         .select('id, name, email, role, created_at, can_manage_rooms, can_manage_staff, hotel_id')
         .eq('hotel_id', user.hotelId)
+        .eq('role', 'staff')  // Only fetch staff members, excluding admins
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      // Only show the admin and staff members, filter out guests
-      const staffData = data?.filter(user => user.role === 'admin' || user.role === 'staff') || [];
-      setStaffMembers(staffData as StaffMember[]);
+      setStaffMembers(data as StaffMember[]);
     } catch (error: any) {
       console.error('Error fetching staff members:', error);
       toast({
@@ -99,7 +98,7 @@ const StaffManagement = () => {
           <CardHeader>
             <CardTitle>Staff Members</CardTitle>
             <CardDescription>
-              Manage your hotel staff members and their permissions
+              Manage your staff members and their permissions
             </CardDescription>
           </CardHeader>
           <CardContent>

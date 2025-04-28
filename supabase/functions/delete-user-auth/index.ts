@@ -56,7 +56,7 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ message: "User not found in Auth system, may already be deleted" }),
           {
-            status: 404,
+            status: 200, // Not an error if already deleted
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
