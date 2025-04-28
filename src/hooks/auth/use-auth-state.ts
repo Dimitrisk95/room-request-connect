@@ -35,8 +35,15 @@ export const useAuthState = () => {
 
   // Set user and persist to localStorage
   const updateUser = (updatedUser: User) => {
-    console.log("Updating user state:", updatedUser);
-    updateAuthState({ user: updatedUser });
+    console.log("Updating user state with permissions:", {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      can_manage_rooms: updatedUser.can_manage_rooms,
+      can_manage_staff: updatedUser.can_manage_staff
+    });
+    
+    updateAuthState({ user: updatedUser, isAuthenticated: true });
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
@@ -78,6 +85,7 @@ export const useAuthState = () => {
                 .maybeSingle();
 
               if (userData) {
+                // Make sure we capture and preserve the permission flags
                 const userObject: User = {
                   id: newSession.user!.id,
                   name: userData.name,
@@ -89,7 +97,14 @@ export const useAuthState = () => {
                   can_manage_staff: userData.can_manage_staff || false
                 };
 
-                console.log("Setting authenticated user:", userObject.email);
+                console.log("Auth state change: Setting authenticated user with permissions:", {
+                  id: userObject.id,
+                  email: userObject.email,
+                  role: userObject.role,
+                  can_manage_rooms: userObject.can_manage_rooms,
+                  can_manage_staff: userObject.can_manage_staff
+                });
+
                 updateAuthState({
                   user: userObject,
                   session: newSession,
@@ -145,7 +160,14 @@ export const useAuthState = () => {
                 can_manage_staff: userData.can_manage_staff || false
               };
 
-              console.log("Found existing auth session:", userObject.email);
+              console.log("Found existing auth session with permissions:", {
+                id: userObject.id,
+                email: userObject.email,
+                role: userObject.role,
+                can_manage_rooms: userObject.can_manage_rooms,
+                can_manage_staff: userObject.can_manage_staff
+              });
+
               updateAuthState({
                 user: userObject, 
                 isAuthenticated: true

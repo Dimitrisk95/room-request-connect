@@ -1,4 +1,3 @@
-
 import { User, UserRole } from "@/context/auth/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -49,6 +48,7 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
           throw new Error("User profile not found. Please contact support.");
         }
 
+        // Ensure we correctly capture and pass the permission flags
         const userObject: User = {
           id: data.user.id,
           name: userData.name,
@@ -59,6 +59,14 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
           can_manage_rooms: userData.can_manage_rooms || false,
           can_manage_staff: userData.can_manage_staff || false
         };
+
+        console.log("User logged in with permissions:", {
+          id: userObject.id,
+          email: userObject.email,
+          role: userObject.role,
+          can_manage_rooms: userObject.can_manage_rooms,
+          can_manage_staff: userObject.can_manage_staff
+        });
 
         updateUser(userObject);
         return userObject;

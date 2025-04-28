@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
@@ -29,7 +28,6 @@ export const useLogin = () => {
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   
-  // Check if there's a showPasswordSetup state from navigation
   const locationState = location.state as { showPasswordSetup?: boolean, email?: string } | null;
   
   useEffect(() => {
@@ -52,7 +50,12 @@ export const useLogin = () => {
 
   useEffect(() => {
     if (isAuthenticated && !needsPasswordSetup) {
-      console.log("User already authenticated, redirecting");
+      console.log("User already authenticated, redirecting with permissions:", {
+        role: user?.role,
+        can_manage_rooms: user?.can_manage_rooms,
+        can_manage_staff: user?.can_manage_staff
+      });
+      
       if (user?.role === "guest") {
         navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
       } else {
@@ -71,7 +74,7 @@ export const useLogin = () => {
       // Find user's hotel by email
       const { data: userData, error: userDataError } = await supabase
         .from('users')
-        .select('hotel_id')
+        .select('hotel_id, can_manage_rooms, can_manage_staff')
         .eq('email', credentials.email)
         .single();
       
@@ -79,6 +82,8 @@ export const useLogin = () => {
         console.error("Error finding user's hotel:", userDataError);
         throw new Error("User not found. Please check your email or contact your administrator.");
       }
+      
+      console.log("Found user data:", userData);
       
       // Use the hotel ID from the user's profile
       const hotelId = userData?.hotel_id;
@@ -91,6 +96,12 @@ export const useLogin = () => {
         credentials.password,
         hotelId || ""
       );
+
+      console.log("Login successful, user permissions:", {
+        role: loggedInUser.role,
+        can_manage_rooms: loggedInUser.can_manage_rooms,
+        can_manage_staff: loggedInUser.can_manage_staff
+      });
 
       const { data: userSetupData, error: userSetupError } = await supabase
         .from('users')

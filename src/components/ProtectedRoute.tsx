@@ -19,6 +19,15 @@ const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { isAuthenticated, user } = useAuth();
 
+  console.log("ProtectedRoute - checking permissions:", {
+    isAuthenticated,
+    role: user?.role,
+    can_manage_rooms: user?.can_manage_rooms,
+    can_manage_staff: user?.can_manage_staff,
+    requiresRoomManage,
+    requiresStaffManage
+  });
+
   if (!isAuthenticated) {
     // Redirect to login if not authenticated
     return <Navigate to="/login" replace />;
@@ -34,15 +43,18 @@ const ProtectedRoute = ({
   if (user && user.role !== "admin") {
     // Check room management permission if required
     if (requiresRoomManage && !user.can_manage_rooms) {
+      console.log("Protected route: Access denied - missing room management permission");
       return <Navigate to="/dashboard" replace />;
     }
     
     // Check staff management permission if required
     if (requiresStaffManage && !user.can_manage_staff) {
+      console.log("Protected route: Access denied - missing staff management permission");
       return <Navigate to="/dashboard" replace />;
     }
   }
 
+  console.log("Protected route: Access granted");
   return <>{children}</>;
 };
 

@@ -14,6 +14,12 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   const { pathname } = useLocation();
   const { logout, user } = useAuth();
 
+  console.log("DashboardShell - user permissions:", {
+    role: user?.role,
+    can_manage_staff: user?.can_manage_staff,
+    can_manage_rooms: user?.can_manage_rooms
+  });
+
   // Basic navigation for all user roles
   const baseNavigation = [
     { name: "Dashboard", href: "/dashboard", icon: Hotel },
@@ -28,7 +34,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   const permissionBasedNavigation = [];
   
   // Add Staff Management link for users with permission
-  if (user?.role === "admin" || user?.can_manage_staff) {
+  if (user?.role === "admin" || user?.can_manage_staff === true) {
     permissionBasedNavigation.push(
       { name: "Staff Management", href: "/staff-management", icon: User }
     );

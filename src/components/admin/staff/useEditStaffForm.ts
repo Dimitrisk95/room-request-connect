@@ -22,6 +22,13 @@ export const useEditStaffForm = (
 
   useEffect(() => {
     if (staff) {
+      console.log("Editing staff member with permissions:", {
+        id: staff.id,
+        name: staff.name,
+        can_manage_rooms: staff.can_manage_rooms,
+        can_manage_staff: staff.can_manage_staff
+      });
+      
       setFormData({
         name: staff.name,
         email: staff.email,
@@ -44,6 +51,7 @@ export const useEditStaffForm = (
     field: keyof Pick<StaffMember, "can_manage_rooms" | "can_manage_staff">,
     checked: boolean
   ) => {
+    console.log(`Setting ${field} permission to:`, checked);
     setFormData({ ...formData, [field]: checked });
   };
 
@@ -55,6 +63,13 @@ export const useEditStaffForm = (
     setIsSubmitting(true);
     
     try {
+      console.log("Saving staff member with permissions:", {
+        id: staff.id, 
+        name: formData.name,
+        can_manage_rooms: formData.can_manage_rooms,
+        can_manage_staff: formData.can_manage_staff
+      });
+
       const { error } = await supabase
         .from('users')
         .update({
@@ -70,12 +85,13 @@ export const useEditStaffForm = (
       
       toast({
         title: "Staff updated",
-        description: `${formData.name}'s information has been successfully updated.`,
+        description: `${formData.name}'s information and permissions have been successfully updated.`,
       });
       
       onStaffUpdated();
       onOpenChange(false);
     } catch (error: any) {
+      console.error("Error updating staff:", error);
       toast({
         title: "Update failed",
         description: error.message || "Failed to update staff member",

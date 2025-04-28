@@ -10,7 +10,15 @@ export const RoomManagementHeader = () => {
   const { user } = useAuth();
   
   const isAdminRoomsPage = location.pathname === "/admin/rooms";
+  
+  // Updated condition to check for either admin role OR room management permission
   const canManageRooms = user?.role === "admin" || user?.can_manage_rooms;
+  
+  console.log("RoomManagementHeader - user permissions:", {
+    role: user?.role,
+    can_manage_rooms: user?.can_manage_rooms,
+    canManageRooms
+  });
   
   return (
     <div className="flex justify-between items-center mb-6">
