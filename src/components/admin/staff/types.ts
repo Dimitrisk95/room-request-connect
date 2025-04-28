@@ -1,4 +1,6 @@
 
+import { StaffMember } from "@/types";
+
 export interface StaffFormData {
   name: string;
   email: string;
@@ -25,5 +27,5 @@ export interface UseEditStaffFormReturn {
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleRoleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  handleCheckboxChange: (field: keyof Pick<StaffFormData, "can_manage_rooms" | "can_manage_staff">, checked: boolean) => void;
+  handleCheckboxChange: (field: keyof Pick<StaffMember, "can_manage_rooms" | "can_manage_staff">, checked: boolean) => void;
 }
