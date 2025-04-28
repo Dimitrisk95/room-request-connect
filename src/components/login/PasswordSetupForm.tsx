@@ -10,10 +10,11 @@ import { Loader2 } from "lucide-react";
 
 interface PasswordSetupFormProps {
   email: string;
+  isReset?: boolean; // Added isReset as an optional prop
   onComplete: () => void;
 }
 
-const PasswordSetupForm: React.FC<PasswordSetupFormProps> = ({ email, onComplete }) => {
+const PasswordSetupForm: React.FC<PasswordSetupFormProps> = ({ email, isReset = false, onComplete }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [password, setPassword] = useState("");
@@ -51,8 +52,8 @@ const PasswordSetupForm: React.FC<PasswordSetupFormProps> = ({ email, onComplete
       if (dbError) throw dbError;
       
       toast({
-        title: "Password set successfully",
-        description: "Your password has been set. You can now access the system.",
+        title: isReset ? "Password reset successfully" : "Password set successfully",
+        description: `Your password has been ${isReset ? "reset" : "set"}. You can now access the system.`,
       });
       
       onComplete();
@@ -61,8 +62,8 @@ const PasswordSetupForm: React.FC<PasswordSetupFormProps> = ({ email, onComplete
       setError(error.message || "Failed to set password. Please try again.");
       
       toast({
-        title: "Failed to set password",
-        description: error.message || "There was an error setting your password.",
+        title: isReset ? "Failed to reset password" : "Failed to set password",
+        description: error.message || `There was an error ${isReset ? "resetting" : "setting"} your password.`,
         variant: "destructive",
       });
     } finally {
@@ -73,9 +74,11 @@ const PasswordSetupForm: React.FC<PasswordSetupFormProps> = ({ email, onComplete
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Create Your Password</CardTitle>
+        <CardTitle>{isReset ? "Reset Your Password" : "Create Your Password"}</CardTitle>
         <CardDescription>
-          Please set up a secure password for your account
+          {isReset 
+            ? "Please enter a new secure password for your account" 
+            : "Please set up a secure password for your account"}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -87,7 +90,7 @@ const PasswordSetupForm: React.FC<PasswordSetupFormProps> = ({ email, onComplete
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="password">New Password</Label>
+            <Label htmlFor="password">{isReset ? "New Password" : "Password"}</Label>
             <Input
               id="password"
               type="password"
@@ -123,10 +126,10 @@ const PasswordSetupForm: React.FC<PasswordSetupFormProps> = ({ email, onComplete
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Setting Up...
+                {isReset ? "Resetting..." : "Setting Up..."}
               </>
             ) : (
-              "Set Password & Continue"
+              isReset ? "Reset Password & Continue" : "Set Password & Continue"
             )}
           </Button>
         </CardFooter>
