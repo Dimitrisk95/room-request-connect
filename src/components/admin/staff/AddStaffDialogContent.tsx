@@ -34,7 +34,7 @@ export const AddStaffDialogContent = ({
       <DialogHeader>
         <DialogTitle>Add New Staff Member</DialogTitle>
         <DialogDescription>
-          Create a new account for a staff member. They will receive an email to set up their password.
+          Create a new account for a staff member. For testing, a temporary password "password123" will be set.
         </DialogDescription>
       </DialogHeader>
       <form onSubmit={onSubmit}>
@@ -76,7 +76,7 @@ export const AddStaffDialogContent = ({
                   <option value="admin">Administrator</option>
                 </select>
                 <p className="text-xs text-muted-foreground">
-                  Staff members will be prompted to set up their password via the welcome email.
+                  For testing purposes, the password will be set to "password123"
                 </p>
               </div>
             </div>

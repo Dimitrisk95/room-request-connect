@@ -44,10 +44,10 @@ export const useStaffForm = (onStaffAdded: () => void) => {
     }
     
     try {
-      // Generate a temporary random password (user won't need to know this)
-      const tempPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+      // Generate a simple password for testing (in production, you'd want a more secure approach)
+      const tempPassword = "password123"; // Simple password for testing
       
-      await createStaffAccount(
+      const userData = await createStaffAccount(
         formData.name,
         formData.email,
         tempPassword,
@@ -55,54 +55,23 @@ export const useStaffForm = (onStaffAdded: () => void) => {
         user?.hotelId
       );
       
-      // Update the user to mark it as needing password setup and set permissions
-      const { data: newStaff } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', formData.email)
-        .single();
-          
-      if (newStaff) {
+      // Update the user to set permissions
+      if (userData) {
         await supabase
           .from('users')
           .update({
             can_manage_rooms: formData.can_manage_rooms,
             can_manage_staff: formData.can_manage_staff,
-            needs_password_setup: true,
-            hotel_id: user.hotelId // Ensure hotel_id is explicitly set
+            needs_password_setup: false, // Set to false since we're using a known password
+            hotel_id: user.hotelId
           })
-          .eq('id', newStaff.id);
+          .eq('email', formData.email);
           
-        // Get hotel name to include in welcome email
-        const { data: hotelData } = await supabase
-          .from('hotels')
-          .select('name')
-          .eq('id', user.hotelId)
-          .single();
-          
-        // Send welcome email with password setup instructions
-        const { error: emailError } = await supabase.functions.invoke('send-password-setup', {
-          body: { 
-            email: formData.email,
-            name: formData.name,
-            hotelName: hotelData?.name || ''
-          }
+        toast({
+          title: "Staff account created",
+          description: `${formData.name} has been added successfully. Test login with email: ${formData.email} and password: ${tempPassword}`,
         });
-  
-        if (emailError) {
-          console.error("Error sending password setup email:", emailError);
-          toast({
-            title: "Warning",
-            description: "Staff account created, but there was an issue sending the welcome email.",
-            variant: "default",
-          });
-        }
       }
-      
-      toast({
-        title: "Staff account created",
-        description: `${formData.name} has been added successfully. They will need to set up their password via the email sent.`,
-      });
       
       resetForm();
       onStaffAdded();
