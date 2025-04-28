@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,6 +8,7 @@ import { StaffTable } from "@/components/admin/staff/StaffTable";
 import { AddStaffDialog } from "@/components/admin/staff/AddStaffDialog";
 import { StaffMember } from "@/types";
 import { Shield } from "lucide-react";
+import RoleManagement from "@/components/admin/role-management";
 
 const StaffManagement = () => {
   const { user } = useAuth();
