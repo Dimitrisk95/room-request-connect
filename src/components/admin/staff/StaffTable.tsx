@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -62,10 +63,10 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
     try {
       setIsProcessing(true);
       
-      // Try to use the database function
+      // Try to use the database function (using 'as any' to bypass TypeScript check)
       try {
         const { data, error: rpcError } = await supabase.rpc(
-          'delete_user_and_related_data', 
+          'delete_user_and_related_data' as any, 
           { user_id_param: selectedStaff.id }
         );
         

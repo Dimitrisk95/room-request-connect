@@ -277,6 +277,10 @@ export type Database = {
         }
         Returns: Json
       }
+      delete_user_and_related_data: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
       get_hotel_requests: {
         Args: { hotel_id_param: string }
         Returns: {
