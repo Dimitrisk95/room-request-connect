@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,19 +20,35 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePasswordReset = async (staff: StaffMember) => {
     try {
+      setIsProcessing(true);
+      
+      // Call the password reset edge function
+      const { error } = await supabase.functions.invoke('reset-password-email', {
+        body: { 
+          email: staff.email,
+          name: staff.name
+        }
+      });
+
+      if (error) throw error;
+      
       toast({
         title: "Password reset email sent",
         description: `A password reset link has been sent to ${staff.email}`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error sending password reset:", error);
       toast({
         title: "Error",
-        description: "Failed to send password reset email",
+        description: error.message || "Failed to send password reset email",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -42,14 +59,20 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
 
   const handleDeleteStaff = async () => {
     if (!selectedStaff) return;
-
+    
     try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', selectedStaff.id);
+      setIsProcessing(true);
+      
+      // First delete from auth system if it's a real user
+      if (selectedStaff.id && !selectedStaff.id.startsWith('guest-')) {
+        // Delete from the users table will cascade to auth.users due to the references
+        const { error } = await supabase
+          .from('users')
+          .delete()
+          .eq('id', selectedStaff.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       toast({
         title: "Staff member deleted",
@@ -57,15 +80,17 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
       });
       
       onStaffUpdated();
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error deleting staff:", error);
       toast({
         title: "Error",
-        description: "Failed to delete staff member",
+        description: error.message || "Failed to delete staff member",
         variant: "destructive",
       });
     } finally {
       setDeleteDialogOpen(false);
       setSelectedStaff(null);
+      setIsProcessing(false);
     }
   };
 

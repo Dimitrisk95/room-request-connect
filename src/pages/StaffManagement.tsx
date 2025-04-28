@@ -88,7 +88,7 @@ const StaffManagement = () => {
               <StaffTable 
                 staffMembers={staffMembers} 
                 onStaffUpdated={fetchStaffMembers}
-                currentUserId={user?.id}
+                currentUserId={user?.id || ''}
               />
             )}
           </CardContent>
