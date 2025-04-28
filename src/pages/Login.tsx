@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Hotel, ArrowLeft } from "lucide-react";
 import { useLogin } from "@/hooks/use-login";
 import { Button } from "@/components/ui/button";
@@ -47,14 +47,22 @@ const Login = () => {
 
   const handleStaffLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleStaffLogin({
-      ...staffCredentials,
-      hotelCode: "" // Pass empty string since we're removing the field
+    console.log("Attempting login with credentials:", {
+      email: staffCredentials.email,
+      passwordLength: staffCredentials.password.length,
     });
+    
+    await handleStaffLogin(staffCredentials);
   };
 
   useEffect(() => {
     if (isAuthenticated && !needsPasswordSetup && !showPasswordSetup) {
+      console.log("User authenticated, redirecting with permissions:", {
+        role: user?.role,
+        can_manage_rooms: user?.can_manage_rooms,
+        can_manage_staff: user?.can_manage_staff
+      });
+      
       if (user?.role === "guest") {
         navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
       } else {

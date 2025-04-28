@@ -44,8 +44,13 @@ export const useStaffForm = (onStaffAdded: () => void) => {
     }
     
     try {
-      // Generate a simple password for testing (in production, you'd want a more secure approach)
+      // Generate a simple password for testing
       const tempPassword = "password123"; // Simple password for testing
+      
+      console.log("Creating staff account with email:", formData.email, "and permissions:", {
+        can_manage_rooms: formData.can_manage_rooms,
+        can_manage_staff: formData.can_manage_staff
+      });
       
       const userData = await createStaffAccount(
         formData.name,
@@ -57,19 +62,26 @@ export const useStaffForm = (onStaffAdded: () => void) => {
       
       // Update the user to set permissions
       if (userData) {
-        await supabase
+        const { data, error } = await supabase
           .from('users')
           .update({
             can_manage_rooms: formData.can_manage_rooms,
             can_manage_staff: formData.can_manage_staff,
-            needs_password_setup: false, // Set to false since we're using a known password
+            needs_password_setup: true, // Staff will need to set up a password
             hotel_id: user.hotelId
           })
           .eq('email', formData.email);
           
+        if (error) {
+          console.error("Error updating staff permissions:", error);
+          throw error;
+        }
+        
+        console.log("Staff account created and permissions set successfully");
+          
         toast({
           title: "Staff account created",
-          description: `${formData.name} has been added successfully. Test login with email: ${formData.email} and password: ${tempPassword}`,
+          description: `${formData.name} has been added successfully. They can log in with email: ${formData.email} and password: ${tempPassword}`,
         });
       }
       
@@ -77,6 +89,7 @@ export const useStaffForm = (onStaffAdded: () => void) => {
       onStaffAdded();
       setOpen(false);
     } catch (error: any) {
+      console.error("Failed to create staff account:", error);
       toast({
         title: "Failed to create account",
         description: error.message || "There was an error creating the staff account.",

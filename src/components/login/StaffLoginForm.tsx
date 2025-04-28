@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail } from "lucide-react";
+import { Mail, Loader } from "lucide-react";
 
 interface StaffLoginFormProps {
   staffCredentials: {
@@ -65,13 +65,20 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
               required
             />
             <p className="text-xs text-muted-foreground">
-              First time login? Contact your administrator to set up your password.
+              For newly created staff accounts, use the password "password123" unless you've reset it.
             </p>
           </div>
         </CardContent>
         <CardFooter className="mt-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? (
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" /> 
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </Button>
         </CardFooter>
       </form>

@@ -17,6 +17,8 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
     password: string,
     hotelCode?: string
   ) => {
+    console.log("Attempting login with:", { email });
+    
     // Sign in with email and password
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -115,7 +117,7 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
     hotelId?: string
   ) => {
     try {
-      console.log("Creating staff account for:", email, role);
+      console.log("Creating staff account for:", email, role, "with password:", password);
 
       // First try to sign up the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -171,8 +173,8 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
           email,
           role,
           hotel_id: hotelId || null,
-          password_hash: 'placeholder',
-          needs_password_setup: true
+          password_hash: password,
+          needs_password_setup: false
         })
         .select()
         .single();
@@ -184,17 +186,8 @@ export const useAuthHandlers = ({ updateUser, clearUser }: AuthHandlersOptions) 
 
       console.log("User successfully created in users table:", insertedUser);
       
-      // Send password setup email
-      const { error: emailError } = await supabase.functions.invoke('send-password-setup', {
-        body: { email, name }
-      });
-
-      if (emailError) {
-        console.error("Error sending password setup email:", emailError);
-        // We don't throw here as the account was created successfully
-      }
-
-      console.log("User successfully created and email sent");
+      // Success message - don't send email in this simplified version
+      console.log("Staff account created successfully with password:", password);
       
       return authData.user;
     } catch (error) {
