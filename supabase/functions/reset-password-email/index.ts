@@ -41,6 +41,9 @@ serve(async (req) => {
       }
     }
 
+    // Use a hardcoded frontend URL instead of relying on the request host
+    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://roomlix.com'
+    
     const { data, error } = await resend.emails.send({
       from: `${senderName} via Roomlix <${fromEmail}>`,
       to: [email],
@@ -52,7 +55,7 @@ serve(async (req) => {
           ${hotelName ? `<p>This password reset was requested for your account at <strong>${hotelName}</strong>.</p>` : ''}
           <p>To reset your password, please click the link below:</p>
           <p style="margin: 24px 0;">
-            <a href="https://${req.headers.get('host')}/login?email=${encodeURIComponent(email)}&reset=true" 
+            <a href="${frontendUrl}/login?email=${encodeURIComponent(email)}&reset=true" 
                style="background: #0066ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
               Reset Your Password
             </a>
