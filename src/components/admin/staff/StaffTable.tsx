@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StaffMember } from "@/types";
 import { DeleteStaffDialog } from "./DeleteStaffDialog";
