@@ -1,1 +1,7 @@
+
 project_id = "lszauuplczqotjrogqgr"
+[functions.reset-password-email]
+verify_jwt = true
+
+[functions.send-password-setup]
+verify_jwt = true

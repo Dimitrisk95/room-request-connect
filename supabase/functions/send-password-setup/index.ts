@@ -16,37 +16,60 @@ serve(async (req) => {
   const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
   try {
-    const { email, name } = await req.json()
+    const { email, name, hotelName } = await req.json()
     
-    console.log('Sending password setup email to:', email)
+    console.log('Sending welcome email with password setup link to:', email)
+    
+    // Get the authenticated user's email to use as the sender (hotel admin)
+    let fromEmail = 'onboarding@resend.dev' // Default fallback
+    let senderName = 'Roomlix'
+    
+    // Create a Supabase client within the edge function
+    const authHeader = req.headers.get('Authorization')
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '')
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        if (payload.email) {
+          // Use authenticated user's email if available
+          fromEmail = payload.email
+          if (payload.user_metadata?.name) {
+            senderName = payload.user_metadata.name
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing auth token:', e)
+      }
+    }
 
     const { data, error } = await resend.emails.send({
-      from: 'Roomlix <onboarding@resend.dev>',
+      from: `${senderName} via Roomlix <${fromEmail}>`,
       to: [email],
-      subject: 'Set Up Your Roomlix Password',
+      subject: 'Welcome to Roomlix - Set Up Your Staff Account',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1>Welcome to Roomlix!</h1>
+          <h1>Welcome to the Team!</h1>
           <p>Hello ${name},</p>
-          <p>Your account has been created in the Roomlix hotel management system. To complete your account setup, please set your password by clicking the link below:</p>
+          ${hotelName ? `<p>You have been added as a staff member at <strong>${hotelName}</strong>.</p>` : ''}
+          <p>To complete your account setup and start using Roomlix, please click the link below to set your password:</p>
           <p style="margin: 24px 0;">
             <a href="https://${req.headers.get('host')}/login?email=${encodeURIComponent(email)}&setup=true" 
                style="background: #0066ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
               Set Up Your Password
             </a>
           </p>
-          <p>If you didn't expect this invitation, please ignore this email.</p>
+          <p>If you have any questions, please contact your administrator.</p>
           <p>Best regards,<br>The Roomlix Team</p>
         </div>
       `,
     })
 
     if (error) {
-      console.error('Error sending email:', error)
+      console.error('Error sending welcome email:', error)
       throw error
     }
 
-    console.log('Email sent successfully:', data)
+    console.log('Welcome email sent successfully:', data)
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

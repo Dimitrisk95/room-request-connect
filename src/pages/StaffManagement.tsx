@@ -19,9 +19,11 @@ const StaffManagement = () => {
   const fetchStaffMembers = async () => {
     setIsLoading(true);
     try {
+      // Only fetch staff members for the current user's hotel
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email, role, created_at, can_manage_rooms, can_manage_staff')
+        .select('id, name, email, role, created_at, can_manage_rooms, can_manage_staff, hotel_id')
+        .eq('hotel_id', user?.hotelId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -43,7 +45,7 @@ const StaffManagement = () => {
 
   useEffect(() => {
     fetchStaffMembers();
-  }, []);
+  }, [user?.hotelId]);
 
   // Only admin can access this page
   if (user?.role !== "admin") {

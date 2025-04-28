@@ -63,16 +63,24 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
     try {
       setIsProcessing(true);
       
-      // First delete from auth system if it's a real user
-      if (selectedStaff.id && !selectedStaff.id.startsWith('guest-')) {
-        // Delete from the users table will cascade to auth.users due to the references
-        const { error } = await supabase
-          .from('users')
-          .delete()
-          .eq('id', selectedStaff.id);
-
-        if (error) throw error;
+      // First delete from the audit log to avoid foreign key constraint violation
+      const { error: auditLogError } = await supabase
+        .from('user_audit_log')
+        .delete()
+        .eq('user_id', selectedStaff.id);
+        
+      if (auditLogError) {
+        console.error("Error deleting from audit log:", auditLogError);
+        // Continue with deletion even if audit log deletion fails
       }
+
+      // Then delete from the users table
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', selectedStaff.id);
+
+      if (error) throw error;
 
       toast({
         title: "Staff member deleted",

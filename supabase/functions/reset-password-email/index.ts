@@ -20,8 +20,26 @@ serve(async (req) => {
     
     console.log('Sending password reset email to:', email)
 
+    // Get the authenticated user's email to use as the sender
+    let fromEmail = 'onboarding@resend.dev' // Default fallback
+    
+    // Create a Supabase client within the edge function
+    const authHeader = req.headers.get('Authorization')
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '')
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        if (payload.email) {
+          // Use authenticated user's email if available
+          fromEmail = payload.email
+        }
+      } catch (e) {
+        console.error('Error parsing auth token:', e)
+      }
+    }
+
     const { data, error } = await resend.emails.send({
-      from: 'Roomlix <onboarding@resend.dev>',
+      from: `Roomlix <${fromEmail}>`,
       to: [email],
       subject: 'Reset Your Roomlix Password',
       html: `

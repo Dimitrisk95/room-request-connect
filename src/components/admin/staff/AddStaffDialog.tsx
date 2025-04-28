@@ -36,6 +36,16 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
     e.preventDefault();
     setIsSubmitting(true);
     
+    if (!user?.hotelId) {
+      toast({
+        title: "Error",
+        description: "You need to set up your hotel first before adding staff members.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       // Generate a temporary random password (user won't need to know this)
       const tempPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
@@ -48,7 +58,7 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
         user?.hotelId
       );
       
-      // Update the user to mark it as needing password setup
+      // Update the user to mark it as needing password setup and set permissions
       const { data: newStaff } = await supabase
         .from('users')
         .select('id')
@@ -61,14 +71,40 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
           .update({
             can_manage_rooms: formData.can_manage_rooms,
             can_manage_staff: formData.can_manage_staff,
-            needs_password_setup: true
+            needs_password_setup: true,
+            hotel_id: user.hotelId // Ensure hotel_id is explicitly set
           })
           .eq('id', newStaff.id);
+          
+        // Get hotel name to include in welcome email
+        const { data: hotelData } = await supabase
+          .from('hotels')
+          .select('name')
+          .eq('id', user.hotelId)
+          .single();
+          
+        // Send welcome email with password setup instructions
+        const { error: emailError } = await supabase.functions.invoke('send-password-setup', {
+          body: { 
+            email: formData.email,
+            name: formData.name,
+            hotelName: hotelData?.name || ''
+          }
+        });
+  
+        if (emailError) {
+          console.error("Error sending password setup email:", emailError);
+          toast({
+            title: "Warning",
+            description: "Staff account created, but there was an issue sending the welcome email.",
+            variant: "default",
+          });
+        }
       }
       
       toast({
         title: "Staff account created",
-        description: `${formData.name} has been added successfully. They will need to set up their password on first login.`,
+        description: `${formData.name} has been added successfully. They will need to set up their password via the email sent.`,
       });
       
       setFormData({
@@ -144,7 +180,7 @@ export const AddStaffDialog = ({ onStaffAdded }: { onStaffAdded: () => void }) =
                     <option value="admin">Administrator</option>
                   </select>
                   <p className="text-xs text-muted-foreground">
-                    Staff members will be prompted to set up their password on their first login.
+                    Staff members will be prompted to set up their password via the welcome email.
                   </p>
                 </div>
               </div>

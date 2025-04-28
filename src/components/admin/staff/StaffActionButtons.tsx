@@ -18,7 +18,7 @@ export const StaffActionButtons = ({
   onEditClick,
   currentUserId,
 }: StaffActionButtonsProps) => {
-  // Don't allow users to delete themselves
+  // Check if this is the current user's account
   const isSelf = staff.id === currentUserId;
   
   return (
@@ -31,14 +31,20 @@ export const StaffActionButtons = ({
         <Edit className="h-4 w-4 mr-1" />
         Edit
       </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPasswordReset(staff)}
-      >
-        <RotateCcw className="h-4 w-4 mr-1" />
-        Reset Password
-      </Button>
+      
+      {/* Always show password reset except for self (admins should use account settings) */}
+      {!isSelf && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPasswordReset(staff)}
+        >
+          <RotateCcw className="h-4 w-4 mr-1" />
+          Reset Password
+        </Button>
+      )}
+      
+      {/* Don't allow users to delete themselves */}
       {!isSelf && (
         <Button
           variant="outline"
