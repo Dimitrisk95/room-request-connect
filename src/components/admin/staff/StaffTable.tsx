@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -63,34 +62,29 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
     try {
       setIsProcessing(true);
       
-      // First, delete any entries in the user_audit_log table that reference this user
-      const { error: auditLogError } = await supabase
-        .from('user_audit_log')
-        .delete()
-        .eq('user_id', selectedStaff.id);
+      // Try to use the database function
+      try {
+        const { data, error: rpcError } = await supabase.rpc(
+          'delete_user_and_related_data', 
+          { user_id_param: selectedStaff.id }
+        );
         
-      if (auditLogError) {
-        console.error("Error deleting audit logs:", auditLogError);
-        throw auditLogError;
+        if (!rpcError) {
+          toast({
+            title: "Staff member deleted",
+            description: `${selectedStaff.name} has been removed from the system.`,
+          });
+          onStaffUpdated();
+          return;
+        }
+      } catch (rpcErr) {
+        console.error("RPC function error:", rpcErr);
+        // Fall back to regular deletion
       }
       
-      // Now delete the user from the users table
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', selectedStaff.id);
-
-      if (error) {
-        console.error("Error deleting staff:", error);
-        throw error;
-      }
-
-      toast({
-        title: "Staff member deleted",
-        description: `${selectedStaff.name} has been removed from the system.`,
-      });
+      // If RPC fails, fall back to the old method with manual cleanup
+      await manualDeletion(selectedStaff);
       
-      onStaffUpdated();
     } catch (error: any) {
       console.error("Error deleting staff:", error);
       toast({
@@ -103,6 +97,56 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
       setSelectedStaff(null);
       setIsProcessing(false);
     }
+  };
+  
+  // Manual deletion as fallback
+  const manualDeletion = async (staff: StaffMember) => {
+    // First, delete any entries in the user_audit_log table that reference this user
+    const { error: auditLogError } = await supabase
+      .from('user_audit_log')
+      .delete()
+      .eq('user_id', staff.id);
+      
+    if (auditLogError) {
+      console.error("Error deleting audit logs:", auditLogError);
+      // Try using the Edge Function instead
+      try {
+        const { error: functionError } = await supabase.functions.invoke('delete-staff', {
+          body: { userId: staff.id }
+        });
+        
+        if (!functionError) {
+          toast({
+            title: "Staff member deleted",
+            description: `${staff.name} has been removed from the system.`,
+          });
+          onStaffUpdated();
+          return;
+        } else {
+          throw functionError;
+        }
+      } catch (fnError) {
+        console.error("Edge function error:", fnError);
+        // Continue with direct delete attempt
+      }
+    }
+    
+    // Now delete the user from the users table
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', staff.id);
+
+    if (error) {
+      throw error;
+    }
+
+    toast({
+      title: "Staff member deleted",
+      description: `${staff.name} has been removed from the system.`,
+    });
+    
+    onStaffUpdated();
   };
 
   return (
