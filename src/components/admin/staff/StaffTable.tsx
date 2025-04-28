@@ -63,24 +63,16 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
     try {
       setIsProcessing(true);
       
-      // First delete from the audit log to avoid foreign key constraint violation
-      const { error: auditLogError } = await supabase
-        .from('user_audit_log')
-        .delete()
-        .eq('user_id', selectedStaff.id);
-        
-      if (auditLogError) {
-        console.error("Error deleting from audit log:", auditLogError);
-        // Continue with deletion even if audit log deletion fails
-      }
-
-      // Then delete from the users table
+      // Delete directly from the users table - the cascade will handle the audit log
       const { error } = await supabase
         .from('users')
         .delete()
         .eq('id', selectedStaff.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting staff:", error);
+        throw error;
+      }
 
       toast({
         title: "Staff member deleted",

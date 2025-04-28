@@ -19,11 +19,21 @@ const StaffManagement = () => {
   const fetchStaffMembers = async () => {
     setIsLoading(true);
     try {
+      if (!user?.hotelId) {
+        toast({
+          title: "Error",
+          description: "No hotel associated with your account",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Only fetch staff members for the current user's hotel
       const { data, error } = await supabase
         .from('users')
         .select('id, name, email, role, created_at, can_manage_rooms, can_manage_staff, hotel_id')
-        .eq('hotel_id', user?.hotelId)
+        .eq('hotel_id', user.hotelId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -44,7 +54,9 @@ const StaffManagement = () => {
   };
 
   useEffect(() => {
-    fetchStaffMembers();
+    if (user?.hotelId) {
+      fetchStaffMembers();
+    }
   }, [user?.hotelId]);
 
   // Only admin can access this page
@@ -54,6 +66,18 @@ const StaffManagement = () => {
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p>Only administrators can access the staff management page.</p>
+        </div>
+      </DashboardShell>
+    );
+  }
+
+  // No hotel associated with the admin
+  if (!user?.hotelId) {
+    return (
+      <DashboardShell>
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">No Hotel Found</h1>
+          <p>You need to set up your hotel first to manage staff members.</p>
         </div>
       </DashboardShell>
     );

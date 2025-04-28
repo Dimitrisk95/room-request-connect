@@ -21,8 +21,8 @@ serve(async (req) => {
     console.log('Sending welcome email with password setup link to:', email)
     
     // Get the authenticated user's email to use as the sender (hotel admin)
-    let fromEmail = 'onboarding@resend.dev' // Default fallback
-    let senderName = 'Roomlix'
+    let fromEmail = 'support@roomlix.com' // Default sender email
+    let senderName = 'Roomlix Support'
     
     // Create a Supabase client within the edge function
     const authHeader = req.headers.get('Authorization')
@@ -30,12 +30,8 @@ serve(async (req) => {
       try {
         const token = authHeader.replace('Bearer ', '')
         const payload = JSON.parse(atob(token.split('.')[1]))
-        if (payload.email) {
-          // Use authenticated user's email if available
-          fromEmail = payload.email
-          if (payload.user_metadata?.name) {
-            senderName = payload.user_metadata.name
-          }
+        if (payload.user_metadata?.name) {
+          senderName = payload.user_metadata.name
         }
       } catch (e) {
         console.error('Error parsing auth token:', e)

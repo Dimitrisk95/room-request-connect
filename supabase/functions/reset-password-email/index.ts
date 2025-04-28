@@ -16,12 +16,13 @@ serve(async (req) => {
   const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
   try {
-    const { email, name } = await req.json()
+    const { email, name, hotelName } = await req.json()
     
     console.log('Sending password reset email to:', email)
 
     // Get the authenticated user's email to use as the sender
-    let fromEmail = 'onboarding@resend.dev' // Default fallback
+    let fromEmail = 'support@roomlix.com' // Default sender email
+    let senderName = 'Roomlix Support'
     
     // Create a Supabase client within the edge function
     const authHeader = req.headers.get('Authorization')
@@ -30,8 +31,10 @@ serve(async (req) => {
         const token = authHeader.replace('Bearer ', '')
         const payload = JSON.parse(atob(token.split('.')[1]))
         if (payload.email) {
-          // Use authenticated user's email if available
-          fromEmail = payload.email
+          // Add sender name if available
+          if (payload.user_metadata?.name) {
+            senderName = payload.user_metadata.name
+          }
         }
       } catch (e) {
         console.error('Error parsing auth token:', e)
@@ -39,14 +42,15 @@ serve(async (req) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: `Roomlix <${fromEmail}>`,
+      from: `${senderName} via Roomlix <${fromEmail}>`,
       to: [email],
       subject: 'Reset Your Roomlix Password',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h1>Reset Your Password</h1>
           <p>Hello ${name},</p>
-          <p>A password reset was requested for your account. To reset your password, please click the link below:</p>
+          ${hotelName ? `<p>This password reset was requested for your account at <strong>${hotelName}</strong>.</p>` : ''}
+          <p>To reset your password, please click the link below:</p>
           <p style="margin: 24px 0;">
             <a href="https://${req.headers.get('host')}/login?email=${encodeURIComponent(email)}&reset=true" 
                style="background: #0066ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
