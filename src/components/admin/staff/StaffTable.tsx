@@ -63,7 +63,18 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
     try {
       setIsProcessing(true);
       
-      // Delete directly from the users table - the cascade will handle the audit log
+      // First, delete any entries in the user_audit_log table that reference this user
+      const { error: auditLogError } = await supabase
+        .from('user_audit_log')
+        .delete()
+        .eq('user_id', selectedStaff.id);
+        
+      if (auditLogError) {
+        console.error("Error deleting audit logs:", auditLogError);
+        throw auditLogError;
+      }
+      
+      // Now delete the user from the users table
       const { error } = await supabase
         .from('users')
         .delete()
@@ -151,6 +162,7 @@ export const StaffTable = ({ staffMembers, onStaffUpdated, currentUserId }: Staf
         onOpenChange={setDeleteDialogOpen}
         selectedStaff={selectedStaff}
         onConfirmDelete={handleDeleteStaff}
+        isProcessing={isProcessing}
       />
 
       <EditStaffDialog
