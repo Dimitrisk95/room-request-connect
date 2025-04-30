@@ -1,204 +1,98 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { useToast } from "./use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useStaffLogin, StaffLoginCredentials } from "./login/use-staff-login";
+import { useGuestLogin, GuestCredentials } from "./login/use-guest-login";
+import { useLoginNavigation } from "./login/use-login-navigation";
 
-export type LoginCredentials = {
+export type LoginCredentials = StaffLoginCredentials & {
   hotelCode?: string;
-  email: string;
-  password: string;
-};
-
-export type GuestCredentials = {
-  hotelCode: string;
-  roomCode: string;
 };
 
 export type LoginErrorType = string | null;
 
 export const useLogin = () => {
-  const { login, loginAsGuest, isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState<LoginErrorType>(null);
+  
+  // Use specialized login hooks
+  const staffLogin = useStaffLogin();
+  const guestLogin = useGuestLogin();
+  
+  // Extract password setup state from staff login
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   
-  const locationState = location.state as { showPasswordSetup?: boolean, email?: string } | null;
+  // Use navigation utilities
+  const navigation = useLoginNavigation(user, isAuthenticated, needsPasswordSetup || staffLogin.needsPasswordSetup);
   
+  // Initialize password setup state from URL if present
   useEffect(() => {
-    if (locationState?.showPasswordSetup && locationState?.email) {
+    if (navigation.locationState?.showPasswordSetup && navigation.locationState?.email) {
       setNeedsPasswordSetup(true);
-      setUserEmail(locationState.email);
+      setUserEmail(navigation.locationState.email);
     }
-  }, [locationState]);
+  }, [navigation.locationState]);
   
-  const isNewAdmin = searchParams.get('newAdmin') === 'true';
-  
+  // Combine staff login state with local state
   useEffect(() => {
-    if (isNewAdmin) {
-      toast({
-        title: "Welcome to Hotel Connect!",
-        description: "Please log in to set up your hotel.",
-      });
+    if (staffLogin.needsPasswordSetup) {
+      setNeedsPasswordSetup(true);
+      setUserEmail(staffLogin.userEmail);
     }
-  }, [isNewAdmin, toast]);
+  }, [staffLogin.needsPasswordSetup, staffLogin.userEmail]);
 
-  useEffect(() => {
-    if (isAuthenticated && !needsPasswordSetup) {
-      console.log("User already authenticated, redirecting with permissions:", {
-        role: user?.role,
-        can_manage_rooms: user?.can_manage_rooms,
-        can_manage_staff: user?.can_manage_staff
-      });
-      
-      if (user?.role === "guest") {
-        navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
-      } else {
-        navigate("/dashboard");
-      }
-    }
-  }, [isAuthenticated, needsPasswordSetup, user, navigate]);
-
+  // Staff login wrapper with navigation
   const handleStaffLogin = async (credentials: LoginCredentials) => {
-    setIsLoading(true);
-    setLoginError(null);
-
     try {
-      console.log("Attempting staff login for:", credentials.email);
+      const loggedInUser = await staffLogin.handleStaffLogin(credentials);
       
-      // Find user's hotel by email
-      const { data: userData, error: userDataError } = await supabase
-        .from('users')
-        .select('hotel_id, can_manage_rooms, can_manage_staff')
-        .eq('email', credentials.email)
-        .single();
-      
-      if (userDataError) {
-        console.error("Error finding user's hotel:", userDataError);
-        throw new Error("User not found. Please check your email or contact your administrator.");
+      // If user needs password setup, don't navigate
+      if (staffLogin.needsPasswordSetup) {
+        return;
       }
       
-      console.log("Found user data:", userData);
-      
-      // Use the hotel ID from the user's profile
-      const hotelId = userData?.hotel_id;
-      if (hotelId) {
-        localStorage.setItem("selectedHotel", hotelId);
+      // Otherwise, navigate based on user role
+      if (loggedInUser) {
+        navigation.navigateAfterStaffLogin(loggedInUser);
       }
-      
-      const loggedInUser = await login(
-        credentials.email,
-        credentials.password,
-        hotelId || ""
-      );
-
-      console.log("Login successful, user permissions:", {
-        role: loggedInUser.role,
-        can_manage_rooms: loggedInUser.can_manage_rooms,
-        can_manage_staff: loggedInUser.can_manage_staff
-      });
-
-      const { data: userSetupData, error: userSetupError } = await supabase
-        .from('users')
-        .select('needs_password_setup')
-        .eq('email', credentials.email)
-        .single();
-
-      if (userSetupError) {
-        console.error("Error checking needs_password_setup:", userSetupError);
-        throw userSetupError;
-      }
-
-      if (userSetupData?.needs_password_setup) {
-        setNeedsPasswordSetup(true);
-        setUserEmail(credentials.email);
-        return; // Stop here, showing password setup form
-      }
-      
-      if (loggedInUser.role === "admin" && !loggedInUser.hotelId) {
-        navigate("/setup");
-      } else {
-        navigate("/dashboard");
-      }
-    } catch (error: any) {
-      console.error("Staff login error:", error);
-      let errorMessage = "Invalid credentials. Please try again.";
-      
-      if (error.message) {
-        if (error.message.includes("Invalid login credentials")) {
-          errorMessage = "Invalid email or password. Please check your credentials.";
-        } else if (error.message.includes("not found")) {
-          errorMessage = "User account not found. Please register first."; 
-        } else if (error.message.includes("profile not found")) {
-          errorMessage = "User profile is incomplete. Please contact support.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      setLoginError(errorMessage);
-      toast({
-        title: "Login failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      // Error already handled in staffLogin.handleStaffLogin
     }
   };
 
+  // Guest login wrapper with navigation
   const handleGuestLogin = async (credentials: GuestCredentials) => {
-    setIsLoading(true);
-    setLoginError(null);
-
     try {
-      localStorage.setItem("selectedHotel", credentials.hotelCode);
-      await loginAsGuest(
-        credentials.hotelCode,
-        credentials.roomCode
-      );
-      navigate(`/guest/${credentials.hotelCode}/${credentials.roomCode}`);
-    } catch (error: any) {
-      console.error("Guest login error:", error);
-      setLoginError("Invalid hotel or room code. Please try again.");
-      toast({
-        title: "Login failed",
-        description: "Invalid hotel or room code. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      const guestUser = await guestLogin.handleGuestLogin(credentials);
+      navigation.navigateAfterGuestLogin(credentials.hotelCode, credentials.roomCode);
+      return guestUser;
+    } catch (error) {
+      // Error already handled in guestLogin.handleGuestLogin
     }
   };
 
+  // Password setup completion handler
   const handlePasswordSetupComplete = () => {
     setNeedsPasswordSetup(false);
+    staffLogin.handlePasswordSetupComplete();
     navigate("/dashboard");
-    toast({
-      title: "Welcome to Hotel Connect",
-      description: "Your password has been set successfully.",
-    });
-  };
-
-  const resetLoginError = () => {
-    setLoginError(null);
   };
 
   return {
-    isLoading,
-    loginError,
+    isLoading: staffLogin.isLoading || guestLogin.isLoading,
+    loginError: staffLogin.loginError || guestLogin.loginError,
     handleStaffLogin,
     handleGuestLogin,
-    resetLoginError,
+    resetLoginError: () => {
+      staffLogin.resetLoginError();
+      guestLogin.resetLoginError();
+    },
     isAuthenticated,
     user,
-    needsPasswordSetup,
-    userEmail,
+    needsPasswordSetup: needsPasswordSetup || staffLogin.needsPasswordSetup,
+    userEmail: userEmail || staffLogin.userEmail,
     handlePasswordSetupComplete
   };
 };
