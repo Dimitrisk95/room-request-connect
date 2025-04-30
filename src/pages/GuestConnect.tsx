@@ -39,7 +39,9 @@ const GuestConnect = () => {
           <GuestHotelConnectForm
             isLoading={isLoading}
             onConnect={(hotelCode, roomCode) => {
+              // Explicitly cast the Promise to Promise<void> to match the expected interface
               return handleGuestLogin({ hotelCode, roomCode })
+                .then(() => {}) // Convert Promise<User> to Promise<void>
                 .catch(error => {
                   console.error("Error connecting to room:", error);
                   // Re-throw the error to maintain Promise rejection
