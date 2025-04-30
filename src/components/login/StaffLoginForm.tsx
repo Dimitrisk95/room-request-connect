@@ -3,7 +3,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Loader } from "lucide-react";
+import { Mail, Loader, Key } from "lucide-react";
+import { useState } from "react";
+import ForgotPasswordForm from "./ForgotPasswordForm";
 
 interface StaffLoginFormProps {
   staffCredentials: {
@@ -24,6 +26,17 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
   isLoading,
   handleStaffLogin
 }) => {
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  if (showForgotPassword) {
+    return (
+      <ForgotPasswordForm 
+        onBackToLogin={() => setShowForgotPassword(false)} 
+        initialEmail={staffCredentials.email}
+      />
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -51,7 +64,17 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="password">Password</Label>
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-xs text-primary" 
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Forgot password?
+              </Button>
+            </div>
             <Input
               id="password"
               type="password"
