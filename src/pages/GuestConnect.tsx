@@ -39,8 +39,12 @@ const GuestConnect = () => {
           <GuestHotelConnectForm
             isLoading={isLoading}
             onConnect={(hotelCode, roomCode) => {
-              handleGuestLogin({ hotelCode, roomCode })
-                .catch(error => console.error("Error connecting to room:", error));
+              return handleGuestLogin({ hotelCode, roomCode })
+                .catch(error => {
+                  console.error("Error connecting to room:", error);
+                  // Re-throw the error to maintain Promise rejection
+                  throw error;
+                });
             }}
           />
         </div>
