@@ -33,7 +33,9 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
       });
       
       if (user?.role === "guest") {
-        navigate(`/guest/${user.hotelId}/${user.roomNumber}`);
+        navigate(`/guest/${user.roomNumber}`);
+      } else if (user?.role === "admin" && !user?.hotelId) {
+        navigate("/setup");
       } else {
         navigate("/dashboard");
       }
@@ -49,7 +51,7 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
   };
   
   const navigateAfterGuestLogin = (hotelCode: string, roomCode: string) => {
-    navigate(`/guest/${hotelCode}/${roomCode}`);
+    navigate(`/guest/${roomCode}`);
   };
 
   return {

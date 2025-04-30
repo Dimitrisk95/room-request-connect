@@ -39,7 +39,7 @@ const GuestConnect = () => {
           <GuestHotelConnectForm
             isLoading={isLoading}
             onConnect={(hotelCode, roomCode) => {
-              // Explicitly cast the Promise to Promise<void> to match the expected interface
+              // Return the promise explicitly to match the expected Promise<void> type
               return handleGuestLogin({ hotelCode, roomCode })
                 .then(() => {}) // Convert Promise<User> to Promise<void>
                 .catch(error => {
