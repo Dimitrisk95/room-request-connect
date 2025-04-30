@@ -38,7 +38,10 @@ const GuestConnect = () => {
 
           <GuestHotelConnectForm
             isLoading={isLoading}
-            onConnect={(hotelCode, roomCode) => handleGuestLogin({ hotelCode, roomCode })}
+            onConnect={(hotelCode, roomCode) => {
+              handleGuestLogin({ hotelCode, roomCode })
+                .catch(error => console.error("Error connecting to room:", error));
+            }}
           />
         </div>
       </div>

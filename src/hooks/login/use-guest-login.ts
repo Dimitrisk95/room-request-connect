@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context";
+import { User } from "@/context/auth/types";
 
 export type GuestCredentials = {
   hotelCode: string;
@@ -14,7 +15,7 @@ export const useGuestLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const handleGuestLogin = async (credentials: GuestCredentials) => {
+  const handleGuestLogin = async (credentials: GuestCredentials): Promise<User> => {
     setIsLoading(true);
     setLoginError(null);
 
