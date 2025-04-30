@@ -49,19 +49,23 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={staffCredentials.email}
-              onChange={(e) =>
-                setStaffCredentials({
-                  ...staffCredentials,
-                  email: e.target.value,
-                })
-              }
-              required
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={staffCredentials.email}
+                onChange={(e) =>
+                  setStaffCredentials({
+                    ...staffCredentials,
+                    email: e.target.value,
+                  })
+                }
+                className="pl-10"
+                required
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -75,18 +79,22 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
                 Forgot password?
               </Button>
             </div>
-            <Input
-              id="password"
-              type="password"
-              value={staffCredentials.password}
-              onChange={(e) =>
-                setStaffCredentials({
-                  ...staffCredentials,
-                  password: e.target.value,
-                })
-              }
-              required
-            />
+            <div className="relative">
+              <Key className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="password"
+                type="password"
+                value={staffCredentials.password}
+                onChange={(e) =>
+                  setStaffCredentials({
+                    ...staffCredentials,
+                    password: e.target.value,
+                  })
+                }
+                className="pl-10"
+                required
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               For newly created staff accounts, use the password "password123" unless you've reset it.
             </p>

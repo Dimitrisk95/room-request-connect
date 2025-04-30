@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Loader, ArrowLeft } from "lucide-react";
+import { Mail, Loader, ArrowLeft, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -20,11 +21,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
   const [email, setEmail] = useState(initialEmail);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     
     try {
       // First, verify if the user exists in our users table
@@ -36,13 +39,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       
       if (userDataError) {
         console.error("Error checking user:", userDataError);
-        toast({
-          title: "Account not found",
-          description: "We couldn't find an account with that email address.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
+        throw new Error("We couldn't find an account with that email address.");
       }
       
       // If we have a user, invoke the password reset function
@@ -67,6 +64,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       
     } catch (error: any) {
       console.error("Password reset error:", error);
+      setError(error.message || "Failed to send password reset email. Please try again.");
       toast({
         title: "Error",
         description: error.message || "Failed to send password reset email. Please try again.",
@@ -87,6 +85,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           {isSuccess ? (
             <div className="text-center py-4 space-y-4">
               <Mail className="mx-auto h-12 w-12 text-primary" />
@@ -98,14 +103,18 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
           ) : (
             <div className="space-y-2">
               <Label htmlFor="reset-email">Email</Label>
-              <Input
-                id="reset-email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
             </div>
           )}
         </CardContent>
