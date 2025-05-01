@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,18 +7,34 @@ import { Label } from "@/components/ui/label";
 
 interface GuestHotelConnectFormProps {
   isLoading: boolean;
+  initialHotelCode?: string;
+  initialRoomCode?: string;
   onConnect: (hotelCode: string, roomCode: string) => Promise<void>;
 }
 
 const GuestHotelConnectForm: React.FC<GuestHotelConnectFormProps> = ({
   isLoading,
+  initialHotelCode = '',
+  initialRoomCode = '',
   onConnect,
 }) => {
-  const [hotelCode, setHotelCode] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+  const [hotelCode, setHotelCode] = useState(initialHotelCode);
+  const [roomCode, setRoomCode] = useState(initialRoomCode);
+  const [autoSubmit, setAutoSubmit] = useState(false);
+  
+  // Auto-submit the form if both codes are provided via URL
+  useEffect(() => {
+    if (initialHotelCode && initialRoomCode && !isLoading && !autoSubmit) {
+      setAutoSubmit(true);
+      handleSubmit(new Event('autosubmit') as unknown as React.FormEvent);
+    }
+  }, [initialHotelCode, initialRoomCode, isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!e.type.includes('autosubmit')) {
+      e.stopPropagation();
+    }
     onConnect(hotelCode.trim(), roomCode.trim());
   };
 

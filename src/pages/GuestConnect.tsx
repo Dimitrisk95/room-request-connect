@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Hotel, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import GuestHotelConnectForm from "@/components/login/GuestHotelConnectForm";
@@ -9,6 +9,11 @@ import { useLogin } from "@/hooks/use-login";
 const GuestConnect = () => {
   const navigate = useNavigate();
   const { isLoading, handleGuestLogin } = useLogin();
+  const [searchParams] = useSearchParams();
+  
+  // Extract hotel and room codes from URL if present
+  const hotelCodeParam = searchParams.get('hotel');
+  const roomCodeParam = searchParams.get('room');
   
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
@@ -38,6 +43,8 @@ const GuestConnect = () => {
 
           <GuestHotelConnectForm
             isLoading={isLoading}
+            initialHotelCode={hotelCodeParam || ''}
+            initialRoomCode={roomCodeParam || ''}
             onConnect={(hotelCode, roomCode) => {
               // Return the promise explicitly to match the expected Promise<void> type
               return handleGuestLogin({ hotelCode, roomCode })

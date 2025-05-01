@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ProfileSettings from "@/components/settings/ProfileSettings";
 import AccountSettings from "@/components/settings/AccountSettings";
 import HotelSettingsForm from "@/components/settings/HotelSettingsForm";
+import HotelCodeSection from "@/components/settings/HotelCodeSection";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -17,7 +18,8 @@ const Settings = () => {
     name: "",
     address: "",
     contactEmail: "",
-    contactPhone: ""
+    contactPhone: "",
+    hotel_code: ""
   });
 
   useEffect(() => {
@@ -38,7 +40,8 @@ const Settings = () => {
             name: data.name || "",
             address: data.address || "",
             contactEmail: data.contact_email || "",
-            contactPhone: data.contact_phone || ""
+            contactPhone: data.contact_phone || "",
+            hotel_code: data.hotel_code || ""
           });
         }
       } catch (error) {
@@ -88,8 +91,21 @@ const Settings = () => {
             <TabsContent value="hotel" className="space-y-4 mt-4">
               <HotelSettingsForm 
                 hotelId={user?.hotelId || ""} 
-                initialData={hotelData}
+                initialData={{
+                  name: hotelData.name,
+                  address: hotelData.address,
+                  contactEmail: hotelData.contactEmail,
+                  contactPhone: hotelData.contactPhone
+                }}
               />
+              
+              {user?.hotelId && (
+                <HotelCodeSection 
+                  hotelId={user.hotelId}
+                  hotelName={hotelData.name}
+                  initialCode={hotelData.hotel_code}
+                />
+              )}
             </TabsContent>
           )}
         </Tabs>
