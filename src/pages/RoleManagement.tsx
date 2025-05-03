@@ -3,7 +3,7 @@ import React from "react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context";
-import { RoleManagementPage } from "@/components/admin/role-management";
+import { RoleManagement as RoleManagementPage } from "@/components/admin/role-management";
 
 const RoleManagement = () => {
   const { user } = useAuth();

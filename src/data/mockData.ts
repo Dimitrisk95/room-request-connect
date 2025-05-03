@@ -1,156 +1,135 @@
-import { Room, Guest, Request, Reservation } from "@/types";
 
-// Format date to ISO string
-const formatDate = (date: Date) => {
-  return date.toISOString().split('T')[0];
+// Import necessary types
+import { Room, Guest, Request, RequestStatus, RequestCategory, RequestPriority, Reservation, StaffMember } from '@/types';
+import { v4 as uuidv4 } from 'uuid';
+
+// Helper function to create a date with offset days from now
+const dateWithOffset = (days: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
 };
 
-// Generate random date within a range
-const randomDate = (start: Date, end: Date) => {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+// Generate fake staff members
+export const generateStaffMembers = (count: number = 5): StaffMember[] => {
+  const roles = ['admin', 'staff', 'staff', 'staff', 'staff'];
+  return Array.from({ length: count }, (_, i) => ({
+    id: uuidv4(),
+    name: `Staff Member ${i + 1}`,
+    email: `staff${i + 1}@example.com`,
+    role: roles[i] as 'admin' | 'staff' | 'guest',
+    created_at: new Date().toISOString(),
+    can_manage_rooms: i < 2, // Only first 2 staff members can manage rooms
+    can_manage_staff: i === 0, // Only admin can manage staff
+  }));
 };
 
-// Generate mock rooms with consistent room numbers
-export const mockRooms: Room[] = (() => {
-  const rooms: Room[] = [];
-  // Create 3 floors with 10 rooms each
-  for (let floor = 1; floor <= 3; floor++) {
-    for (let roomNum = 1; roomNum <= 10; roomNum++) {
-      // Create room number in format: floor + room number (e.g. 101, 102, 201, 202)
-      const roomNumber = `${floor}${roomNum.toString().padStart(2, '0')}`;
-      
-      // Assign a status - make ~30% of rooms occupied
-      const status = Math.random() > 0.7 ? "occupied" : 
-                    Math.random() > 0.8 ? "maintenance" :
-                    Math.random() > 0.7 ? "cleaning" : "vacant";
-      
-      rooms.push({
-        id: `room-${floor}-${roomNum}`,
-        roomNumber,
-        type: ["Standard", "Deluxe", "Suite"][Math.floor(Math.random() * 3)],
-        floor,
-        capacity: Math.floor(Math.random() * 3) + 1,
-        status: status as "vacant" | "occupied" | "maintenance" | "cleaning",
-      });
-    }
-  }
-  return rooms;
-})();
+// Generate fake rooms
+export const generateRooms = (count: number = 10): Room[] => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: uuidv4(),
+    roomNumber: `${Math.floor(i / 4) + 1}${(i % 4) + 1}${Math.floor(Math.random() * 10)}`,
+    type: ['Standard', 'Deluxe', 'Suite', 'Family'][Math.floor(Math.random() * 4)],
+    floor: Math.floor(i / 4) + 1,
+    capacity: Math.floor(Math.random() * 3) + 1,
+    status: ['vacant', 'occupied', 'maintenance', 'cleaning'][Math.floor(Math.random() * 4)] as 'vacant' | 'occupied' | 'maintenance' | 'cleaning',
+    bedType: ['single', 'double', 'queen', 'king', 'twin', 'suite'][Math.floor(Math.random() * 6)] as 'single' | 'double' | 'queen' | 'king' | 'twin' | 'suite',
+    room_code: `RM${Math.floor(i / 4) + 1}${(i % 4) + 1}${Math.floor(Math.random() * 10)}-${uuidv4().substring(0, 4).toUpperCase()}`
+  }));
+};
 
-// Generate mock guests
-export const mockGuests: Guest[] = Array.from({ length: 10 }, (_, i) => {
-  const checkIn = formatDate(randomDate(new Date(2023, 3, 1), new Date()));
-  const checkOut = formatDate(randomDate(new Date(), new Date(2023, 5, 30)));
-  const room = mockRooms[Math.floor(Math.random() * mockRooms.length)];
+// Generate fake guests
+export const generateGuests = (rooms: Room[]): Guest[] => {
+  return rooms
+    .filter(room => room.status === 'occupied')
+    .map((room) => ({
+      id: uuidv4(),
+      name: `Guest ${room.roomNumber}`,
+      email: `guest${room.roomNumber}@example.com`,
+      phone: `+1${Math.floor(Math.random() * 900 + 100)}${Math.floor(Math.random() * 900 + 100)}${Math.floor(Math.random() * 9000 + 1000)}`,
+      checkIn: dateWithOffset(-Math.floor(Math.random() * 3)),
+      checkOut: dateWithOffset(Math.floor(Math.random() * 5) + 1),
+      roomId: room.id,
+      roomNumber: room.roomNumber,
+    }));
+};
+
+// Generate fake requests
+export const generateRequests = (guests: Guest[], rooms: Room[]): Request[] => {
+  const categories: RequestCategory[] = [
+    'maintenance',
+    'housekeeping',
+    'room-service',
+    'concierge',
+    'amenities',
+    'complaint',
+    'other',
+  ];
   
-  return {
-    id: `guest-${i + 1}`,
-    name: ["John Doe", "Jane Smith", "Robert Johnson", "Sarah Williams", "Michael Brown", "Emily Davis", "David Miller", "Lisa Wilson", "James Moore", "Jennifer Taylor"][i],
-    email: `guest${i + 1}@example.com`,
-    phone: `+1-555-${100 + i}-${1000 + i}`,
-    checkIn,
-    checkOut,
+  const statuses: RequestStatus[] = [
+    'pending',
+    'in-progress',
+    'resolved',
+    'cancelled',
+  ];
+  
+  const priorities: RequestPriority[] = [
+    'low',
+    'medium',
+    'high',
+    'urgent',
+  ];
+  
+  return Array.from({ length: Math.floor(guests.length * 1.5) }, (_, i) => {
+    const guestIndex = Math.floor(Math.random() * guests.length);
+    const guest = guests[guestIndex];
+    const room = rooms.find(r => r.id === guest.roomId)!;
+    
+    return {
+      id: uuidv4(),
+      title: `Request ${i + 1}`,
+      description: `This is a description for request ${i + 1}`,
+      roomId: room.id,
+      roomNumber: room.roomNumber,
+      guestId: guest.id,
+      guestName: guest.name,
+      category: categories[Math.floor(Math.random() * categories.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      priority: priorities[Math.floor(Math.random() * priorities.length)],
+      createdAt: dateWithOffset(-Math.floor(Math.random() * 5)),
+      updatedAt: dateWithOffset(-Math.floor(Math.random() * 3)),
+      assignedTo: Math.random() > 0.5 ? uuidv4() : undefined,
+      assignedToName: Math.random() > 0.5 ? `Staff ${Math.floor(Math.random() * 5) + 1}` : undefined,
+      resolvedBy: Math.random() > 0.7 ? uuidv4() : undefined,
+      resolvedByName: Math.random() > 0.7 ? `Staff ${Math.floor(Math.random() * 5) + 1}` : undefined,
+      resolvedAt: Math.random() > 0.7 ? dateWithOffset(-Math.floor(Math.random() * 2)) : undefined,
+      notes: Math.random() > 0.5 ? [`Note 1 for request ${i + 1}`, `Note 2 for request ${i + 1}`] : [],
+    };
+  });
+};
+
+// Generate fake reservations
+export const generateReservations = (rooms: Room[]): Reservation[] => {
+  return rooms.map((room) => ({
+    id: uuidv4(),
     roomId: room.id,
     roomNumber: room.roomNumber,
-  };
-});
-
-// Assign guests to rooms - update to be consistent with new room structure
-mockRooms.forEach((room, index) => {
-  if (room.status === "occupied" && index < mockGuests.length) {
-    room.currentGuest = mockGuests[index];
-    // Update guest room information to match the room
-    mockGuests[index].roomId = room.id;
-    mockGuests[index].roomNumber = room.roomNumber;
-  }
-});
-
-// Request categories
-const categories: ("maintenance" | "housekeeping" | "room-service" | "concierge" | "amenities" | "complaint" | "other")[] = [
-  "maintenance", "housekeeping", "room-service", "concierge", "amenities", "complaint", "other"
-];
-
-// Request titles by category
-const requestTitles = {
-  maintenance: ["Broken AC", "Leaking faucet", "TV not working", "Flickering lights", "Clogged drain"],
-  housekeeping: ["Extra towels needed", "Room cleaning", "Bed sheets change", "Trash removal", "Bathroom supplies"],
-  "room-service": ["Breakfast order", "Lunch order", "Dinner order", "Snack request", "Beverage request"],
-  concierge: ["Tour booking", "Transportation arrangement", "Restaurant reservation", "Local recommendations", "Event tickets"],
-  amenities: ["Extra pillows", "Iron request", "Toiletries request", "Adapter request", "Extra blanket"],
-  complaint: ["Noisy neighbors", "Room temperature issue", "Cleanliness issue", "Staff complaint", "Billing issue"],
-  other: ["Special request", "Information inquiry", "Lost and found", "Late checkout request", "Wake-up call"]
+    guestId: uuidv4(),
+    guestName: `Guest for Room ${room.roomNumber}`,
+    checkIn: dateWithOffset(Math.floor(Math.random() * 10) + 1),
+    checkOut: dateWithOffset(Math.floor(Math.random() * 10) + 5),
+    status: ['confirmed', 'checked-in', 'checked-out', 'cancelled'][Math.floor(Math.random() * 4)] as 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled',
+    adults: Math.floor(Math.random() * 2) + 1,
+    children: Math.floor(Math.random() * 3),
+    totalAmount: Math.floor(Math.random() * 1000) + 500,
+    paidAmount: Math.floor(Math.random() * 500),
+    notes: Math.random() > 0.5 ? `Notes for reservation ${room.roomNumber}` : undefined,
+  }));
 };
 
-// Generate mock requests
-export const mockRequests: Request[] = Array.from({ length: 15 }, (_, i) => {
-  const category = categories[Math.floor(Math.random() * categories.length)];
-  const title = requestTitles[category][Math.floor(Math.random() * requestTitles[category].length)];
-  const status = ["pending", "in-progress", "resolved", "cancelled"][Math.floor(Math.random() * (i > 10 ? 4 : 3))];
-  const priority = ["low", "medium", "high", "urgent"][Math.floor(Math.random() * 4)];
-  const guest = mockGuests[Math.floor(Math.random() * mockGuests.length)];
-  const createdAt = new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString();
-  const updatedAt = new Date(Date.now() - Math.floor(Math.random() * 2 * 24 * 60 * 60 * 1000)).toISOString();
-
-  return {
-    id: `req-${i + 1}`,
-    title,
-    description: `${title} in room ${guest.roomNumber}. ${Math.random() > 0.5 ? "Please address as soon as possible." : ""}`,
-    roomId: guest.roomId,
-    roomNumber: guest.roomNumber,
-    guestId: guest.id,
-    guestName: guest.name,
-    category,
-    status: status as "pending" | "in-progress" | "resolved" | "cancelled",
-    priority: priority as "low" | "medium" | "high" | "urgent",
-    createdAt,
-    updatedAt,
-    assignedTo: status !== "pending" ? "staff-1" : undefined,
-    assignedToName: status !== "pending" ? "Staff Member" : undefined,
-    resolvedBy: status === "resolved" ? "staff-1" : undefined,
-    resolvedByName: status === "resolved" ? "Staff Member" : undefined,
-    resolvedAt: status === "resolved" ? updatedAt : undefined,
-    notes: status !== "pending" ? ["Working on this issue", "Parts ordered"] : [],
-  };
-});
-
-// Generate mock reservations
-export const mockReservations: Reservation[] = Array.from({ length: 25 }, (_, i) => {
-  const room = mockRooms[Math.floor(Math.random() * mockRooms.length)];
-  const checkInDate = randomDate(new Date(2023, 3, 1), new Date(2023, 5, 30));
-  const checkOutDate = new Date(checkInDate);
-  checkOutDate.setDate(checkOutDate.getDate() + Math.floor(Math.random() * 7) + 1);
-  
-  const checkIn = formatDate(checkInDate);
-  const checkOut = formatDate(checkOutDate);
-  
-  const status = checkInDate < new Date() 
-    ? (checkOutDate < new Date() ? "checked-out" : "checked-in") 
-    : "confirmed";
-  
-  const adults = Math.floor(Math.random() * 2) + 1;
-  const children = Math.floor(Math.random() * 3);
-  
-  return {
-    id: `res-${i + 1}`,
-    roomId: room.id,
-    roomNumber: room.roomNumber,
-    guestId: `guest-${Math.floor(Math.random() * 100) + 10}`,
-    guestName: ["Alex Johnson", "Maria Garcia", "Tom Wilson", "Sophia Lee", "Daniel Martin", "Olivia Brown", "Ethan Davis", "Isabella Miller", "Matthew Taylor", "Emma Anderson"][Math.floor(Math.random() * 10)],
-    checkIn,
-    checkOut,
-    status: status as "confirmed" | "checked-in" | "checked-out" | "cancelled",
-    adults,
-    children,
-    totalAmount: ((adults * 100) + (children * 50)) * (Math.floor((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))),
-    paidAmount: Math.random() > 0.3 ? ((adults * 100) + (children * 50)) * (Math.floor((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))) : 0,
-    notes: Math.random() > 0.7 ? "Special requests: Late check-in, extra pillows" : undefined,
-  };
-});
-
-// Update mockReservations to reference valid rooms
-mockReservations.forEach((reservation) => {
-  const randomRoomIndex = Math.floor(Math.random() * mockRooms.length);
-  const room = mockRooms[randomRoomIndex];
-  reservation.roomId = room.id;
-  reservation.roomNumber = room.roomNumber;
-});
+// Export mock data
+export const mockRooms = generateRooms(12);
+export const mockGuests = generateGuests(mockRooms);
+export const mockRequests = generateRequests(mockGuests, mockRooms);
+export const mockReservations = generateReservations(mockRooms);
+export const mockStaffMembers = generateStaffMembers(5);

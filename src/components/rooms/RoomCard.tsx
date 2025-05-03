@@ -39,7 +39,6 @@ export const RoomCard = ({
       <Badge variant="outline" className={`mt-2 ${getStatusColor(room.status)}`}>
         {room.status}
       </Badge>
-      {/* Removed currentGuest reference */}
     </div>
   );
 };

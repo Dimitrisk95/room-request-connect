@@ -6,6 +6,9 @@ import { StaffTeam } from "@/components/staff/StaffTeam";
 import { TasksList } from "@/components/staff/TasksList";
 
 const Staff = () => {
+  // Providing empty requests array as a temporary fix
+  const emptyRequests = [];
+
   return (
     <DashboardShell>
       <div className="p-6 space-y-6">
@@ -26,7 +29,13 @@ const Staff = () => {
               <CardTitle>Tasks & Assignments</CardTitle>
             </CardHeader>
             <CardContent>
-              <TasksList />
+              <TasksList 
+                requests={emptyRequests}
+                title="Tasks"
+                description="Current tasks and assignments"
+                emptyMessage="No tasks"
+                emptyDescription="There are no current tasks or assignments."
+              />
             </CardContent>
           </Card>
         </div>
