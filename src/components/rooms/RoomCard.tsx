@@ -13,7 +13,7 @@ export const RoomCard = ({
   room, 
   getStatusColor, 
   onClick,
-  showCurrentGuest = true
+  showCurrentGuest = false
 }: RoomCardProps) => {
   // Get border color based on room status
   const getBorderColor = () => {
@@ -39,11 +39,7 @@ export const RoomCard = ({
       <Badge variant="outline" className={`mt-2 ${getStatusColor(room.status)}`}>
         {room.status}
       </Badge>
-      {showCurrentGuest && room.currentGuest && (
-        <div className="mt-2 text-xs truncate">
-          {room.currentGuest.name}
-        </div>
-      )}
+      {/* Removed currentGuest reference */}
     </div>
   );
 };

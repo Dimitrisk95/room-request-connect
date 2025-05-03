@@ -1,3 +1,4 @@
+
 // User related types
 export interface User {
   id: string;
@@ -6,6 +7,8 @@ export interface User {
   role: "admin" | "staff" | "guest";
   hotelId?: string;
   roomNumber?: string;
+  can_manage_rooms?: boolean;
+  can_manage_staff?: boolean;
 }
 
 // Staff related types
@@ -29,6 +32,7 @@ export interface Room {
   status: "vacant" | "occupied" | "maintenance" | "cleaning";
   capacity: number;
   room_code?: string;
+  // Removed currentGuest property
 }
 
 // Guest related types
