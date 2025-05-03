@@ -22,6 +22,9 @@ import HotelSettings from "./pages/HotelSettings";
 import RoleManagement from "./pages/RoleManagement";
 import AccessCodes from "./pages/AccessCodes";
 import NotFound from "./pages/NotFound";
+import GuestView from "./pages/GuestView";
+import AdminSetup from "./pages/AdminSetup";
+import GuestConnect from "./pages/GuestConnect";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useAuth();
@@ -53,6 +56,8 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/guest-connect" element={<GuestConnect />} />
+          <Route path="/setup" element={<AdminSetup />} />
           <Route
             path="/dashboard"
             element={
@@ -140,6 +145,10 @@ const App: React.FC = () => {
                 <AccessCodes />
               </ProtectedRoute>
             }
+          />
+          <Route 
+            path="/guest/:roomCode" 
+            element={<GuestView />} 
           />
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<NotFound />} />

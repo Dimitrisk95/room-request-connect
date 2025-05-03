@@ -29,7 +29,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ hotelName }) => {
         </p>
       </div>
 
-      {(isAdmin || isStaff) && (
+      {(isAdmin || isStaff) && user?.hotelId && (
         <Card className="mt-3 md:mt-0">
           <CardContent className="flex items-center p-3">
             <div className="flex items-center mr-2">
@@ -55,6 +55,5 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ hotelName }) => {
   );
 };
 
-// Export both default and named exports
 export default DashboardHeader;
 export { DashboardHeader };

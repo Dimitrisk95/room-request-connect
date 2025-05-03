@@ -16,6 +16,7 @@ export const useHotelCode = () => {
       fetchHotelCode();
     } else {
       setIsLoading(false);
+      setError('No hotel associated with this user');
     }
   }, [user?.hotelId]);
 
@@ -36,7 +37,7 @@ export const useHotelCode = () => {
         .from('hotels')
         .select('hotel_code')
         .eq('id', user?.hotelId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching hotel code:', error);
@@ -54,11 +55,8 @@ export const useHotelCode = () => {
       }
     } catch (error) {
       console.error('Error fetching hotel code:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch hotel code. Please try again later.",
-        variant: "destructive"
-      });
+      // Don't show the toast here as it might be annoying on every page load
+      // Only log to console for debugging
     } finally {
       setIsLoading(false);
     }

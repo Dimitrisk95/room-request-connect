@@ -5,6 +5,7 @@ export interface SetupData {
     address: string;
     contactEmail: string;
     contactPhone: string;
+    hotelCode: string;
   };
   rooms: {
     addRooms: boolean;

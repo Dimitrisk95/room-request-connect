@@ -18,6 +18,7 @@ export const useSetupWizard = () => {
       address: "",
       contactEmail: user?.email || "",
       contactPhone: "",
+      hotelCode: "",
     },
     rooms: {
       addRooms: false,
@@ -46,8 +47,43 @@ export const useSetupWizard = () => {
       return;
     }
 
+    if (!setupData.hotel.hotelCode.trim()) {
+      toast({
+        title: "Hotel code required",
+        description: "Please provide a hotel connection code to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
+      // Check if hotel name already exists
+      const { data: existingHotelsByName, error: nameCheckError } = await supabase
+        .from("hotels")
+        .select("id")
+        .eq("name", setupData.hotel.name)
+        .maybeSingle();
+
+      if (nameCheckError) throw nameCheckError;
+
+      if (existingHotelsByName) {
+        throw new Error('A hotel with this name already exists. Please choose a different name.');
+      }
+
+      // Check if hotel code already exists
+      const { data: existingHotelsByCode, error: codeCheckError } = await supabase
+        .from("hotels")
+        .select("id")
+        .eq("hotel_code", setupData.hotel.hotelCode)
+        .maybeSingle();
+
+      if (codeCheckError) throw codeCheckError;
+
+      if (existingHotelsByCode) {
+        throw new Error('This hotel code is already taken. Please choose a different code.');
+      }
+
       const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
         .insert([{ 
@@ -55,13 +91,14 @@ export const useSetupWizard = () => {
           address: setupData.hotel.address || null,
           contact_email: setupData.hotel.contactEmail || null,
           contact_phone: setupData.hotel.contactPhone || null,
+          hotel_code: setupData.hotel.hotelCode,
         }])
-        .select('id, name')
+        .select('id, name, hotel_code')
         .single();
 
       if (hotelError) {
         if (hotelError.code === '23505') {
-          throw new Error('A hotel with this name already exists. Please choose a different name.');
+          throw new Error('A hotel with this name or code already exists. Please choose different values.');
         }
         throw hotelError;
       }
@@ -83,6 +120,15 @@ export const useSetupWizard = () => {
       }
 
       setCurrentStep(prev => prev + 1);
+      
+      toast({
+        title: "Hotel created successfully",
+        description: `Your hotel '${hotelData.name}' has been created with code '${hotelData.hotel_code}'`,
+      });
+      
+      // Cache the hotel code
+      localStorage.setItem(`hotelCode_${hotelData.id}`, hotelData.hotel_code);
+      
     } catch (error: any) {
       console.error("Error creating hotel:", error);
       toast({

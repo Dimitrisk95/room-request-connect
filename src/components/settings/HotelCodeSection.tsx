@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Building, Copy, Check, RefreshCw, Loader } from 'lucide-react';
+import { Building, Copy, Check, RefreshCw, Loader, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { generateHotelCode } from '@/utils/codeGenerator';
 
 interface HotelCodeSectionProps {
   hotelId: string;
@@ -23,7 +22,9 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
   const [hotelCode, setHotelCode] = useState(initialCode || '');
   const [isCopied, setIsCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialFetch, setIsInitialFetch] = useState(!initialCode);
+  const [isChecking, setIsChecking] = useState(false);
+  const [newCode, setNewCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch hotel code if not provided
   useEffect(() => {
@@ -50,10 +51,7 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
       
       if (data && data.hotel_code) {
         setHotelCode(data.hotel_code);
-      } else if (isInitialFetch) {
-        // Generate a new code if one doesn't exist during initial fetch
-        await regenerateCode();
-        setIsInitialFetch(false);
+        localStorage.setItem(`hotelCode_${hotelId}`, data.hotel_code);
       }
     } catch (error) {
       console.error('Error fetching hotel code:', error);
@@ -67,15 +65,56 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
     }
   };
 
-  const regenerateCode = async () => {
-    if (!hotelId) return;
+  const checkCodeAvailability = async (code: string) => {
+    setIsChecking(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabase
+        .from('hotels')
+        .select('id')
+        .eq('hotel_code', code)
+        .maybeSingle();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data.id !== hotelId) {
+        setError("This hotel code is already taken. Please try another one.");
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking code availability:', error);
+      setError("Error checking code availability. Please try again.");
+      return false;
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const updateHotelCode = async () => {
+    if (!hotelId || !newCode) return;
+    
+    // Validate the format of the code
+    if (!/^[a-zA-Z0-9]+$/.test(newCode)) {
+      setError("Hotel code can only contain letters and numbers (no spaces or special characters)");
+      return;
+    }
+    
+    if (newCode.length < 3 || newCode.length > 20) {
+      setError("Hotel code must be between 3 and 20 characters");
+      return;
+    }
+    
+    // Check if code is available
+    const isAvailable = await checkCodeAvailability(newCode);
+    if (!isAvailable) return;
     
     setIsLoading(true);
     try {
-      // Generate a new hotel code
-      const newCode = generateHotelCode(hotelName);
-      
-      // Update the code in the database
       const { error } = await supabase
         .from('hotels')
         .update({ hotel_code: newCode })
@@ -84,16 +123,18 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
       if (error) throw error;
       
       setHotelCode(newCode);
+      setNewCode('');
+      localStorage.setItem(`hotelCode_${hotelId}`, newCode);
       
       toast({
         title: "Hotel Code Updated",
-        description: "Your hotel code has been successfully regenerated.",
+        description: "Your hotel code has been successfully updated.",
       });
     } catch (error) {
-      console.error('Error regenerating hotel code:', error);
+      console.error('Error updating hotel code:', error);
       toast({
         title: "Error",
-        description: "Failed to regenerate hotel code. Please try again.",
+        description: "Failed to update hotel code. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -149,15 +190,43 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
                 {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={regenerateCode} 
-              disabled={isLoading}
-              className="w-full"
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              {hotelCode ? 'Regenerate Code' : 'Generate Code'}
-            </Button>
+            
+            <div className="space-y-2 pt-4">
+              <h3 className="text-sm font-medium">Update Hotel Code</h3>
+              <div className="flex space-x-2">
+                <Input
+                  value={newCode}
+                  onChange={(e) => {
+                    setNewCode(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder="Enter new hotel code"
+                  className="font-mono"
+                />
+                <Button 
+                  variant="outline" 
+                  onClick={updateHotelCode} 
+                  disabled={isLoading || isChecking || !newCode}
+                >
+                  {isLoading || isChecking ? (
+                    <Loader className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Update"
+                  )}
+                </Button>
+              </div>
+              
+              {error && (
+                <div className="flex items-center gap-2 text-sm text-destructive mt-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{error}</span>
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground">
+                Use only letters and numbers without spaces (e.g., ParadiseHotel, GrandResort123).
+              </p>
+            </div>
           </>
         )}
       </CardContent>

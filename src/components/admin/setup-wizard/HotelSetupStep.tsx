@@ -1,12 +1,12 @@
 
 import { useState } from "react";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hotel, Loader2 } from "lucide-react";
+import { Hotel, Loader2, Info } from "lucide-react";
 import { SetupData } from "../SetupWizard";
 
 const formSchema = z.object({
@@ -14,6 +14,10 @@ const formSchema = z.object({
   address: z.string().optional(),
   contactEmail: z.string().email("Enter a valid email").optional().or(z.string().length(0)),
   contactPhone: z.string().optional(),
+  hotelCode: z.string()
+    .min(3, "Hotel code must be at least 3 characters")
+    .max(20, "Hotel code cannot exceed 20 characters")
+    .regex(/^[a-zA-Z0-9]+$/, "Hotel code can only contain letters and numbers (no spaces or special characters)")
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -38,6 +42,7 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
       address: hotelData.address || "",
       contactEmail: hotelData.contactEmail || "",
       contactPhone: hotelData.contactPhone || "",
+      hotelCode: hotelData.hotelCode || ""
     },
   });
 
@@ -47,6 +52,7 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
       address: values.address || "",
       contactEmail: values.contactEmail || "",
       contactPhone: values.contactPhone || "",
+      hotelCode: values.hotelCode
     });
     
     onSubmit();
@@ -123,6 +129,30 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
                     {...field} 
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="hotelCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hotel Connection Code*</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="ParadiseHotel123" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormDescription className="flex items-start space-x-2 text-xs">
+                  <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <span>
+                    This unique code will be used by guests to connect to your hotel. 
+                    Use only letters and numbers without spaces (e.g., ParadiseHotel, GrandResort123).
+                  </span>
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
