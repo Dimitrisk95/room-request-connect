@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
 import { User, UserRole } from "./types";
@@ -34,15 +33,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Use the navigation hook for auth redirects
   const navigation = useAuthNavigation();
 
-  // Wrapper for logout to ensure redirect
+  // Improved logout wrapper for faster response
   const logoutWrapper = async () => {
     try {
+      // Get the target URL before logout to avoid delays
+      const targetUrl = navigation.navigateAfterLogout();
+      
+      // Execute logout
       await authHandlers.logout();
-      // Instead of navigating directly, we'll rely on the useEffect in App.tsx
-      // that checks auth state and navigates accordingly
-      window.location.href = navigation.navigateAfterLogout();
+      
+      // Redirect immediately after logout initiated
+      window.location.href = targetUrl;
     } catch (error) {
       console.error("Logout error:", error);
+      // Redirect anyway in case of error to ensure user can get to login screen
+      window.location.href = "/login";
     }
   };
 
