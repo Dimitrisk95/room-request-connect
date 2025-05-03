@@ -1,7 +1,7 @@
 
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useDashboardData } from "@/hooks/useDashboardData";
 

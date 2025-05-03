@@ -46,4 +46,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ hotelName }) => {
   );
 };
 
+// Fix the export syntax to make it both default and named export
 export default DashboardHeader;
+export { DashboardHeader };

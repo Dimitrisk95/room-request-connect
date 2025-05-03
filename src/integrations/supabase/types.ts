@@ -15,6 +15,7 @@ export type Database = {
           contact_email: string | null
           contact_phone: string | null
           created_at: string | null
+          hotel_code: string | null
           id: string
           name: string
         }
@@ -23,6 +24,7 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string | null
+          hotel_code?: string | null
           id?: string
           name: string
         }
@@ -31,6 +33,7 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string | null
+          hotel_code?: string | null
           id?: string
           name?: string
         }
@@ -112,6 +115,7 @@ export type Database = {
           floor: number
           hotel_id: string
           id: string
+          room_code: string | null
           room_number: string
           status: string
           type: string
@@ -124,6 +128,7 @@ export type Database = {
           floor?: number
           hotel_id: string
           id?: string
+          room_code?: string | null
           room_number: string
           status?: string
           type?: string
@@ -136,6 +141,7 @@ export type Database = {
           floor?: number
           hotel_id?: string
           id?: string
+          room_code?: string | null
           room_number?: string
           status?: string
           type?: string
