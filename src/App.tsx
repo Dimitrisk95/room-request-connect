@@ -1,81 +1,159 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
 import { AuthProvider } from "./context";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import RoomManagement from "./pages/RoomManagement";
-import Calendar from "./pages/Calendar";
-import GuestView from "./pages/GuestView";
-import StaffView from "./pages/StaffView";
 import StaffManagement from "./pages/StaffManagement";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminSetup from "./pages/AdminSetup";
-import Requests from "./pages/Requests";
-import RequestDetails from "./pages/RequestDetails";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Settings from "./pages/Settings";
-import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
-import GuestConnect from "./pages/GuestConnect";
-import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import Calendar from "./pages/Calendar";
+import Requests from "./pages/Requests";
+import HotelCreation from "./pages/HotelCreation";
+import Staff from "./pages/Staff";
+import HotelSettings from "./pages/HotelSettings";
+import RoleManagement from "./pages/RoleManagement";
 
-const queryClient = new QueryClient();
+// Add the AccessCodes import
+import AccessCodes from "./pages/AccessCodes";
 
-function App() {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const auth = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      // Simulate auth check delay
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      setIsAuthenticated(!!auth.user);
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [auth.user]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
+    <AuthProvider>
       <Router>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/connect" element={<GuestConnect />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/guest/:roomCode" element={<GuestView />} />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/setup" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSetup /></ProtectedRoute>} />
-              <Route path="/rooms" element={<ProtectedRoute><RoomManagement /></ProtectedRoute>} />
-              <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-              <Route path="/staff" element={<ProtectedRoute><StaffView /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/staff-management" element={
-                <ProtectedRoute requiresStaffManage={true}>
-                  <StaffManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
-              <Route path="/request/:id" element={<ProtectedRoute><RequestDetails /></ProtectedRoute>} />
-              
-              {/* Room management route accessible to admins and staff with room manage permission */}
-              <Route path="/admin/rooms" element={
-                <ProtectedRoute requiresRoomManage={true}>
-                  <HotelRoomManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </TooltipProvider>
-        </AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rooms"
+            element={
+              <ProtectedRoute>
+                <RoomManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff-management"
+            element={
+              <ProtectedRoute>
+                <StaffManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute>
+                <Calendar />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/requests"
+            element={
+              <ProtectedRoute>
+                <Requests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hotel-creation"
+            element={
+              <ProtectedRoute>
+                <HotelCreation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff"
+            element={
+              <ProtectedRoute>
+                <Staff />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hotel-settings"
+            element={
+              <ProtectedRoute>
+                <HotelSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/role-management"
+            element={
+              <ProtectedRoute>
+                <RoleManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/access-codes"
+            element={
+              <ProtectedRoute>
+                <AccessCodes />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+        </Routes>
       </Router>
-    </QueryClientProvider>
+    </AuthProvider>
   );
-}
+};
 
 export default App;

@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { useAuth } from "@/context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Shield, UserPlus, Bed } from "lucide-react";
+import { Building, Key, UserPlus, Bed } from "lucide-react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import HotelSettings from "@/components/admin/HotelSettings";
 import RoleManagement from "@/components/admin/role-management";
 import HotelCreation from "@/components/admin/HotelCreation";
 import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
+import HotelInfoTab from "@/components/admin/HotelInfoTab";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -70,7 +71,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="hotel-creation" className="flex items-center">
               <Building className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Create Hotel</span>
@@ -80,6 +81,11 @@ const AdminDashboard = () => {
               <Building className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Hotel Settings</span>
               <span className="sm:hidden">Settings</span>
+            </TabsTrigger>
+            <TabsTrigger value="hotel-info" className="flex items-center">
+              <Key className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Hotel Info</span>
+              <span className="sm:hidden">Info</span>
             </TabsTrigger>
             <TabsTrigger value="room-management" className="flex items-center">
               <Bed className="mr-2 h-4 w-4" />
@@ -102,6 +108,12 @@ const AdminDashboard = () => {
           <TabsContent value="hotel-settings" className="space-y-6">
             <div className="grid md:grid-cols-1 gap-6">
               <HotelSettings />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="hotel-info" className="space-y-6">
+            <div className="grid md:grid-cols-1 gap-6">
+              <HotelInfoTab />
             </div>
           </TabsContent>
 

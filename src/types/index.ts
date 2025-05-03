@@ -1,4 +1,3 @@
-
 // User related types
 export interface User {
   id: string;
@@ -24,12 +23,12 @@ export interface StaffMember {
 export interface Room {
   id: string;
   roomNumber: string;
-  type: string;
   floor: number;
-  capacity: number;
+  type: string;
+  bedType: "single" | "double" | "queen" | "king" | "twin" | "suite";
   status: "vacant" | "occupied" | "maintenance" | "cleaning";
-  bedType?: "single" | "double" | "queen" | "king" | "twin" | "suite";
-  currentGuest?: Guest;
+  capacity: number;
+  room_code?: string;
 }
 
 // Guest related types
@@ -104,4 +103,13 @@ export interface Reservation {
 export interface DateRange {
   from: Date | undefined;
   to?: Date | undefined;
+}
+
+export interface Hotel {
+  id: string;
+  name: string;
+  address: string;
+  contact_email: string;
+  contact_phone: string;
+  hotel_code?: string;
 }

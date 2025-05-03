@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/context";
 import { useToast } from "@/components/ui/use-toast";
@@ -7,6 +8,8 @@ import { TabsContent, Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Room } from "@/types";
 import { SingleRoomForm } from "./room-dialog/SingleRoomForm";
 import { MultipleRoomsForm } from "./room-dialog/MultipleRoomsForm";
+import { generateRoomCode } from "@/utils/codeGenerator";
+import { useHotelCode } from "@/hooks/useHotelCode";
 
 interface RoomAddDialogProps {
   open: boolean;
@@ -22,6 +25,7 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("single-room");
+  const { hotelCode } = useHotelCode();
 
   const handleSingleRoomSubmit = async (roomData: Partial<Room>) => {
     setIsSubmitting(true);
@@ -51,6 +55,9 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
           description: `Room ${roomData.roomNumber} has been updated.`,
         });
       } else {
+        // Generate a room code
+        const roomCode = generateRoomCode(hotelCode || 'HOTEL', roomData.roomNumber || '000');
+        
         const { error } = await supabase
           .from("rooms")
           .insert([{
@@ -61,13 +68,14 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
             status: roomData.status,
             capacity: roomData.capacity,
             hotel_id: user.hotelId,
+            room_code: roomCode
           }]);
 
         if (error) throw error;
 
         toast({
           title: "Room added successfully",
-          description: `Room ${roomData.roomNumber} has been added.`,
+          description: `Room ${roomData.roomNumber} has been added with access code.`,
         });
       }
 
@@ -114,6 +122,7 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
         status: commonFields.status,
         capacity: commonFields.capacity,
         hotel_id: user.hotelId,
+        room_code: generateRoomCode(hotelCode || 'HOTEL', roomNumber)
       }));
 
       const { error } = await supabase.from("rooms").insert(roomsToInsert);
@@ -121,7 +130,7 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
 
       toast({
         title: "Rooms added successfully",
-        description: `${numbers.length} rooms have been added.`,
+        description: `${numbers.length} rooms have been added with access codes.`,
       });
 
       onOpenChange(false);
