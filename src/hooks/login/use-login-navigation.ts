@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@/context/auth/types";
 
 export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, needsPasswordSetup: boolean) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // This hook will only be used within Router context
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();

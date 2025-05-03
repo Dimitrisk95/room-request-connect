@@ -38,7 +38,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logoutWrapper = async () => {
     try {
       await authHandlers.logout();
-      navigation.navigateAfterLogout();
+      // Instead of navigating directly, we'll rely on the useEffect in App.tsx
+      // that checks auth state and navigates accordingly
+      window.location.href = navigation.navigateAfterLogout();
     } catch (error) {
       console.error("Logout error:", error);
     }

@@ -17,13 +17,11 @@ import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import Calendar from "./pages/Calendar";
 import Requests from "./pages/Requests";
-import HotelCreation from "./pages/HotelCreation";
 import Staff from "./pages/Staff";
 import HotelSettings from "./pages/HotelSettings";
 import RoleManagement from "./pages/RoleManagement";
-
-// Add the AccessCodes import
 import AccessCodes from "./pages/AccessCodes";
+import NotFound from "./pages/NotFound";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useAuth();
@@ -50,8 +48,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -112,14 +110,6 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/hotel-creation"
-            element={
-              <ProtectedRoute>
-                <HotelCreation />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/staff"
             element={
               <ProtectedRoute>
@@ -152,9 +142,10 @@ const App: React.FC = () => {
             }
           />
           <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 };
 
