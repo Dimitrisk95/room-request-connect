@@ -1,78 +1,47 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useHotelCode = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [hotelCode, setHotelCode] = useState<string>('');
+  const [hotelCode, setHotelCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (user?.hotelId) {
-      fetchHotelCode();
-    } else {
-      setIsLoading(false);
-      setError('No hotel associated with this user');
-    }
-  }, [user?.hotelId]);
-
-  const fetchHotelCode = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Check localStorage cache first
-      const cachedCode = localStorage.getItem(`hotelCode_${user?.hotelId}`);
-      if (cachedCode) {
-        setHotelCode(cachedCode);
+    const fetchHotelCode = async () => {
+      if (!user?.hotelId) {
+        setHotelCode(null);
         setIsLoading(false);
         return;
       }
-      
-      const { data, error } = await supabase
-        .from('hotels')
-        .select('hotel_code')
-        .eq('id', user?.hotelId)
-        .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching hotel code:', error);
-        setError('Failed to fetch hotel code');
-        throw error;
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const { data, error } = await supabase
+          .from('hotels')
+          .select('hotel_code')
+          .eq('id', user.hotelId)
+          .single();
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        setHotelCode(data?.hotel_code);
+      } catch (err) {
+        console.error("Error fetching hotel code:", err);
+        setError(err instanceof Error ? err : new Error('Unknown error'));
+      } finally {
+        setIsLoading(false);
       }
-      
-      if (data && data.hotel_code) {
-        setHotelCode(data.hotel_code);
-        // Cache the hotel code
-        localStorage.setItem(`hotelCode_${user?.hotelId}`, data.hotel_code);
-      } else {
-        setError('No hotel code found');
-        console.warn('No hotel code found for this hotel');
-      }
-    } catch (error) {
-      console.error('Error fetching hotel code:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  const updateHotelCodeCache = (newCode: string) => {
-    if (user?.hotelId) {
-      localStorage.setItem(`hotelCode_${user.hotelId}`, newCode);
-      setHotelCode(newCode);
-    }
-  };
+    fetchHotelCode();
+  }, [user?.hotelId]);
 
-  return {
-    hotelCode,
-    setHotelCode,
-    isLoading,
-    error,
-    refetch: fetchHotelCode,
-    updateCache: updateHotelCodeCache
-  };
+  return { hotelCode, isLoading, error };
 };

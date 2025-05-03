@@ -1,109 +1,76 @@
 
-import React from 'react';
-import { QrCode } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Copy, QrCode } from "lucide-react";
 
 interface RoomQRCodeProps {
   hotelCode: string;
   roomCode: string;
   roomNumber: string;
-  onPrint?: () => void;
 }
 
-const RoomQRCode: React.FC<RoomQRCodeProps> = ({
-  hotelCode,
-  roomCode,
-  roomNumber,
-  onPrint
-}) => {
-  // Generate URL for QR code
-  const connectionUrl = `${window.location.origin}/connect?hotel=${hotelCode}&room=${roomCode}`;
-  
-  const handlePrint = () => {
-    if (onPrint) {
-      onPrint();
-    } else {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Room ${roomNumber} Connection</title>
-              <style>
-                body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-                .code-card { border: 1px solid #ccc; padding: 20px; margin: 20px auto; max-width: 400px; }
-                .room-number { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-                .codes { margin: 15px 0; font-size: 16px; }
-                .code { font-weight: bold; font-family: monospace; font-size: 18px; letter-spacing: 2px; }
-                .qr-placeholder { width: 200px; height: 200px; margin: 20px auto; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; }
-                .instructions { margin-top: 20px; text-align: left; font-size: 14px; }
-              </style>
-            </head>
-            <body>
-              <div class="code-card">
-                <div class="room-number">Room ${roomNumber}</div>
-                <div class="codes">
-                  <p>Hotel Code: <span class="code">${hotelCode}</span></p>
-                  <p>Room Code: <span class="code">${roomCode}</span></p>
-                </div>
-                <div class="qr-placeholder">
-                  <p>QR code for ${connectionUrl}</p>
-                </div>
-                <div class="instructions">
-                  <p>1. Scan this QR code or visit ${window.location.origin}/connect</p>
-                  <p>2. Enter the hotel code: <strong>${hotelCode}</strong></p>
-                  <p>3. Enter your room code: <strong>${roomCode}</strong></p>
-                </div>
-              </div>
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-      }
+const RoomQRCode: React.FC<RoomQRCodeProps> = ({ hotelCode, roomCode, roomNumber }) => {
+  const { toast } = useToast();
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [copied, setCopied] = useState(false);
+
+  // Generate QR code
+  useEffect(() => {
+    if (hotelCode && roomCode) {
+      // Create URL for direct room access
+      const connectUrl = `${window.location.origin}/connect?hotel=${hotelCode}&room=${roomCode}`;
+      
+      // Generate QR code URL using Google Charts API
+      const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(connectUrl)}`;
+      setQrCodeUrl(qrUrl);
     }
+  }, [hotelCode, roomCode]);
+
+  const copyRoomCode = () => {
+    navigator.clipboard.writeText(roomCode);
+    setCopied(true);
+    toast({
+      title: "Code copied!",
+      description: "Room code has been copied to clipboard"
+    });
+    
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <QrCode className="h-5 w-5 mr-2" />
-          Room Connection Codes
-        </CardTitle>
-        <CardDescription>
-          Give these codes to guests to connect to room {roomNumber}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Hotel Code:</p>
-            <p className="bg-muted p-2 rounded font-mono text-center">{hotelCode}</p>
+    <Card>
+      <CardContent className="p-6 text-center">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Room {roomNumber} Access Code</h3>
+          <p className="text-muted-foreground mb-2">Scan this code or use the code below</p>
+          
+          <div className="flex items-center justify-center my-4">
+            {qrCodeUrl ? (
+              <img 
+                src={qrCodeUrl} 
+                alt={`QR code for Room ${roomNumber}`}
+                className="border rounded-lg"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-[200px] h-[200px] border rounded-lg">
+                <QrCode className="h-10 w-10 text-muted-foreground" />
+              </div>
+            )}
           </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Room Code:</p>
-            <p className="bg-muted p-2 rounded font-mono text-center">{roomCode}</p>
-          </div>
-        </div>
-        
-        <div className="flex justify-center py-4">
-          <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-6 flex items-center justify-center">
-            <div className="text-center">
-              <QrCode className="h-24 w-24 mx-auto text-primary" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                QR code for direct connection
-              </p>
-            </div>
+          
+          <div className="flex items-center justify-center gap-2">
+            <code className="bg-muted px-3 py-1 rounded-md text-lg font-mono">
+              {roomCode}
+            </code>
+            <Button size="sm" variant="outline" onClick={copyRoomCode}>
+              <Copy className="h-4 w-4 mr-1" />
+              {copied ? "Copied!" : "Copy"}
+            </Button>
           </div>
         </div>
       </CardContent>
-      <CardFooter>
-        <Button onClick={handlePrint} className="w-full">
-          Print Codes
-        </Button>
-      </CardFooter>
     </Card>
   );
 };
