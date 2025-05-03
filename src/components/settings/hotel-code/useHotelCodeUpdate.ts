@@ -1,7 +1,11 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  validateHotelCodeFormat, 
+  checkHotelCodeAvailability, 
+  updateHotelCodeInDatabase 
+} from './hotelCodeUtils';
 
 export const useHotelCodeUpdate = (
   hotelId: string,
@@ -13,82 +17,45 @@ export const useHotelCodeUpdate = (
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
-  const checkCodeAvailability = async (code: string) => {
-    setIsChecking(true);
-    setError(null);
-    
-    try {
-      const { data, error } = await supabase
-        .from('hotels')
-        .select('id')
-        .eq('hotel_code', code)
-        .maybeSingle();
-        
-      if (error) {
-        throw error;
-      }
-      
-      if (data && data.id !== hotelId) {
-        setError("This hotel code is already taken. Please try another one.");
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error checking code availability:', error);
-      setError("Error checking code availability. Please try again.");
-      return false;
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
   const updateHotelCode = async () => {
     if (!hotelId || !newCode) return;
     
     // Validate the format of the code
-    if (!/^[a-zA-Z0-9]+$/.test(newCode)) {
-      setError("Hotel code can only contain letters and numbers (no spaces or special characters)");
-      return;
-    }
-    
-    if (newCode.length < 3 || newCode.length > 20) {
-      setError("Hotel code must be between 3 and 20 characters");
+    const formatValidation = validateHotelCodeFormat(newCode);
+    if (!formatValidation.isValid) {
+      setError(formatValidation.error);
       return;
     }
     
     // Check if code is available
-    const isAvailable = await checkCodeAvailability(newCode);
-    if (!isAvailable) return;
+    setIsChecking(true);
+    const availabilityCheck = await checkHotelCodeAvailability(newCode, hotelId);
+    setIsChecking(false);
     
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from('hotels')
-        .update({ hotel_code: newCode })
-        .eq('id', hotelId);
-
-      if (error) throw error;
-      
-      // Update local state and cache
-      onCodeUpdated(newCode);
-      setNewCode('');
-      localStorage.setItem(`hotelCode_${hotelId}`, newCode);
-      
-      toast({
-        title: "Hotel Code Updated",
-        description: "Your hotel code has been successfully updated.",
-      });
-    } catch (error) {
-      console.error('Error updating hotel code:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update hotel code. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    if (!availabilityCheck.isAvailable) {
+      setError(availabilityCheck.error);
+      return;
     }
+    
+    // Update the code in the database
+    setIsLoading(true);
+    const result = await updateHotelCodeInDatabase(hotelId, newCode);
+    setIsLoading(false);
+    
+    if (!result.success) {
+      setError(result.error);
+      return;
+    }
+    
+    // Update local state and cache
+    onCodeUpdated(newCode);
+    setNewCode('');
+    localStorage.setItem(`hotelCode_${hotelId}`, newCode);
+    
+    toast({
+      title: "Hotel Code Updated",
+      description: "Your hotel code has been successfully updated.",
+    });
   };
 
   return {
@@ -97,6 +64,7 @@ export const useHotelCodeUpdate = (
     error,
     isLoading,
     isChecking,
-    updateHotelCode
+    updateHotelCode,
+    clearError: () => setError(null)
   };
 };

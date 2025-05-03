@@ -17,7 +17,8 @@ const HotelCodeUpdateForm = ({ hotelId, onCodeUpdated }: HotelCodeUpdateFormProp
     error,
     isLoading,
     isChecking,
-    updateHotelCode
+    updateHotelCode,
+    clearError
   } = useHotelCodeUpdate(hotelId, onCodeUpdated);
 
   return (
@@ -26,7 +27,10 @@ const HotelCodeUpdateForm = ({ hotelId, onCodeUpdated }: HotelCodeUpdateFormProp
       <div className="flex space-x-2">
         <Input
           value={newCode}
-          onChange={(e) => setNewCode(e.target.value)}
+          onChange={(e) => {
+            setNewCode(e.target.value);
+            clearError();
+          }}
           placeholder="Enter new hotel code"
           className="font-mono"
         />
