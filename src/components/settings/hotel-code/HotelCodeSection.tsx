@@ -17,7 +17,7 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
   hotelName,
   initialCode,
 }) => {
-  const { hotelCode, setHotelCode, isLoading, updateCache } = useHotelCode();
+  const { hotelCode, setHotelCode, isLoading } = useHotelCode();
 
   useEffect(() => {
     if (initialCode) {
@@ -26,7 +26,7 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
   }, [initialCode, setHotelCode]);
 
   const handleCodeUpdated = (newCode: string) => {
-    updateCache(newCode);
+    setHotelCode(newCode);
   };
 
   return (
