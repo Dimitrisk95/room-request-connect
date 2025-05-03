@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Room } from "@/types";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const useRoomManagement = () => {
   const { user } = useAuth();
@@ -12,66 +12,89 @@ export const useRoomManagement = () => {
   const [roomsData, setRoomsData] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [showAddReservation, setShowAddReservation] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user?.hotelId) {
-      fetchRooms();
+  const fetchRooms = useCallback(async () => {
+    if (!user?.hotelId) {
+      setRoomsData([]);
+      setIsLoading(false);
+      return;
     }
-  }, [user?.hotelId]);
 
-  const fetchRooms = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Fetching rooms for hotel:', user.hotelId);
+
       const { data, error } = await supabase
-        .from('rooms')
-        .select('*')
-        .eq('hotel_id', user?.hotelId);
+        .from("rooms")
+        .select("*")
+        .eq("hotel_id", user.hotelId);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      // Transform the data to match our Room type
-      const transformedRooms: Room[] = data.map(room => ({
-        id: room.id,
-        roomNumber: room.room_number,
-        type: room.type,
-        status: room.status as "vacant" | "occupied" | "maintenance" | "cleaning",
-        bedType: room.bed_type as "single" | "double" | "queen" | "king" | "twin" | "suite",
-        floor: room.floor,
-        capacity: room.capacity,
-        hotelId: room.hotel_id
-      }));
-
-      setRoomsData(transformedRooms);
-    } catch (error) {
-      console.error('Error fetching rooms:', error);
+      if (data) {
+        console.log('Rooms fetched successfully:', data.length);
+        const transformedRooms = data.map((room) => ({
+          id: room.id,
+          roomNumber: room.room_number,
+          floor: room.floor,
+          type: room.type,
+          bedType: room.bed_type as "single" | "double" | "queen" | "king" | "twin" | "suite",
+          status: room.status as "vacant" | "occupied" | "maintenance" | "cleaning",
+          capacity: room.capacity,
+          room_code: room.room_code,
+        }));
+        setRoomsData(transformedRooms);
+      }
+    } catch (e: any) {
+      console.error("Error fetching rooms:", e);
+      setError(e.message);
       toast({
         title: "Error",
-        description: "Failed to fetch rooms. Please try again.",
-        variant: "destructive"
+        description: "Failed to load rooms. Please try again.",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [user?.hotelId, toast]);
 
-  const filterRooms = (rooms: Room[], floor: number | null = null) => {
-    return rooms.filter((room) => {
-      const matchesSearch = room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          room.type.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFloor = floor === null || room.floor === floor;
-      return matchesSearch && matchesFloor;
-    });
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  const filterRooms = (rooms: Room[], floor: number | null) => {
+    let filteredRooms = rooms;
+
+    if (searchTerm) {
+      filteredRooms = filteredRooms.filter((room) =>
+        room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (floor !== null) {
+      filteredRooms = filteredRooms.filter((room) => room.floor === floor);
+    }
+
+    return filteredRooms;
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "occupied":
-        return "bg-pending text-pending-foreground";
       case "vacant":
-        return "bg-success text-success-foreground";
+        return "text-green-600 bg-green-100";
+      case "occupied":
+        return "text-blue-600 bg-blue-100";
       case "maintenance":
-        return "bg-destructive text-destructive-foreground";
+        return "text-orange-600 bg-orange-100";
       case "cleaning":
-        return "bg-warning text-warning-foreground";
+        return "text-purple-600 bg-purple-100";
       default:
-        return "bg-muted text-muted-foreground";
+        return "text-gray-600 bg-gray-100";
     }
   };
 
@@ -79,12 +102,14 @@ export const useRoomManagement = () => {
     searchTerm,
     setSearchTerm,
     roomsData,
+    isLoading,
+    error,
     selectedRoom,
     setSelectedRoom,
     showAddReservation,
     setShowAddReservation,
     filterRooms,
     getStatusColor,
-    fetchRooms,
+    refetchRooms: fetchRooms,
   };
 };

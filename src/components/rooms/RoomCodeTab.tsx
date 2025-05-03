@@ -31,7 +31,7 @@ const RoomCodeTab: React.FC<RoomCodeTabProps> = ({
     try {
       const newRoomCode = generateRoomCode(hotelCode, room.roomNumber);
       
-      // Fixed the property name to room_code to match the database schema
+      // Updated room_code property name to match database schema
       const { error } = await supabase
         .from('rooms')
         .update({ room_code: newRoomCode })

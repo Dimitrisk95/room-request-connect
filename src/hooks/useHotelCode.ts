@@ -9,6 +9,7 @@ export const useHotelCode = () => {
   const { toast } = useToast();
   const [hotelCode, setHotelCode] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.hotelId) {
@@ -21,22 +22,41 @@ export const useHotelCode = () => {
   const fetchHotelCode = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      
+      // Check localStorage cache first
+      const cachedCode = localStorage.getItem(`hotelCode_${user?.hotelId}`);
+      if (cachedCode) {
+        setHotelCode(cachedCode);
+        setIsLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('hotels')
         .select('hotel_code')
         .eq('id', user?.hotelId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching hotel code:', error);
+        setError('Failed to fetch hotel code');
+        throw error;
+      }
       
       if (data && data.hotel_code) {
         setHotelCode(data.hotel_code);
+        // Cache the hotel code
+        localStorage.setItem(`hotelCode_${user?.hotelId}`, data.hotel_code);
+      } else {
+        setError('No hotel code found');
+        console.warn('No hotel code found for this hotel');
       }
     } catch (error) {
       console.error('Error fetching hotel code:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch hotel code",
+        description: "Failed to fetch hotel code. Please try again later.",
         variant: "destructive"
       });
     } finally {
@@ -47,6 +67,8 @@ export const useHotelCode = () => {
   return {
     hotelCode,
     setHotelCode,
-    isLoading
+    isLoading,
+    error,
+    refetch: fetchHotelCode
   };
 };
