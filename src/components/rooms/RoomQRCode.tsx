@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, QrCode } from "lucide-react";
+import { Copy, Download, QrCode } from "lucide-react";
 
 interface RoomQRCodeProps {
   hotelCode: string;
@@ -39,6 +39,26 @@ const RoomQRCode: React.FC<RoomQRCodeProps> = ({ hotelCode, roomCode, roomNumber
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const downloadQRCode = () => {
+    // Create a link element
+    const link = document.createElement('a');
+    // Set link's href to the QR code URL
+    link.href = qrCodeUrl;
+    // Set the filename for the download
+    link.download = `room-${roomNumber}-qrcode.png`;
+    // Append link to the body
+    document.body.appendChild(link);
+    // Programmatically click the link to trigger the download
+    link.click();
+    // Remove the link from the body
+    document.body.removeChild(link);
+    
+    toast({
+      title: "QR code downloaded",
+      description: `QR code for Room ${roomNumber} has been downloaded`
+    });
+  };
+
   return (
     <Card>
       <CardContent className="p-6 text-center">
@@ -60,7 +80,7 @@ const RoomQRCode: React.FC<RoomQRCodeProps> = ({ hotelCode, roomCode, roomNumber
             )}
           </div>
           
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2 mb-4">
             <code className="bg-muted px-3 py-1 rounded-md text-lg font-mono">
               {roomCode}
             </code>
@@ -69,6 +89,13 @@ const RoomQRCode: React.FC<RoomQRCodeProps> = ({ hotelCode, roomCode, roomNumber
               {copied ? "Copied!" : "Copy"}
             </Button>
           </div>
+          
+          {qrCodeUrl && (
+            <Button variant="outline" onClick={downloadQRCode} className="w-full">
+              <Download className="h-4 w-4 mr-1" />
+              Download QR Code
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
