@@ -55,10 +55,15 @@ export const useHotelCode = () => {
       }
     } catch (error) {
       console.error('Error fetching hotel code:', error);
-      // Don't show the toast here as it might be annoying on every page load
-      // Only log to console for debugging
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const updateHotelCodeCache = (newCode: string) => {
+    if (user?.hotelId) {
+      localStorage.setItem(`hotelCode_${user.hotelId}`, newCode);
+      setHotelCode(newCode);
     }
   };
 
@@ -67,6 +72,7 @@ export const useHotelCode = () => {
     setHotelCode,
     isLoading,
     error,
-    refetch: fetchHotelCode
+    refetch: fetchHotelCode,
+    updateCache: updateHotelCodeCache
   };
 };

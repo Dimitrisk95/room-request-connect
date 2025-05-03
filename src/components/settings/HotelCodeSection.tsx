@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Building, Copy, Check, RefreshCw, Loader, AlertCircle } from 'lucide-react';
+import { Building, Copy, Check, Loader, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useHotelCode } from '@/hooks/useHotelCode';
 
 interface HotelCodeSectionProps {
   hotelId: string;
@@ -19,51 +20,18 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
   initialCode,
 }) => {
   const { toast } = useToast();
-  const [hotelCode, setHotelCode] = useState(initialCode || '');
+  const { hotelCode, setHotelCode, refetch } = useHotelCode();
   const [isCopied, setIsCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch hotel code if not provided
   useEffect(() => {
-    if (!initialCode) {
-      fetchHotelCode();
+    if (initialCode) {
+      setHotelCode(initialCode);
     }
-  }, [initialCode, hotelId]);
-
-  const fetchHotelCode = async () => {
-    if (!hotelId) return;
-    
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('hotels')
-        .select('hotel_code')
-        .eq('id', hotelId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching hotel code:', error);
-        throw error;
-      }
-      
-      if (data && data.hotel_code) {
-        setHotelCode(data.hotel_code);
-        localStorage.setItem(`hotelCode_${hotelId}`, data.hotel_code);
-      }
-    } catch (error) {
-      console.error('Error fetching hotel code:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch hotel code. Please try again later.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [initialCode]);
 
   const checkCodeAvailability = async (code: string) => {
     setIsChecking(true);
@@ -122,6 +90,7 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
 
       if (error) throw error;
       
+      // Update local state and cache
       setHotelCode(newCode);
       setNewCode('');
       localStorage.setItem(`hotelCode_${hotelId}`, newCode);
@@ -167,7 +136,7 @@ const HotelCodeSection: React.FC<HotelCodeSectionProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoading ? (
+        {isLoading && !hotelCode ? (
           <div className="flex items-center justify-center py-4">
             <Loader className="h-6 w-6 animate-spin text-primary" />
             <span className="ml-2">Loading...</span>
