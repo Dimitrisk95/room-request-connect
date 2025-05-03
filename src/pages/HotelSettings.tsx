@@ -4,7 +4,7 @@ import DashboardShell from "@/components/ui/dashboard-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HotelSettingsForm from "@/components/settings/HotelSettingsForm";
-import HotelCodeSection from "@/components/settings/HotelCodeSection";
+import { HotelCodeSection } from "@/components/settings/hotel-code";
 import { useAuth } from "@/context";
 
 const HotelSettings = () => {

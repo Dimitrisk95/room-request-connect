@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
 import DashboardShell from "@/components/ui/dashboard-shell";
@@ -9,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ProfileSettings from "@/components/settings/ProfileSettings";
 import AccountSettings from "@/components/settings/AccountSettings";
 import HotelSettingsForm from "@/components/settings/HotelSettingsForm";
-import HotelCodeSection from "@/components/settings/HotelCodeSection";
+import { HotelCodeSection } from "@/components/settings/hotel-code";
 
 const Settings = () => {
   const { user } = useAuth();
