@@ -43,5 +43,9 @@ export const useHotelCode = () => {
     fetchHotelCode();
   }, [user?.hotelId]);
 
-  return { hotelCode, isLoading, error };
+  const updateCache = (newCode: string) => {
+    setHotelCode(newCode);
+  };
+
+  return { hotelCode, isLoading, error, setHotelCode: updateCache };
 };
