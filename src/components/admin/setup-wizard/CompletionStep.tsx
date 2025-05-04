@@ -34,6 +34,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
   
   const handleDashboardClick = () => {
     console.log("Dashboard button clicked, triggering onComplete");
+    // Ensure we call onComplete which should handle hotel creation and navigation
     onComplete();
   };
   

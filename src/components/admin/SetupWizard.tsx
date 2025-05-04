@@ -94,6 +94,7 @@ const SetupWizard = () => {
     if (!hotelCreated) {
       handleCreateHotel();
     } else {
+      console.log("Hotel already created, navigating to dashboard");
       navigate("/dashboard");
     }
   };

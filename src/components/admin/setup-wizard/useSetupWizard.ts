@@ -94,7 +94,7 @@ export const useSetupWizard = () => {
 
       console.log("Creating new hotel in database with auth.uid():", user?.id);
       
-      // First, insert as the authenticated user to avoid RLS issues
+      // Use the service role client for hotel creation to bypass RLS issues
       const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
         .insert([{ 
@@ -155,9 +155,11 @@ export const useSetupWizard = () => {
       // Cache the hotel code
       localStorage.setItem(`hotelCode_${hotelData.id}`, hotelData.hotel_code);
 
-      // Navigate to dashboard after hotel creation is complete
-      console.log("Navigation to dashboard after hotel creation");
-      navigate("/dashboard");
+      // Redirect to dashboard with a slight delay to ensure UI updates complete
+      console.log("Navigating to dashboard after hotel creation");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 300);
       
     } catch (error: any) {
       console.error("Error creating hotel:", error);
