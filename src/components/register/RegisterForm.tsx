@@ -105,9 +105,10 @@ export function RegisterForm() {
       let errorMessage = "Could not create account.";
       
       if (error.message) {
-        if (error.message.includes("already exists")) {
-          errorMessage = error.message;
-        } else if (error.message.includes("User already registered")) {
+        if (error.message.includes("already exists") || 
+            error.message.includes("User already registered") || 
+            error.message.includes("duplicate key value") ||
+            error.message.includes("users_email_key")) {
           errorMessage = "A user with this email is already registered. Please try logging in instead.";
         } else {
           errorMessage = error.message;
