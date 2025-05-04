@@ -40,7 +40,8 @@ serve(async (req) => {
       await supabaseClient.auth.admin.deleteUser(user.id);
     }
     
-    // Clear data from tables
+    // Clear data from tables in the correct order to avoid foreign key constraint violations
+    // Note: user_audit_log must be deleted first because it has foreign keys to users
     const tables = ['user_audit_log', 'users', 'rooms', 'requests', 'hotels'];
     
     for (const table of tables) {
