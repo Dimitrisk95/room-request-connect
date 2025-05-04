@@ -3,6 +3,7 @@ import { Check, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { SetupData } from "../SetupWizard";
+import { useEffect } from "react";
 
 interface CompletionStepProps {
   setupData: SetupData;
@@ -15,6 +16,20 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
 }) => {
   const skippedRooms = !setupData.rooms.addRooms || setupData.rooms.createdRooms === 0;
   const skippedStaff = !setupData.staff.addStaff || setupData.staff.createdStaff === 0;
+  
+  // Debug log to check the completion step is rendering with correct data
+  useEffect(() => {
+    console.log("CompletionStep rendered with:", {
+      hotelName: setupData.hotel.name,
+      roomsAdded: setupData.rooms.createdRooms,
+      staffAdded: setupData.staff.createdStaff
+    });
+  }, [setupData]);
+  
+  const handleDashboardClick = () => {
+    console.log("Dashboard button clicked, triggering onComplete");
+    onComplete();
+  };
   
   return (
     <div className="space-y-6">
@@ -108,7 +123,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       </div>
 
       <div className="pt-4">
-        <Button onClick={onComplete} className="w-full">
+        <Button onClick={handleDashboardClick} className="w-full">
           Go to Dashboard
         </Button>
       </div>

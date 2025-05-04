@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Bed, PlusCircle } from "lucide-react";
 import NavigationButtons from "./NavigationButtons";
 import { SetupData } from "../SetupWizard";
+import RoomAddDialog from "../RoomAddDialog";
+import { Room } from "@/types";
 
 interface RoomSetupStepProps {
   roomsData: SetupData["rooms"];
@@ -24,16 +26,27 @@ const RoomsSetupStep: React.FC<RoomSetupStepProps> = ({
   skipToCompletion
 }) => {
   const [isAddingRooms, setIsAddingRooms] = useState(roomsData.addRooms);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   
   const handleAddRooms = () => {
     setIsAddingRooms(true);
     updateRoomsData({ addRooms: true });
+    setShowAddDialog(true);
   };
   
   const handleSkipRooms = () => {
     setIsAddingRooms(false);
     updateRoomsData({ addRooms: false });
     onSkip();
+  };
+
+  const handleRoomsAdded = (count: number) => {
+    const totalRooms = (roomsData.createdRooms || 0) + count;
+    console.log(`Added ${count} rooms, total is now ${totalRooms}`);
+    updateRoomsData({ 
+      addRooms: true,
+      createdRooms: totalRooms 
+    });
   };
   
   return (
@@ -73,10 +86,22 @@ const RoomsSetupStep: React.FC<RoomSetupStepProps> = ({
       ) : (
         <div className="space-y-6">
           <div className="border rounded-md p-6 bg-muted/30">
-            <p className="text-center text-muted-foreground">
-              Room management features will be available here. 
-              You can add rooms later from the Dashboard → Room Management section.
-            </p>
+            <div className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                {roomsData.createdRooms > 0 ? 
+                  `You have added ${roomsData.createdRooms} room${roomsData.createdRooms > 1 ? 's' : ''} to your hotel.` : 
+                  'No rooms have been added yet.'
+                }
+              </p>
+              
+              <Button 
+                onClick={() => setShowAddDialog(true)}
+                className="flex items-center gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Add More Rooms
+              </Button>
+            </div>
           </div>
           
           <NavigationButtons 
@@ -90,6 +115,13 @@ const RoomsSetupStep: React.FC<RoomSetupStepProps> = ({
           />
         </div>
       )}
+
+      {/* Room Add Dialog */}
+      <RoomAddDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onRoomsAdded={handleRoomsAdded}
+      />
     </div>
   );
 };

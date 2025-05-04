@@ -135,6 +135,7 @@ const SetupWizard = () => {
             <CompletionStep 
               setupData={setupData} 
               onComplete={() => {
+                console.log("Complete button clicked, hotel created status:", hotelCreated);
                 // Now call handleCreateHotel when user finishes the setup
                 if (!hotelCreated) {
                   handleCreateHotel();

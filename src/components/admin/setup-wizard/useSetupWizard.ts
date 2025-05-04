@@ -92,6 +92,7 @@ export const useSetupWizard = () => {
         throw new Error('This hotel code is already taken. Please choose a different code.');
       }
 
+      console.log("Creating new hotel in database");
       const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
         .insert([{ 
@@ -115,6 +116,8 @@ export const useSetupWizard = () => {
         throw new Error('Failed to create hotel');
       }
 
+      console.log("Hotel created successfully, updating user with hotelId:", hotelData.id);
+      
       const { error: updateError } = await supabase
         .from("users")
         .update({ hotel_id: hotelData.id })
@@ -123,6 +126,7 @@ export const useSetupWizard = () => {
       if (updateError) throw updateError;
 
       if (user) {
+        console.log("Updating user context with hotelId:", hotelData.id);
         const updatedUser = { ...user, hotelId: hotelData.id };
         updateUser(updatedUser);
       }
@@ -139,6 +143,7 @@ export const useSetupWizard = () => {
       localStorage.setItem(`hotelCode_${hotelData.id}`, hotelData.hotel_code);
 
       // Navigate to dashboard after hotel creation is complete
+      console.log("Navigation to dashboard after hotel creation");
       navigate("/dashboard");
       
     } catch (error: any) {
