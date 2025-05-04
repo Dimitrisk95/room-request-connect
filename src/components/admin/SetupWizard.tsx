@@ -18,6 +18,8 @@ const SetupWizard = () => {
     updateSetupData,
     isLoading,
     handleCreateHotel,
+    handleNextStep,
+    hotelCreated,
     navigate
   } = useSetupWizard();
 
@@ -91,7 +93,9 @@ const SetupWizard = () => {
               hotelData={setupData.hotel}
               updateHotelData={updateHotelData}
               onSubmit={handleCreateHotel}
+              onNext={nextStep}
               isLoading={isLoading}
+              hotelCreated={hotelCreated}
             />
           )}
           

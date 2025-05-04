@@ -28,14 +28,17 @@ import GuestConnect from "./pages/GuestConnect";
 import Index from "./pages/Index";
 import { Toaster } from "@/components/ui/toaster";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+// Protected route that also checks if hotel setup is required
+const ProtectedRoute = ({ children, requiresHotel = false }: { 
+  children: React.ReactNode, 
+  requiresHotel?: boolean 
+}) => {
   const auth = useAuth();
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      // Simulate auth check delay
       await new Promise((resolve) => setTimeout(resolve, 50));
       setIsAuthenticated(!!auth.user);
       setLoading(false);
@@ -48,7 +51,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <div>Loading...</div>;
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  // Not authenticated - redirect to login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  
+  // Admin without hotel - redirect to setup
+  if (requiresHotel && auth.user?.role === "admin" && !auth.user?.hotelId) {
+    return <Navigate to="/setup" />;
+  }
+
+  return <>{children}</>;
 };
 
 const App: React.FC = () => {
@@ -64,7 +77,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -72,7 +85,7 @@ const App: React.FC = () => {
           <Route
             path="/rooms"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <RoomManagement />
               </ProtectedRoute>
             }
@@ -80,7 +93,7 @@ const App: React.FC = () => {
           <Route
             path="/staff-management"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <StaffManagement />
               </ProtectedRoute>
             }
@@ -96,7 +109,7 @@ const App: React.FC = () => {
           <Route
             path="/admin-dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
@@ -104,7 +117,7 @@ const App: React.FC = () => {
           <Route
             path="/calendar"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <Calendar />
               </ProtectedRoute>
             }
@@ -112,7 +125,7 @@ const App: React.FC = () => {
           <Route
             path="/requests"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <Requests />
               </ProtectedRoute>
             }
@@ -120,7 +133,7 @@ const App: React.FC = () => {
           <Route
             path="/staff"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <Staff />
               </ProtectedRoute>
             }
@@ -128,7 +141,7 @@ const App: React.FC = () => {
           <Route
             path="/hotel-settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <HotelSettings />
               </ProtectedRoute>
             }
@@ -136,7 +149,7 @@ const App: React.FC = () => {
           <Route
             path="/role-management"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <RoleManagement />
               </ProtectedRoute>
             }
@@ -144,7 +157,7 @@ const App: React.FC = () => {
           <Route
             path="/access-codes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresHotel={true}>
                 <AccessCodes />
               </ProtectedRoute>
             }

@@ -29,7 +29,8 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
       console.log("User authenticated, redirecting with permissions:", {
         role: user?.role,
         can_manage_rooms: user?.can_manage_rooms,
-        can_manage_staff: user?.can_manage_staff
+        can_manage_staff: user?.can_manage_staff,
+        hotelId: user?.hotelId
       });
       
       // If we have a stored location, redirect there
@@ -38,6 +39,7 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
       } else if (user?.role === "guest" && user.roomNumber) {
         navigate(`/guest/${user.roomNumber}`);
       } else if (user?.role === "admin" && !user?.hotelId) {
+        // Redirect to setup wizard when admin has no hotel
         navigate("/setup");
       } else {
         navigate("/dashboard");

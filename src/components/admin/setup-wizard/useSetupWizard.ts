@@ -12,6 +12,7 @@ export const useSetupWizard = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [hotelCreated, setHotelCreated] = useState(false);
   const [setupData, setSetupData] = useState<SetupData>({
     hotel: {
       name: "",
@@ -35,6 +36,11 @@ export const useSetupWizard = () => {
       ...prev,
       ...newData
     }));
+  };
+
+  const handleNextStep = () => {
+    setCurrentStep(prev => prev + 1);
+    window.scrollTo(0, 0);
   };
 
   const handleCreateHotel = async () => {
@@ -118,8 +124,12 @@ export const useSetupWizard = () => {
         const updatedUser = { ...user, hotelId: hotelData.id };
         updateUser(updatedUser);
       }
-
-      setCurrentStep(prev => prev + 1);
+      
+      // Set hotel created flag to true
+      setHotelCreated(true);
+      
+      // Automatically proceed to the next step after creating hotel
+      handleNextStep();
       
       toast({
         title: "Hotel created successfully",
@@ -148,6 +158,8 @@ export const useSetupWizard = () => {
     updateSetupData,
     isLoading,
     handleCreateHotel,
+    handleNextStep,
+    hotelCreated,
     navigate
   };
 };

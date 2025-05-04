@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hotel, Loader2, Info } from "lucide-react";
+import { Hotel, Loader2, Info, ArrowRight } from "lucide-react";
 import { SetupData } from "../SetupWizard";
+import NavigationButtons from "./NavigationButtons";
 
 const formSchema = z.object({
   hotelName: z.string().min(1, "Hotel name is required"),
@@ -26,14 +27,18 @@ interface HotelSetupStepProps {
   hotelData: SetupData["hotel"];
   updateHotelData: (data: Partial<SetupData["hotel"]>) => void;
   onSubmit: () => void;
+  onNext: () => void;
   isLoading: boolean;
+  hotelCreated: boolean;
 }
 
 const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
   hotelData,
   updateHotelData,
   onSubmit,
-  isLoading
+  onNext,
+  isLoading,
+  hotelCreated
 }) => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -159,20 +164,34 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
           />
 
           <div className="pt-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Hotel...
-                </>
-              ) : (
-                "Continue"
-              )}
-            </Button>
+            {!hotelCreated ? (
+              <Button 
+                type="submit" 
+                className="w-full flex items-center justify-center gap-2" 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Creating Hotel...
+                  </>
+                ) : (
+                  <>
+                    Create Hotel
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                type="button" 
+                className="w-full" 
+                onClick={onNext}
+              >
+                Continue to Next Step
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
         </form>
       </Form>
