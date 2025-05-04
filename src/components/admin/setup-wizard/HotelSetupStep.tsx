@@ -26,7 +26,6 @@ type FormValues = z.infer<typeof formSchema>;
 interface HotelSetupStepProps {
   hotelData: SetupData["hotel"];
   updateHotelData: (data: Partial<SetupData["hotel"]>) => void;
-  onSubmit: () => void;
   onNext: () => void;
   isLoading: boolean;
   hotelCreated: boolean;
@@ -35,7 +34,6 @@ interface HotelSetupStepProps {
 const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
   hotelData,
   updateHotelData,
-  onSubmit,
   onNext,
   isLoading,
   hotelCreated
