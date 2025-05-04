@@ -31,7 +31,7 @@ const AdminSetup = () => {
   useEffect(() => {
     if (user?.hotelId) {
       console.log("User already has hotel, redirecting to dashboard");
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [user?.hotelId, navigate]);
 

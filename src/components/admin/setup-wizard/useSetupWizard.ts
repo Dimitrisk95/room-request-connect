@@ -45,8 +45,8 @@ export const useSetupWizard = () => {
   // Create the hotel in the database
   const handleCreateHotel = useCallback(async () => {
     if (hotelCreated) {
-      console.log("Hotel already created, navigating to dashboard");
-      navigate("/dashboard");
+      console.log("Hotel already created, forcibly navigating to dashboard");
+      navigate("/dashboard", { replace: true });
       return;
     }
 
@@ -125,10 +125,11 @@ export const useSetupWizard = () => {
       toast.success("Hotel setup completed successfully!");
       setHotelCreated(true);
 
-      // Short delay before navigating
+      // Force navigation to dashboard with replace to prevent going back
       setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+        console.log("Redirecting to dashboard after successful setup");
+        navigate("/dashboard", { replace: true });
+      }, 1000);
       
     } catch (error: any) {
       console.error("Error setting up hotel:", error);
@@ -145,8 +146,8 @@ export const useSetupWizard = () => {
   
   // Navigate to dashboard - using the already defined navigate instance
   const handleNavigate = useCallback(() => {
-    console.log("Navigating to dashboard");
-    navigate("/dashboard");
+    console.log("Explicitly navigating to dashboard");
+    navigate("/dashboard", { replace: true });
   }, [navigate]);
 
   return {

@@ -1,3 +1,4 @@
+
 import { Check, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -31,6 +32,18 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
     });
   }, [setupData, hotelCreated, isLoading]);
   
+  // Auto-redirect after hotel is created and we're not in a loading state
+  useEffect(() => {
+    if (hotelCreated && !isLoading) {
+      console.log("CompletionStep: Hotel already created, auto-redirecting in 2 seconds");
+      const timer = setTimeout(() => {
+        onComplete();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hotelCreated, isLoading, onComplete]);
+  
   const handleDashboardClick = () => {
     console.log("Dashboard button clicked, triggering onComplete with hotel created status:", hotelCreated);
     onComplete();
@@ -47,7 +60,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         <h2 className="text-2xl font-bold">Setup Complete!</h2>
         <p className="text-muted-foreground max-w-md mx-auto">
           {hotelCreated 
-            ? "Your hotel has been set up successfully. You can now access your dashboard to manage your hotel."
+            ? "Your hotel has been set up successfully. You will be redirected to your dashboard automatically."
             : "Review your information and click the button below to complete setup and create your hotel."}
         </p>
       </div>
@@ -86,13 +99,15 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
                 <p className="text-sm text-muted-foreground">
                   You skipped this step. Add rooms from your dashboard.
                 </p>
-                <Link 
-                  to="/rooms" 
-                  className="text-sm text-primary hover:underline inline-flex items-center mt-1"
-                >
-                  Go to Room Management
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Link>
+                {hotelCreated && (
+                  <Link 
+                    to="/rooms" 
+                    className="text-sm text-primary hover:underline inline-flex items-center mt-1"
+                  >
+                    Go to Room Management
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Link>
+                )}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -117,13 +132,15 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
                 <p className="text-sm text-muted-foreground">
                   You skipped this step. Add staff from your dashboard.
                 </p>
-                <Link 
-                  to="/staff-management" 
-                  className="text-sm text-primary hover:underline inline-flex items-center mt-1"
-                >
-                  Go to Staff Management
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Link>
+                {hotelCreated && (
+                  <Link 
+                    to="/staff-management" 
+                    className="text-sm text-primary hover:underline inline-flex items-center mt-1"
+                  >
+                    Go to Staff Management
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Link>
+                )}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -140,11 +157,13 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
           className="w-full"
           disabled={isLoading}
         >
-          {isLoading ? 'Processing...' : (hotelCreated ? 'Go to Dashboard' : 'Complete Setup and Create Hotel')}
+          {isLoading ? 'Processing...' : (hotelCreated ? 'Go to Dashboard Now' : 'Complete Setup and Create Hotel')}
         </Button>
-        <p className="text-xs text-center mt-2 text-muted-foreground">
-          {hotelCreated && "Click to proceed to your hotel dashboard"}
-        </p>
+        {hotelCreated && (
+          <p className="text-xs text-center mt-2 text-muted-foreground">
+            Redirecting to dashboard in a few seconds...
+          </p>
+        )}
       </div>
       
       <p className="text-xs text-center text-muted-foreground">
