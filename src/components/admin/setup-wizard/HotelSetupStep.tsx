@@ -40,6 +40,8 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
   isLoading,
   hotelCreated
 }) => {
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,9 +51,27 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
       contactPhone: hotelData.contactPhone || "",
       hotelCode: hotelData.hotelCode || ""
     },
+    mode: "onChange" // This will validate on change
   });
 
+  // Handle real-time updates of the form data
+  const handleValueChange = (field: keyof FormValues, value: string) => {
+    if (field === "hotelName") {
+      updateHotelData({ name: value });
+    } else if (field === "address") {
+      updateHotelData({ address: value });
+    } else if (field === "contactEmail") {
+      updateHotelData({ contactEmail: value });
+    } else if (field === "contactPhone") {
+      updateHotelData({ contactPhone: value });
+    } else if (field === "hotelCode") {
+      updateHotelData({ hotelCode: value });
+    }
+  };
+
   const handleSubmit = (values: FormValues) => {
+    console.log("Form submitted with values:", values);
+    setFormSubmitted(true);
     updateHotelData({
       name: values.hotelName,
       address: values.address || "",
@@ -62,6 +82,13 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
     
     onSubmit();
   };
+
+  console.log("Current form state:", { 
+    values: form.getValues(),
+    errors: form.formState.errors,
+    isDirty: form.formState.isDirty,
+    isValid: form.formState.isValid
+  });
 
   return (
     <div className="space-y-6">
@@ -83,7 +110,14 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
               <FormItem>
                 <FormLabel>Hotel Name*</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your hotel name" {...field} />
+                  <Input 
+                    placeholder="Enter your hotel name" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleValueChange("hotelName", e.target.value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -97,7 +131,14 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
               <FormItem>
                 <FormLabel>Address</FormLabel>
                 <FormControl>
-                  <Input placeholder="Hotel address (optional)" {...field} />
+                  <Input 
+                    placeholder="Hotel address (optional)" 
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleValueChange("address", e.target.value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,6 +156,10 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
                     type="email" 
                     placeholder="contact@example.com (optional)" 
                     {...field} 
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleValueChange("contactEmail", e.target.value);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -130,8 +175,12 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
                 <FormLabel>Contact Phone</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="Phone number (optional)" 
-                    {...field} 
+                    placeholder="Phone number (optional)"
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleValueChange("contactPhone", e.target.value);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -148,7 +197,11 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
                 <FormControl>
                   <Input 
                     placeholder="ParadiseHotel123" 
-                    {...field} 
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleValueChange("hotelCode", e.target.value);
+                    }}
                   />
                 </FormControl>
                 <FormDescription className="flex items-start space-x-2 text-xs">
@@ -193,6 +246,12 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
               </Button>
             )}
           </div>
+          
+          {formSubmitted && form.formState.errors.hotelName && (
+            <p className="text-sm font-medium text-destructive mt-2">
+              Please fill in the hotel name field to continue.
+            </p>
+          )}
         </form>
       </Form>
 

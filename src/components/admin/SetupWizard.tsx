@@ -7,6 +7,7 @@ import RoomsSetupStep from "./setup-wizard/RoomsSetupStep";
 import StaffSetupStep from "./setup-wizard/StaffSetupStep";
 import CompletionStep from "./setup-wizard/CompletionStep";
 import { useSetupWizard } from "./setup-wizard/useSetupWizard";
+import { useEffect } from "react";
 
 export { type SetupData } from "./setup-wizard/types";
 
@@ -22,6 +23,15 @@ const SetupWizard = () => {
     hotelCreated,
     navigate
   } = useSetupWizard();
+
+  useEffect(() => {
+    // Debug info
+    console.log("Current setup state:", {
+      currentStep,
+      hotelData: setupData.hotel,
+      hotelCreated
+    });
+  }, [currentStep, setupData, hotelCreated]);
 
   const steps = [
     { id: "hotel", label: "Hotel Information", icon: <Hotel className="h-5 w-5" />, required: true },

@@ -44,7 +44,9 @@ export const useSetupWizard = () => {
   };
 
   const handleCreateHotel = async () => {
-    if (!setupData.hotel.name.trim()) {
+    console.log("Creating hotel with data:", setupData.hotel);
+    
+    if (!setupData.hotel.name || !setupData.hotel.name.trim()) {
       toast({
         title: "Hotel name required",
         description: "Please provide a name for your hotel to continue.",
@@ -53,7 +55,7 @@ export const useSetupWizard = () => {
       return;
     }
 
-    if (!setupData.hotel.hotelCode.trim()) {
+    if (!setupData.hotel.hotelCode || !setupData.hotel.hotelCode.trim()) {
       toast({
         title: "Hotel code required",
         description: "Please provide a hotel connection code to continue.",

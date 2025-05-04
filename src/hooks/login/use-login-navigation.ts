@@ -33,19 +33,27 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
         hotelId: user?.hotelId
       });
       
+      // If we're already on the setup page and the admin doesn't have a hotel, stay there
+      const isOnSetupPage = location.pathname === "/setup";
+      if (user?.role === "admin" && !user?.hotelId && !isOnSetupPage) {
+        navigate("/setup");
+        return;
+      }
+      
       // If we have a stored location, redirect there
       if (locationState?.from) {
         navigate(locationState.from);
       } else if (user?.role === "guest" && user.roomNumber) {
         navigate(`/guest/${user.roomNumber}`);
-      } else if (user?.role === "admin" && !user?.hotelId) {
+      } else if (user?.role === "admin" && !user?.hotelId && !isOnSetupPage) {
         // Redirect to setup wizard when admin has no hotel
         navigate("/setup");
-      } else {
+      } else if (user?.hotelId) {
+        // Only navigate to dashboard if they have a hotel
         navigate("/dashboard");
       }
     }
-  }, [isAuthenticated, needsPasswordSetup, user, navigate, locationState]);
+  }, [isAuthenticated, needsPasswordSetup, user, navigate, locationState, location.pathname]);
   
   const navigateAfterStaffLogin = (user: User) => {
     if (user.role === "admin" && !user.hotelId) {
