@@ -130,9 +130,6 @@ export const useSetupWizard = () => {
       // Set hotel created flag to true
       setHotelCreated(true);
       
-      // Automatically proceed to the next step after creating hotel
-      handleNextStep();
-      
       toast({
         title: "Hotel created successfully",
         description: `Your hotel '${hotelData.name}' has been created with code '${hotelData.hotel_code}'`,
@@ -140,6 +137,9 @@ export const useSetupWizard = () => {
       
       // Cache the hotel code
       localStorage.setItem(`hotelCode_${hotelData.id}`, hotelData.hotel_code);
+
+      // Navigate to dashboard after hotel creation is complete
+      navigate("/dashboard");
       
     } catch (error: any) {
       console.error("Error creating hotel:", error);

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hotel, Loader2, Info, ArrowRight } from "lucide-react";
+import { Hotel, ArrowRight, Info } from "lucide-react";
 import { SetupData } from "../SetupWizard";
 import NavigationButtons from "./NavigationButtons";
 
@@ -51,7 +51,7 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
       contactPhone: hotelData.contactPhone || "",
       hotelCode: hotelData.hotelCode || ""
     },
-    mode: "onChange" // This will validate on change
+    mode: "onChange"
   });
 
   // Handle real-time updates of the form data
@@ -69,8 +69,8 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
     }
   };
 
-  const handleSubmit = (values: FormValues) => {
-    console.log("Form submitted with values:", values);
+  const handleFormSubmit = (values: FormValues) => {
+    console.log("Form values validated:", values);
     setFormSubmitted(true);
     updateHotelData({
       name: values.hotelName,
@@ -80,7 +80,7 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
       hotelCode: values.hotelCode
     });
     
-    onSubmit();
+    onNext(); // Go to next step instead of creating the hotel immediately
   };
 
   console.log("Current form state:", { 
@@ -102,7 +102,7 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
       </p>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="hotelName"
@@ -217,34 +217,14 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
           />
 
           <div className="pt-4">
-            {!hotelCreated ? (
-              <Button 
-                type="submit" 
-                className="w-full flex items-center justify-center gap-2" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating Hotel...
-                  </>
-                ) : (
-                  <>
-                    Create Hotel
-                    <ArrowRight className="h-4 w-4 ml-1" />
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button 
-                type="button" 
-                className="w-full" 
-                onClick={onNext}
-              >
-                Continue to Next Step
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            )}
+            <Button 
+              type="submit" 
+              className="w-full flex items-center justify-center gap-2" 
+              disabled={isLoading}
+            >
+              Next Step
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
           
           {formSubmitted && form.formState.errors.hotelName && (

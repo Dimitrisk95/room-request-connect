@@ -134,7 +134,14 @@ const SetupWizard = () => {
           {currentStep === 3 && (
             <CompletionStep 
               setupData={setupData} 
-              onComplete={() => navigate("/dashboard")}
+              onComplete={() => {
+                // Now call handleCreateHotel when user finishes the setup
+                if (!hotelCreated) {
+                  handleCreateHotel();
+                } else {
+                  navigate("/dashboard");
+                }
+              }}
             />
           )}
         </CardContent>
