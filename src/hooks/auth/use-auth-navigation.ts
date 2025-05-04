@@ -17,9 +17,10 @@ export const useAuthNavigation = () => {
     }
   };
 
-  // Navigate after logout
-  const navigateAfterLogout = () => {
+  // Navigate after logout - return the target URL
+  const navigateAfterLogout = (): string => {
     navigate("/");
+    return "/"; // Return the target URL string
   };
 
   return {
