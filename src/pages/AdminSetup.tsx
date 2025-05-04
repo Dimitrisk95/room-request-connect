@@ -38,7 +38,7 @@ const AdminSetup = () => {
     <div className="min-h-screen bg-background">
       <div className="container max-w-screen-lg">
         <header className="py-6">
-          <h1 className="text-2xl font-bold text-center">Welcome to Room Request Connect</h1>
+          <h1 className="text-2xl font-bold text-center">Welcome to Roomlix</h1>
           <p className="text-center text-muted-foreground">
             Let's set up your hotel to get started
           </p>

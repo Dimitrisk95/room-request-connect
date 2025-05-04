@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Calendar, Hotel, LogOut, MessageSquare, User, Users, Shield, Building, Settings, Key } from "lucide-react";
@@ -51,7 +50,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
         <div className="flex flex-col w-64">
           <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-primary text-primary-foreground">
             <div className="flex items-center flex-shrink-0 px-4 mb-5">
-              <h1 className="text-xl font-bold">Room Request Connect</h1>
+              <h1 className="text-xl font-bold">Roomlix</h1>
             </div>
             <div className="flex flex-col flex-grow">
               <nav className="flex-1 px-2 space-y-1">
@@ -109,7 +108,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mobile header */}
         <div className="md:hidden bg-primary text-primary-foreground p-4 flex items-center justify-between">
-          <h1 className="text-lg font-bold">Room Request Connect</h1>
+          <h1 className="text-lg font-bold">Roomlix</h1>
           {/* Mobile menu button would go here */}
         </div>
         <main className="flex-1 relative overflow-y-auto focus:outline-none p-4 md:p-6 bg-background">
