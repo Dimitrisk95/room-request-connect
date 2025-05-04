@@ -8,11 +8,15 @@ import { useEffect } from "react";
 interface CompletionStepProps {
   setupData: SetupData;
   onComplete: () => void;
+  isLoading: boolean;
+  hotelCreated: boolean;
 }
 
 const CompletionStep: React.FC<CompletionStepProps> = ({ 
   setupData,
-  onComplete
+  onComplete,
+  isLoading,
+  hotelCreated
 }) => {
   const skippedRooms = !setupData.rooms.addRooms || setupData.rooms.createdRooms === 0;
   const skippedStaff = !setupData.staff.addStaff || setupData.staff.createdStaff === 0;
@@ -22,9 +26,11 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
     console.log("CompletionStep rendered with:", {
       hotelName: setupData.hotel.name,
       roomsAdded: setupData.rooms.createdRooms,
-      staffAdded: setupData.staff.createdStaff
+      staffAdded: setupData.staff.createdStaff,
+      hotelCreated,
+      isLoading
     });
-  }, [setupData]);
+  }, [setupData, hotelCreated, isLoading]);
   
   const handleDashboardClick = () => {
     console.log("Dashboard button clicked, triggering onComplete");
@@ -41,20 +47,27 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         </div>
         <h2 className="text-2xl font-bold">Setup Complete!</h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Your hotel has been set up successfully. You can now access your 
-          dashboard to manage your hotel.
+          {hotelCreated 
+            ? "Your hotel has been set up successfully. You can now access your dashboard to manage your hotel."
+            : "Review your information and click the button below to complete setup and create your hotel."}
         </p>
       </div>
 
       <div className="border rounded-md p-6 space-y-4 bg-card">
         <div className="flex items-start gap-3">
-          <div className="bg-green-500/20 p-1 rounded-full mt-1">
-            <Check className="h-4 w-4 text-green-600" />
+          <div className={`p-1 rounded-full mt-1 ${hotelCreated ? "bg-green-500/20" : "bg-amber-500/20"}`}>
+            {hotelCreated ? (
+              <Check className="h-4 w-4 text-green-600" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-amber-600" />
+            )}
           </div>
           <div>
             <h3 className="font-medium">Hotel Information</h3>
             <p className="text-sm text-muted-foreground">
-              {setupData.hotel.name} has been created successfully.
+              {hotelCreated 
+                ? `${setupData.hotel.name} has been created successfully.` 
+                : `${setupData.hotel.name} will be created when you complete the setup.`}
             </p>
           </div>
         </div>
@@ -123,8 +136,12 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       </div>
 
       <div className="pt-4">
-        <Button onClick={handleDashboardClick} className="w-full">
-          Go to Dashboard
+        <Button 
+          onClick={handleDashboardClick} 
+          className="w-full"
+          disabled={isLoading}
+        >
+          {hotelCreated ? 'Go to Dashboard' : 'Complete Setup and Create Hotel'}
         </Button>
       </div>
       

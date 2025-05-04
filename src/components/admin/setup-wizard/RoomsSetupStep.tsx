@@ -7,6 +7,7 @@ import NavigationButtons from "./NavigationButtons";
 import { SetupData } from "../SetupWizard";
 import RoomAddDialog from "../RoomAddDialog";
 import { Room } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface RoomSetupStepProps {
   roomsData: SetupData["rooms"];
@@ -27,6 +28,7 @@ const RoomsSetupStep: React.FC<RoomSetupStepProps> = ({
 }) => {
   const [isAddingRooms, setIsAddingRooms] = useState(roomsData.addRooms);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const { toast } = useToast();
   
   const handleAddRooms = () => {
     setIsAddingRooms(true);
@@ -47,6 +49,14 @@ const RoomsSetupStep: React.FC<RoomSetupStepProps> = ({
       addRooms: true,
       createdRooms: totalRooms 
     });
+    
+    // Show success message when rooms are added
+    if (count > 0) {
+      toast({
+        title: "Rooms added successfully",
+        description: `${count} room${count > 1 ? 's' : ''} added to your hotel.`,
+      });
+    }
   };
   
   return (

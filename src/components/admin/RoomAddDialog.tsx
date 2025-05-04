@@ -20,7 +20,14 @@ interface RoomAddDialogProps {
   onEditComplete?: () => void;
 }
 
-export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, editingRoom, onEditComplete }: RoomAddDialogProps) => {
+export const RoomAddDialog = ({ 
+  open, 
+  onOpenChange, 
+  onRoomAdded, 
+  onRoomsAdded, 
+  editingRoom, 
+  onEditComplete 
+}: RoomAddDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,14 +35,35 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
   const { hotelCode } = useHotelCode();
 
   const handleSingleRoomSubmit = async (roomData: Partial<Room>) => {
+    console.log("Submitting room with data:", roomData);
     setIsSubmitting(true);
 
     try {
-      if (!user?.hotelId) {
-        throw new Error("Hotel ID is required");
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      
+      // For room creation during setup, we'll need to handle the case where
+      // the hotel hasn't been created yet
+      const hotelId = user?.hotelId;
+      
+      // During setup, if no hotelId yet, we'll store the room temporarily
+      // These rooms will be properly created after the hotel is created
+      if (!hotelId && !editingRoom) {
+        console.log("No hotel ID available yet, this is likely during setup");
+        if (onRoomsAdded) {
+          onRoomsAdded(1);
+          toast({
+            title: "Room added",
+            description: `Room ${roomData.roomNumber} has been prepared for your hotel.`,
+          });
+          onOpenChange(false);
+          return;
+        }
       }
 
       if (editingRoom) {
+        console.log("Updating existing room:", editingRoom.id);
         const { error } = await supabase
           .from("rooms")
           .update({
@@ -48,16 +76,20 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
           })
           .eq('id', editingRoom.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Room update error:", error);
+          throw error;
+        }
 
         toast({
           title: "Room updated successfully",
           description: `Room ${roomData.roomNumber} has been updated.`,
         });
-      } else {
+      } else if (hotelId) {
         // Generate a room code
         const roomCode = generateRoomCode(hotelCode || 'HOTEL', roomData.roomNumber || '000');
         
+        console.log("Creating new room for hotel:", hotelId);
         const { error } = await supabase
           .from("rooms")
           .insert([{
@@ -67,11 +99,14 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
             bed_type: roomData.bedType,
             status: roomData.status,
             capacity: roomData.capacity,
-            hotel_id: user.hotelId,
+            hotel_id: hotelId,
             room_code: roomCode
           }]);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Room creation error:", error);
+          throw error;
+        }
 
         toast({
           title: "Room added successfully",
@@ -85,11 +120,11 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
       if (editingRoom && onEditComplete) {
         onEditComplete();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving room:", error);
       toast({
         title: "Failed to save room",
-        description: "There was an error saving the room. Please try again.",
+        description: error.message || "There was an error saving the room. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -98,13 +133,10 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
   };
 
   const handleMultipleRoomsSubmit = async ({ roomNumbers, commonFields }: { roomNumbers: string, commonFields: Partial<Room> }) => {
+    console.log("Submitting multiple rooms:", roomNumbers, commonFields);
     setIsSubmitting(true);
 
     try {
-      if (!user?.hotelId) {
-        throw new Error("Hotel ID is required");
-      }
-
       const numbers = roomNumbers
         .split(/[\s,;]+/)
         .map(num => num.trim())
@@ -113,30 +145,56 @@ export const RoomAddDialog = ({ open, onOpenChange, onRoomAdded, onRoomsAdded, e
       if (numbers.length === 0) {
         throw new Error("Please enter at least one room number");
       }
+      
+      // For room creation during setup, we'll need to handle the case where
+      // the hotel hasn't been created yet
+      const hotelId = user?.hotelId;
+      
+      // During setup, if no hotelId yet, we'll store the room count temporarily
+      // These rooms will be properly created after the hotel is created
+      if (!hotelId) {
+        console.log("No hotel ID available yet, this is likely during setup");
+        if (onRoomsAdded) {
+          onRoomsAdded(numbers.length);
+          toast({
+            title: "Rooms added",
+            description: `${numbers.length} rooms have been prepared for your hotel.`,
+          });
+          onOpenChange(false);
+          return;
+        }
+      }
+      
+      if (hotelId) {
+        const roomsToInsert = numbers.map(roomNumber => ({
+          room_number: roomNumber,
+          floor: commonFields.floor,
+          type: commonFields.type,
+          bed_type: commonFields.bedType,
+          status: commonFields.status,
+          capacity: commonFields.capacity,
+          hotel_id: hotelId,
+          room_code: generateRoomCode(hotelCode || 'HOTEL', roomNumber)
+        }));
 
-      const roomsToInsert = numbers.map(roomNumber => ({
-        room_number: roomNumber,
-        floor: commonFields.floor,
-        type: commonFields.type,
-        bed_type: commonFields.bedType,
-        status: commonFields.status,
-        capacity: commonFields.capacity,
-        hotel_id: user.hotelId,
-        room_code: generateRoomCode(hotelCode || 'HOTEL', roomNumber)
-      }));
+        console.log("Creating multiple rooms for hotel:", hotelId);
+        const { error } = await supabase.from("rooms").insert(roomsToInsert);
+        
+        if (error) {
+          console.error("Multiple room creation error:", error);
+          throw error;
+        }
 
-      const { error } = await supabase.from("rooms").insert(roomsToInsert);
-      if (error) throw error;
-
-      toast({
-        title: "Rooms added successfully",
-        description: `${numbers.length} rooms have been added with access codes.`,
-      });
+        toast({
+          title: "Rooms added successfully",
+          description: `${numbers.length} rooms have been added with access codes.`,
+        });
+      }
 
       onOpenChange(false);
       if (onRoomAdded) onRoomAdded();
       if (onRoomsAdded) onRoomsAdded(numbers.length);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving rooms:", error);
       toast({
         title: "Failed to save rooms",

@@ -88,6 +88,16 @@ const SetupWizard = () => {
     });
   };
 
+  // For handling the Complete step button (creates hotel and navigates to dashboard)
+  const handleComplete = () => {
+    console.log("Complete button clicked in SetupWizard, hotel created status:", hotelCreated);
+    if (!hotelCreated) {
+      handleCreateHotel();
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <Steps 
@@ -102,7 +112,6 @@ const SetupWizard = () => {
             <HotelSetupStep 
               hotelData={setupData.hotel}
               updateHotelData={updateHotelData}
-              onSubmit={handleCreateHotel}
               onNext={nextStep}
               isLoading={isLoading}
               hotelCreated={hotelCreated}
@@ -134,15 +143,9 @@ const SetupWizard = () => {
           {currentStep === 3 && (
             <CompletionStep 
               setupData={setupData} 
-              onComplete={() => {
-                console.log("Complete button clicked, hotel created status:", hotelCreated);
-                // Now call handleCreateHotel when user finishes the setup
-                if (!hotelCreated) {
-                  handleCreateHotel();
-                } else {
-                  navigate("/dashboard");
-                }
-              }}
+              onComplete={handleComplete}
+              isLoading={isLoading}
+              hotelCreated={hotelCreated}
             />
           )}
         </CardContent>

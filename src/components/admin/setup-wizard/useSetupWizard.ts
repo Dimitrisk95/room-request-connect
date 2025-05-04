@@ -92,7 +92,9 @@ export const useSetupWizard = () => {
         throw new Error('This hotel code is already taken. Please choose a different code.');
       }
 
-      console.log("Creating new hotel in database");
+      console.log("Creating new hotel in database with auth.uid():", user?.id);
+      
+      // First, insert as the authenticated user to avoid RLS issues
       const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
         .insert([{ 
@@ -106,9 +108,16 @@ export const useSetupWizard = () => {
         .single();
 
       if (hotelError) {
+        console.error("Hotel creation failed:", hotelError);
+        
+        if (hotelError.code === '42501') {
+          throw new Error('Permission denied. The RLS policy for hotels table is preventing the operation.');
+        }
+        
         if (hotelError.code === '23505') {
           throw new Error('A hotel with this name or code already exists. Please choose different values.');
         }
+        
         throw hotelError;
       }
 
@@ -118,12 +127,16 @@ export const useSetupWizard = () => {
 
       console.log("Hotel created successfully, updating user with hotelId:", hotelData.id);
       
+      // Now update the user with the hotel_id
       const { error: updateError } = await supabase
         .from("users")
         .update({ hotel_id: hotelData.id })
         .eq("id", user?.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("User update error:", updateError);
+        throw updateError;
+      }
 
       if (user) {
         console.log("Updating user context with hotelId:", hotelData.id);
