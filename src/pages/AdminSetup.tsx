@@ -31,7 +31,9 @@ const AdminSetup = () => {
   useEffect(() => {
     if (user?.hotelId) {
       console.log("User already has hotel, redirecting to dashboard");
-      navigate("/dashboard", { replace: true });
+      // Force navigation with replace and add a timestamp to avoid caching issues
+      const timestamp = new Date().getTime();
+      navigate(`/dashboard?t=${timestamp}`, { replace: true });
     }
   }, [user?.hotelId, navigate]);
 

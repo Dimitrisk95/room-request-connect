@@ -1,9 +1,9 @@
 
+import { useEffect, useState } from "react";
 import { Check, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { SetupData } from "../SetupWizard";
-import { useEffect } from "react";
 
 interface CompletionStepProps {
   setupData: SetupData;
@@ -20,6 +20,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
 }) => {
   const skippedRooms = !setupData.rooms.addRooms || setupData.rooms.createdRooms === 0;
   const skippedStaff = !setupData.staff.addStaff || setupData.staff.createdStaff === 0;
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
   
   // Debug log to check the completion step is rendering with correct data
   useEffect(() => {
@@ -32,20 +33,45 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
     });
   }, [setupData, hotelCreated, isLoading]);
   
-  // Auto-redirect after hotel is created and we're not in a loading state
+  // Start countdown for auto-redirect after hotel is created
   useEffect(() => {
     if (hotelCreated && !isLoading) {
-      console.log("CompletionStep: Hotel already created, auto-redirecting in 2 seconds");
-      const timer = setTimeout(() => {
-        onComplete();
-      }, 2000);
+      console.log("CompletionStep: Hotel already created, starting countdown for redirect");
+      setRedirectCountdown(3);
       
-      return () => clearTimeout(timer);
+      const interval = setInterval(() => {
+        setRedirectCountdown(prev => {
+          if (prev === null) return null;
+          if (prev <= 1) {
+            clearInterval(interval);
+            console.log("CompletionStep: Countdown finished, triggering redirect");
+            onComplete();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(interval);
     }
   }, [hotelCreated, isLoading, onComplete]);
   
   const handleDashboardClick = () => {
     console.log("Dashboard button clicked, triggering onComplete with hotel created status:", hotelCreated);
+    
+    if (isLoading) {
+      console.log("Still loading, not triggering redirect");
+      return;
+    }
+    
+    if (!hotelCreated) {
+      console.log("Hotel not created yet, creating hotel first");
+    } else {
+      console.log("Hotel already created, redirecting directly");
+    }
+    
+    // Force immediate redirection
+    setRedirectCountdown(0);
     onComplete();
   };
   
@@ -159,9 +185,14 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         >
           {isLoading ? 'Processing...' : (hotelCreated ? 'Go to Dashboard Now' : 'Complete Setup and Create Hotel')}
         </Button>
-        {hotelCreated && (
+        {hotelCreated && redirectCountdown !== null && redirectCountdown > 0 && (
           <p className="text-xs text-center mt-2 text-muted-foreground">
-            Redirecting to dashboard in a few seconds...
+            Redirecting to dashboard in {redirectCountdown} seconds...
+          </p>
+        )}
+        {isLoading && (
+          <p className="text-xs text-center mt-2 text-amber-500">
+            Please wait while we set up your hotel...
           </p>
         )}
       </div>

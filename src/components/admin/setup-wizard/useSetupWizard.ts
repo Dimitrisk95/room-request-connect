@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,15 @@ export const useSetupWizard = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
 
+  // Check if hotel is created on mount and redirect if needed
+  useEffect(() => {
+    if (user?.hotelId && hotelCreated) {
+      console.log("Hotel detected in user data, redirecting to dashboard");
+      const timestamp = new Date().getTime();
+      window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload to avoid any navigation issues
+    }
+  }, [user?.hotelId, hotelCreated]);
+
   const updateSetupData = useCallback((data: Partial<SetupData>) => {
     setSetupData((prev) => ({
       ...prev,
@@ -46,7 +55,8 @@ export const useSetupWizard = () => {
   const handleCreateHotel = useCallback(async () => {
     if (hotelCreated) {
       console.log("Hotel already created, forcibly navigating to dashboard");
-      navigate("/dashboard", { replace: true });
+      const timestamp = new Date().getTime();
+      window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload
       return;
     }
 
@@ -87,8 +97,12 @@ export const useSetupWizard = () => {
         }
 
         // Update the user context
-        updateUser({ ...user, hotelId });
+        const updatedUser = { ...user, hotelId };
+        updateUser(updatedUser);
         console.log("User updated with hotel ID:", hotelId);
+        
+        // Store updated user in localStorage to ensure persistence across page loads
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
 
       // Add rooms if any were setup
@@ -125,30 +139,31 @@ export const useSetupWizard = () => {
       toast.success("Hotel setup completed successfully!");
       setHotelCreated(true);
 
-      // Force navigation to dashboard with replace to prevent going back
+      // Force navigation with hard redirect to dashboard
+      console.log("Redirecting to dashboard after successful setup");
       setTimeout(() => {
-        console.log("Redirecting to dashboard after successful setup");
-        navigate("/dashboard", { replace: true });
-      }, 1000);
+        const timestamp = new Date().getTime();
+        window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload
+      }, 500);
       
     } catch (error: any) {
       console.error("Error setting up hotel:", error);
       toast.error(`Setup failed: ${error.message || "Unknown error"}`);
-    } finally {
       setIsLoading(false);
     }
-  }, [setupData, user, navigate, updateUser, hotelCreated]);
+  }, [setupData, user, updateUser, hotelCreated]);
 
   // Handle moving to the next step
   const handleNextStep = useCallback(() => {
     setCurrentStep(prev => Math.min(prev + 1, 3));
   }, []);
   
-  // Navigate to dashboard - using the already defined navigate instance
+  // Navigate to dashboard - using direct window location for reliability
   const handleNavigate = useCallback(() => {
     console.log("Explicitly navigating to dashboard");
-    navigate("/dashboard", { replace: true });
-  }, [navigate]);
+    const timestamp = new Date().getTime();
+    window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload
+  }, []);
 
   return {
     currentStep,
