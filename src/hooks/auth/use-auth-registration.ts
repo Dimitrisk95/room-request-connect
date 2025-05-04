@@ -17,10 +17,14 @@ export const useAuthRegistration = () => {
     try {
       console.log("Creating staff account for:", email, role, "with password:", password);
 
-      // First check if user already exists in auth system
-      const { data: existingAuthUser } = await supabase.auth.admin.getUserByEmail(email);
+      // First check if user already exists in auth system by attempting to sign in
+      const { data: existingAuth, error: checkError } = await supabase.auth.signInWithPassword({
+        email,
+        password: password + "_check_only" // Use an intentionally wrong password to just check if the account exists
+      });
       
-      if (existingAuthUser) {
+      // If there's no error about invalid credentials but there is data, the user exists
+      if (existingAuth?.user) {
         throw new Error("A user with this email already exists. Please use a different email or login instead.");
       }
 
@@ -54,14 +58,14 @@ export const useAuthRegistration = () => {
       console.log("Auth user created:", authData.user.id);
 
       // Check if the user already exists in our custom users table
-      const { data: existingUser, error: checkError } = await supabase
+      const { data: existingUser, error: checkError2 } = await supabase
         .from('users')
         .select('email')
         .eq('email', email)
         .maybeSingle();
       
-      if (checkError) {
-        console.error("Error checking existing user:", checkError);
+      if (checkError2) {
+        console.error("Error checking existing user:", checkError2);
       }
         
       // If user already exists in our users table, update their information instead
