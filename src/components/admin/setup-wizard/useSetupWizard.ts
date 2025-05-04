@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ export const useSetupWizard = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [hotelCreated, setHotelCreated] = useState(false);
+  const [shouldNavigate, setShouldNavigate] = useState(false);
   const [setupData, setSetupData] = useState<SetupData>({
     hotel: {
       name: "",
@@ -31,6 +32,19 @@ export const useSetupWizard = () => {
     },
   });
 
+  // Effect for handling navigation once hotel is created and user clicks dashboard button
+  useEffect(() => {
+    if (shouldNavigate && hotelCreated && !isLoading) {
+      console.log("Navigation criteria met - redirecting to dashboard");
+      const timeoutId = setTimeout(() => {
+        console.log("Executing delayed navigation to dashboard");
+        navigate("/dashboard");
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [shouldNavigate, hotelCreated, isLoading, navigate]);
+
   const updateSetupData = (newData: Partial<SetupData>) => {
     setSetupData(prev => ({
       ...prev,
@@ -43,12 +57,16 @@ export const useSetupWizard = () => {
     window.scrollTo(0, 0);
   };
 
-  // Create a specific function for navigating to dashboard that ensures we're not in a loading state
+  // Create a specific function for navigating to dashboard
   const navigateToDashboard = useCallback(() => {
-    console.log("Navigating to dashboard with explicit function call");
-    setIsLoading(false); // Ensure loading is turned off
-    navigate("/dashboard");
-  }, [navigate]);
+    console.log("Requesting navigation to dashboard");
+    if (hotelCreated) {
+      console.log("Hotel already created, setting shouldNavigate flag");
+      setShouldNavigate(true);
+    } else {
+      console.log("Hotel not created yet, cannot navigate");
+    }
+  }, [hotelCreated]);
 
   const handleCreateHotel = async () => {
     console.log("Creating hotel with data:", setupData.hotel);
@@ -153,6 +171,7 @@ export const useSetupWizard = () => {
       
       // Set hotel created flag to true
       setHotelCreated(true);
+      setIsLoading(false);
       
       toast({
         title: "Hotel created successfully",
@@ -161,12 +180,9 @@ export const useSetupWizard = () => {
       
       // Cache the hotel code
       localStorage.setItem(`hotelCode_${hotelData.id}`, hotelData.hotel_code);
-
-      // After successful hotel creation, navigate to dashboard with a delay
-      console.log("Hotel creation complete, scheduling navigation to dashboard");
-      setTimeout(() => {
-        navigateToDashboard();
-      }, 500);
+      
+      // After successful hotel creation, set the flag to trigger navigation
+      setShouldNavigate(true);
       
     } catch (error: any) {
       console.error("Error creating hotel:", error);
@@ -188,6 +204,6 @@ export const useSetupWizard = () => {
     handleCreateHotel,
     handleNextStep,
     hotelCreated,
-    navigate: navigateToDashboard // Export our dedicated navigation function
+    navigate: navigateToDashboard
   };
 };

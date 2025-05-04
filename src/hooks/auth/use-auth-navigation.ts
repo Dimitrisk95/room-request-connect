@@ -19,6 +19,7 @@ export const useAuthNavigation = () => {
 
   // Navigate after logout - return the target URL
   const navigateAfterLogout = (): string => {
+    // Explicitly navigate to home page
     navigate("/");
     return "/"; // Return the target URL string
   };

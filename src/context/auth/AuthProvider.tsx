@@ -37,16 +37,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Improved logout wrapper for faster response
   const logoutWrapper = async () => {
     try {
+      console.log("Logout initiated");
+      
       // Get the target URL before logout to avoid delays
       const targetUrl = navigation.navigateAfterLogout();
       
-      // Execute logout
-      await authHandlers.logout();
+      // Clear user state immediately for faster UI response
+      clearUser();
+      
+      // Execute logout in the background
+      authHandlers.logout()
+        .then(() => {
+          console.log("Logout completed successfully");
+        })
+        .catch(error => {
+          console.error("Logout error:", error);
+        });
       
       // Redirect immediately after logout initiated
+      console.log("Redirecting to:", targetUrl);
       window.location.href = targetUrl;
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout wrapper error:", error);
       // Redirect anyway in case of error to ensure user can get to login screen
       window.location.href = "/login";
     }

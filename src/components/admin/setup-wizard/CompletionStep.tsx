@@ -143,6 +143,9 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         >
           {isLoading ? 'Processing...' : (hotelCreated ? 'Go to Dashboard' : 'Complete Setup and Create Hotel')}
         </Button>
+        <p className="text-xs text-center mt-2 text-muted-foreground">
+          {hotelCreated && "Click to proceed to your hotel dashboard"}
+        </p>
       </div>
       
       <p className="text-xs text-center text-muted-foreground">

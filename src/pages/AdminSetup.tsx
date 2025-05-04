@@ -3,9 +3,11 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context";
 import SetupWizard from "@/components/admin/SetupWizard";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const AdminSetup = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
   // Debugging
@@ -34,11 +36,27 @@ const AdminSetup = () => {
     return null; // Don't render anything while redirecting to login
   }
 
+  const handleDisconnect = () => {
+    console.log("User disconnecting from setup");
+    logout(); // This will redirect to home page as defined in AuthProvider.tsx
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-screen-lg">
         <header className="py-6">
-          <h1 className="text-2xl font-bold text-center">Welcome to Roomlix</h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Welcome to Roomlix</h1>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDisconnect}
+              className="flex items-center gap-2"
+            >
+              <LogOut size={16} />
+              Disconnect
+            </Button>
+          </div>
           <p className="text-center text-muted-foreground">
             Let's set up your hotel to get started
           </p>
