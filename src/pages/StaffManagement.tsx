@@ -10,6 +10,7 @@ import { AddStaffDialog } from "@/components/admin/staff/AddStaffDialog";
 import { StaffMember } from "@/types";
 import { Shield } from "lucide-react";
 import RoleManagement from "@/components/admin/role-management";
+import { ResetDatabaseButton } from "@/components/admin/ResetDatabaseButton";
 
 const StaffManagement = () => {
   const { user } = useAuth();
@@ -93,7 +94,10 @@ const StaffManagement = () => {
             <Shield className="mr-2 h-6 w-6 text-primary" />
             Staff Management
           </h1>
-          <AddStaffDialog onStaffAdded={fetchStaffMembers} />
+          <div className="flex gap-2">
+            <AddStaffDialog onStaffAdded={fetchStaffMembers} />
+            {user?.role === "admin" && <ResetDatabaseButton />}
+          </div>
         </div>
 
         <Card>

@@ -1,64 +1,34 @@
 
-# This is the configuration file for the Supabase project.
-
 project_id = "lszauuplczqotjrogqgr"
-
 [api]
-# Port to use for the API URL.
-port = 54321
-# Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
-# endpoints. public and storage are always included.
-schemas = ["public", "storage", "extensions"]
-# Extra schemas to add to the search_path of every request.
-extra_search_path = ["extensions"]
-# The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
-# for accidental or malicious requests.
-max_rows = 1000
+enabled = true
+schemas = ["public", "storage", "graphql_public"]
 
 [db]
-# Port to use for the local database URL.
-port = 54322
+seed_file = "supabase/seed.sql"
 
-[studio]
-# Port to use for Supabase Studio.
-port = 54323
-
-# Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
-# are monitored, and you can view the emails that would have been sent from the web interface.
-[inbucket]
-# Port to use for the email testing server web interface.
-port = 54324
-smtp_port = 54325
-pop3_port = 54326
-
-[storage]
-# The maximum file size allowed (e.g. "5MB", "500KB").
-file_size_limit = "50MiB"
-
-[auth]
-# The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
-# in emails.
-site_url = "https://lovable.dev/"
-# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://lovable.dev"]
-# How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 seconds (1
-# week).
-jwt_expiry = 3600
-# Allow/disallow new user signups to your project.
-enable_signup = true
-# If enabled, a user will need to confirm any email change on both the old, and new email
-# addresses. If disabled, only the new email is required to confirm.
-double_confirm_changes = true
-# If enabled, users need to confirm their email address before signing in.
-enable_confirmations = true
-
-# Configure database functions to respect Row Level Security (RLS) by default.
-[functions.rpc.db_functions]
-default_security_invoker = true
-
-# Enable realtime logs
-[realtime]
-enabled = true
-
+[functions.create-delete-user-function]
+verify_jwt = true
+[functions.delete-staff]
+verify_jwt = true
 [functions.delete-user-auth]
 verify_jwt = true
+[functions.reset-password-email]
+verify_jwt = true
+[functions.send-password-setup]
+verify_jwt = true
+[functions.setup-staff-deletion]
+verify_jwt = true
+[functions.clean-hotel-data]
+verify_jwt = true
+
+[realtime]
+enabled = false
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
