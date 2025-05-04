@@ -10,10 +10,12 @@ export interface SetupData {
   rooms: {
     addRooms: boolean;
     createdRooms: number;
+    roomsToAdd: any[]; // Add this property for room data storage
   };
   staff: {
     addStaff: boolean;
     createdStaff: number;
+    staffToAdd: any[]; // Add this property for staff data storage
   };
 }
 

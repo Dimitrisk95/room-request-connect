@@ -142,10 +142,8 @@ export const useSetupWizard = () => {
   const handleNextStep = useCallback(() => {
     setCurrentStep(prev => Math.min(prev + 1, 3));
   }, []);
-
-  const navigate = useNavigate();
   
-  // Navigate to dashboard
+  // Navigate to dashboard - using the already defined navigate instance
   const handleNavigate = useCallback(() => {
     console.log("Navigating to dashboard");
     navigate("/dashboard");
