@@ -1,4 +1,3 @@
-
 import { Check, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -33,8 +32,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
   }, [setupData, hotelCreated, isLoading]);
   
   const handleDashboardClick = () => {
-    console.log("Dashboard button clicked, triggering onComplete");
-    // Ensure we call onComplete which should handle hotel creation and navigation
+    console.log("Dashboard button clicked, triggering onComplete with hotel created status:", hotelCreated);
     onComplete();
   };
   
@@ -142,7 +140,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
           className="w-full"
           disabled={isLoading}
         >
-          {hotelCreated ? 'Go to Dashboard' : 'Complete Setup and Create Hotel'}
+          {isLoading ? 'Processing...' : (hotelCreated ? 'Go to Dashboard' : 'Complete Setup and Create Hotel')}
         </Button>
       </div>
       

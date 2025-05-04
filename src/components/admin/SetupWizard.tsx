@@ -29,9 +29,17 @@ const SetupWizard = () => {
     console.log("Current setup state:", {
       currentStep,
       hotelData: setupData.hotel,
-      hotelCreated
+      hotelCreated,
+      isLoading
     });
-  }, [currentStep, setupData, hotelCreated]);
+  }, [currentStep, setupData, hotelCreated, isLoading]);
+
+  // If hotel is created and we're on the completion step, check if we should navigate
+  useEffect(() => {
+    if (hotelCreated && currentStep === 3 && !isLoading) {
+      console.log("Hotel already created and on completion step - ready for dashboard");
+    }
+  }, [hotelCreated, currentStep, isLoading]);
 
   const steps = [
     { id: "hotel", label: "Hotel Information", icon: <Hotel className="h-5 w-5" />, required: true },
@@ -66,7 +74,7 @@ const SetupWizard = () => {
       setCurrentStep(steps.length - 1);
       window.scrollTo(0, 0);
     } else {
-      navigate("/dashboard");
+      navigate();
     }
   };
 
@@ -94,8 +102,8 @@ const SetupWizard = () => {
     if (!hotelCreated) {
       handleCreateHotel();
     } else {
-      console.log("Hotel already created, navigating to dashboard");
-      navigate("/dashboard");
+      console.log("Hotel already created, explicitly navigating to dashboard");
+      navigate();
     }
   };
 

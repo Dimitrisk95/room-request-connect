@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +42,13 @@ export const useSetupWizard = () => {
     setCurrentStep(prev => prev + 1);
     window.scrollTo(0, 0);
   };
+
+  // Create a specific function for navigating to dashboard that ensures we're not in a loading state
+  const navigateToDashboard = useCallback(() => {
+    console.log("Navigating to dashboard with explicit function call");
+    setIsLoading(false); // Ensure loading is turned off
+    navigate("/dashboard");
+  }, [navigate]);
 
   const handleCreateHotel = async () => {
     console.log("Creating hotel with data:", setupData.hotel);
@@ -155,11 +162,11 @@ export const useSetupWizard = () => {
       // Cache the hotel code
       localStorage.setItem(`hotelCode_${hotelData.id}`, hotelData.hotel_code);
 
-      // Redirect to dashboard with a slight delay to ensure UI updates complete
-      console.log("Navigating to dashboard after hotel creation");
+      // After successful hotel creation, navigate to dashboard with a delay
+      console.log("Hotel creation complete, scheduling navigation to dashboard");
       setTimeout(() => {
-        navigate("/dashboard");
-      }, 300);
+        navigateToDashboard();
+      }, 500);
       
     } catch (error: any) {
       console.error("Error creating hotel:", error);
@@ -168,7 +175,6 @@ export const useSetupWizard = () => {
         description: error.message || "There was an error creating the hotel. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -182,6 +188,6 @@ export const useSetupWizard = () => {
     handleCreateHotel,
     handleNextStep,
     hotelCreated,
-    navigate
+    navigate: navigateToDashboard // Export our dedicated navigation function
   };
 };
