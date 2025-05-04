@@ -5,12 +5,12 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@/context/auth/types";
 
 export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, needsPasswordSetup: boolean) => {
-  const navigate = useNavigate(); // This hook will only be used within Router context
+  const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   
-  const locationState = location.state as { showPasswordSetup?: boolean, email?: string } | null;
+  const locationState = location.state as { from?: string, showPasswordSetup?: boolean, email?: string } | null;
   const isNewAdmin = searchParams.get('newAdmin') === 'true';
   
   // Handle new admin welcome message
@@ -32,7 +32,10 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
         can_manage_staff: user?.can_manage_staff
       });
       
-      if (user?.role === "guest") {
+      // If we have a stored location, redirect there
+      if (locationState?.from) {
+        navigate(locationState.from);
+      } else if (user?.role === "guest" && user.roomNumber) {
         navigate(`/guest/${user.roomNumber}`);
       } else if (user?.role === "admin" && !user?.hotelId) {
         navigate("/setup");
@@ -40,11 +43,13 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
         navigate("/dashboard");
       }
     }
-  }, [isAuthenticated, needsPasswordSetup, user, navigate]);
+  }, [isAuthenticated, needsPasswordSetup, user, navigate, locationState]);
   
   const navigateAfterStaffLogin = (user: User) => {
     if (user.role === "admin" && !user.hotelId) {
       navigate("/setup");
+    } else if (locationState?.from) {
+      navigate(locationState.from);
     } else {
       navigate("/dashboard");
     }

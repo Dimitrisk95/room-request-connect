@@ -7,7 +7,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider } from "./context";
-import { useAuth } from "./context"; // Add proper import for useAuth
+import { useAuth } from "./context";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -25,6 +25,8 @@ import NotFound from "./pages/NotFound";
 import GuestView from "./pages/GuestView";
 import AdminSetup from "./pages/AdminSetup";
 import GuestConnect from "./pages/GuestConnect";
+import Index from "./pages/Index";
+import { Toaster } from "@/components/ui/toaster";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useAuth();
@@ -54,6 +56,7 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/guest-connect" element={<GuestConnect />} />
@@ -150,9 +153,9 @@ const App: React.FC = () => {
             path="/guest/:roomCode" 
             element={<GuestView />} 
           />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster />
       </AuthProvider>
     </Router>
   );

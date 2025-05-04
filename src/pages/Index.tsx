@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,8 +10,10 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      if (user?.role === "guest") {
+    // If user is authenticated, redirect to appropriate page based on role
+    if (isAuthenticated && user) {
+      console.log("User authenticated on index page:", user.role);
+      if (user.role === "guest" && user.roomNumber) {
         navigate(`/guest/${user.roomNumber}`);
       } else {
         navigate("/dashboard");
@@ -29,29 +32,32 @@ const Index = () => {
           <Button
             size="sm"
             variant="default"
-            onClick={() => navigate("/admin/login")}
+            onClick={() => navigate("/login")}
             className="bg-primary text-white hover:bg-primary/90"
           >
             <UserCircle className="mr-2 h-4 w-4" />
-            Admin
+            Login
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/register")}
             className="border-primary text-primary hover:bg-primary/10"
           >
-            Staff Login
-            <UserCircle className="ml-2 h-4 w-4" />
+            Register
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to Roomlix</h2>
+        <p className="text-lg text-gray-600 mb-8 max-w-2xl">
+          The modern hotel management system that streamlines operations and enhances guest experience
+        </p>
         <Button
           size="lg"
-          onClick={() => navigate("/connect")}
+          onClick={() => navigate("/guest-connect")}
           className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-lg"
         >
           Connect to Your Room
