@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Users, PlusCircle } from "lucide-react";
 import NavigationButtons from "./NavigationButtons";
 import { SetupData } from "../SetupWizard";
-import AddStaffForm from "./components/AddStaffForm";
-import StaffAddedCard from "./components/StaffAddedCard";
+import { AddStaffForm } from "./components/AddStaffForm";
+import { StaffAddedCard } from "./components/StaffAddedCard";
 
 interface StaffSetupStepProps {
   staffData: SetupData["staff"];

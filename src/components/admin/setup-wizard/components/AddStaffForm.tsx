@@ -7,12 +7,16 @@ import { Loader2, Plus } from "lucide-react";
 import { useStaffForm, FormValues } from "../hooks/useStaffForm";
 
 interface AddStaffFormProps {
-  updateStaffData: (data: { addStaff: boolean; createdStaff: number }) => void;
-  createdStaff: number;
+  onStaffAdded: () => void;
+  onCancel: () => void;
 }
 
-export const AddStaffForm = ({ updateStaffData, createdStaff }: AddStaffFormProps) => {
-  const { form, isAddingStaff, handleAddStaff } = useStaffForm(updateStaffData, createdStaff);
+export const AddStaffForm = ({ onStaffAdded, onCancel }: AddStaffFormProps) => {
+  const { form, isAddingStaff, handleAddStaff } = useStaffForm((data) => {
+    if (data.createdStaff > 0) {
+      onStaffAdded();
+    }
+  }, 0);
 
   return (
     <Card className="p-4">
@@ -80,23 +84,31 @@ export const AddStaffForm = ({ updateStaffData, createdStaff }: AddStaffFormProp
             )}
           />
 
-          <Button 
-            type="submit" 
-            className="w-full mt-2"
-            disabled={isAddingStaff}
-          >
-            {isAddingStaff ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adding Staff...
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Staff Member
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isAddingStaff}
+            >
+              {isAddingStaff ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding Staff...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Staff Member
+                </>
+              )}
+            </Button>
+          </div>
         </form>
       </Form>
     </Card>
