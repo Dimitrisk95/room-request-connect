@@ -5,10 +5,12 @@ import { useAuth } from "@/context";
 import SetupWizard from "@/components/admin/SetupWizard";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminSetup = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Debugging
   console.log("AdminSetup: User state", { 
@@ -20,6 +22,7 @@ const AdminSetup = () => {
   // If not authenticated, redirect to login
   useEffect(() => {
     if (!isAuthenticated) {
+      console.log("User not authenticated, redirecting to login");
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
@@ -36,9 +39,17 @@ const AdminSetup = () => {
     return null; // Don't render anything while redirecting to login
   }
 
-  const handleDisconnect = () => {
+  const handleDisconnect = async () => {
     console.log("User disconnecting from setup");
-    logout(); // This will redirect to home page as defined in AuthProvider.tsx
+    toast({
+      title: "Logging out",
+      description: "You will be redirected to the home page."
+    });
+    
+    // Add a slight delay to show the toast
+    setTimeout(() => {
+      logout(); // This will redirect to home page as defined in AuthProvider.tsx
+    }, 500);
   };
 
   return (
