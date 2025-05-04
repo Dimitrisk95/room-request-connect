@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Steps } from "@/components/ui/steps";
 import { Hotel, Check, Users, Bed } from "lucide-react";
@@ -21,10 +22,10 @@ const SetupWizard = () => {
   } = useSetupWizard();
 
   const steps = [
-    { id: "hotel", label: "Hotel Information", icon: <Hotel className="h-5 w-5" /> },
-    { id: "rooms", label: "Add Rooms", icon: <Bed className="h-5 w-5" /> },
-    { id: "staff", label: "Add Staff", icon: <Users className="h-5 w-5" /> },
-    { id: "complete", label: "Complete", icon: <Check className="h-5 w-5" /> },
+    { id: "hotel", label: "Hotel Information", icon: <Hotel className="h-5 w-5" />, required: true },
+    { id: "rooms", label: "Add Rooms", icon: <Bed className="h-5 w-5" />, required: false },
+    { id: "staff", label: "Add Staff", icon: <Users className="h-5 w-5" />, required: false },
+    { id: "complete", label: "Complete", icon: <Check className="h-5 w-5" />, required: true },
   ];
 
   const nextStep = () => {
@@ -39,6 +40,11 @@ const SetupWizard = () => {
       setCurrentStep(currentStep - 1);
       window.scrollTo(0, 0);
     }
+  };
+
+  const skipToCompletion = () => {
+    setCurrentStep(steps.length - 1);
+    window.scrollTo(0, 0);
   };
 
   const handleSkipOrComplete = () => {
@@ -96,6 +102,7 @@ const SetupWizard = () => {
               onNext={nextStep}
               onSkip={handleSkipOrComplete}
               onBack={prevStep}
+              skipToCompletion={skipToCompletion}
             />
           )}
           
@@ -106,6 +113,7 @@ const SetupWizard = () => {
               onNext={nextStep}
               onSkip={handleSkipOrComplete}
               onBack={prevStep}
+              skipToCompletion={skipToCompletion}
             />
           )}
           
