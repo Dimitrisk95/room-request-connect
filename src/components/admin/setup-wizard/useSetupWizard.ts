@@ -154,6 +154,7 @@ export const useSetupWizard = () => {
       // Everything succeeded!
       toast.success("Hotel setup completed successfully!");
       setHotelCreated(true);
+      setIsLoading(false);
 
       // Force navigation with hard redirect to dashboard after a short delay
       console.log("Setup complete, scheduling redirect to dashboard");
@@ -178,8 +179,18 @@ export const useSetupWizard = () => {
   // Navigate to dashboard - using direct window location for reliability
   const handleNavigate = useCallback(() => {
     console.log("Explicitly navigating to dashboard");
-    const timestamp = new Date().getTime();
-    window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload
+    
+    // First try window.location.replace which doesn't add to browser history
+    try {
+      const timestamp = new Date().getTime();
+      window.location.replace(`/dashboard?t=${timestamp}`);
+    } catch (e) {
+      console.error("Error with window.location.replace:", e);
+      
+      // Fallback to window.location.href
+      const timestamp = new Date().getTime();
+      window.location.href = `/dashboard?t=${timestamp}`;
+    }
   }, []);
 
   return {

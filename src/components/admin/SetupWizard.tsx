@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Steps } from "@/components/ui/steps";
 import { Hotel, Check, Users, Bed } from "lucide-react";
@@ -11,7 +10,11 @@ import { useEffect } from "react";
 
 export { type SetupData } from "./setup-wizard/types";
 
-const SetupWizard = () => {
+interface SetupWizardProps {
+  debugMode?: boolean;
+}
+
+const SetupWizard = ({ debugMode = false }: SetupWizardProps) => {
   const {
     currentStep,
     setCurrentStep,
@@ -30,16 +33,17 @@ const SetupWizard = () => {
       currentStep,
       hotelData: setupData.hotel,
       hotelCreated,
-      isLoading
+      isLoading,
+      debugMode
     });
-  }, [currentStep, setupData, hotelCreated, isLoading]);
+  }, [currentStep, setupData, hotelCreated, isLoading, debugMode]);
 
   // If hotel is created and we're on the completion step, check if we should navigate
   useEffect(() => {
-    if (hotelCreated && currentStep === 3 && !isLoading) {
+    if (hotelCreated && currentStep === 3 && !isLoading && !debugMode) {
       console.log("Hotel already created and on completion step - ready for dashboard");
     }
-  }, [hotelCreated, currentStep, isLoading]);
+  }, [hotelCreated, currentStep, isLoading, debugMode]);
 
   const steps = [
     { id: "hotel", label: "Hotel Information", icon: <Hotel className="h-5 w-5" />, required: true },
@@ -99,16 +103,30 @@ const SetupWizard = () => {
   // For handling the Complete step button (creates hotel and navigates to dashboard)
   const handleComplete = () => {
     console.log("Complete button clicked in SetupWizard, hotel created status:", hotelCreated);
-    if (!hotelCreated) {
+    if (!hotelCreated && !debugMode) {
       handleCreateHotel();
     } else {
-      console.log("Hotel already created, explicitly navigating to dashboard");
+      console.log("Hotel already created or debug mode enabled, explicitly navigating to dashboard");
       navigate();
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      {debugMode && (
+        <div className="mb-6 p-3 bg-red-100 border border-red-300 rounded-md">
+          <p className="text-red-700 font-medium flex items-center gap-2">
+            <span className="bg-red-200 p-1 rounded-full">
+              <Bug size={16} className="text-red-700" />
+            </span>
+            Debug Mode Enabled: Automatic redirects are disabled
+          </p>
+          <p className="text-sm text-red-600 mt-1">
+            This mode allows you to test the setup wizard without creating hotels.
+          </p>
+        </div>
+      )}
+
       <Steps 
         steps={steps} 
         currentStep={currentStep} 
@@ -155,6 +173,7 @@ const SetupWizard = () => {
               onComplete={handleComplete}
               isLoading={isLoading}
               hotelCreated={hotelCreated}
+              debugMode={debugMode}
             />
           )}
         </CardContent>

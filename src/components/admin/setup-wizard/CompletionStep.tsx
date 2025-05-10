@@ -1,22 +1,24 @@
 import { useEffect, useState } from "react";
-import { Check, ChevronRight, ArrowRight } from "lucide-react";
+import { Check, ChevronRight, ArrowRight, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { SetupData } from "../SetupWizard";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface CompletionStepProps {
   setupData: SetupData;
   onComplete: () => void;
   isLoading: boolean;
   hotelCreated: boolean;
+  debugMode?: boolean;
 }
 
 const CompletionStep: React.FC<CompletionStepProps> = ({ 
   setupData,
   onComplete,
   isLoading,
-  hotelCreated
+  hotelCreated,
+  debugMode = false
 }) => {
   const skippedRooms = !setupData.rooms.addRooms || setupData.rooms.createdRooms === 0;
   const skippedStaff = !setupData.staff.addStaff || setupData.staff.createdStaff === 0;
@@ -32,12 +34,19 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       hotelCreated,
       isLoading,
       redirectCountdown,
-      redirectAttempted
+      redirectAttempted,
+      debugMode
     });
-  }, [setupData, hotelCreated, isLoading, redirectCountdown, redirectAttempted]);
+  }, [setupData, hotelCreated, isLoading, redirectCountdown, redirectAttempted, debugMode]);
   
   // Start countdown for auto-redirect after hotel is created
   useEffect(() => {
+    // Skip countdown if in debug mode
+    if (debugMode) {
+      console.log("Debug mode enabled - skipping redirect countdown");
+      return;
+    }
+    
     if (hotelCreated && !isLoading) {
       console.log("CompletionStep: Hotel already created, starting countdown for redirect");
       setRedirectCountdown(5); // Increased to 5 for better visibility
@@ -58,11 +67,11 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       
       return () => clearInterval(interval);
     }
-  }, [hotelCreated, isLoading, onComplete]);
+  }, [hotelCreated, isLoading, onComplete, debugMode]);
   
   // Fallback redirect if the countdown completes but we're still on this page
   useEffect(() => {
-    if (redirectAttempted && redirectCountdown === 0) {
+    if (redirectAttempted && redirectCountdown === 0 && !debugMode) {
       const fallbackTimer = setTimeout(() => {
         console.log("Fallback redirect triggered");
         window.location.href = `/dashboard?t=${new Date().getTime()}`;
@@ -70,7 +79,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       
       return () => clearTimeout(fallbackTimer);
     }
-  }, [redirectAttempted, redirectCountdown]);
+  }, [redirectAttempted, redirectCountdown, debugMode]);
   
   // Force manual dashboard navigation
   const handleManualDashboardNavigation = () => {
@@ -87,10 +96,10 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       return;
     }
     
-    if (!hotelCreated) {
+    if (!hotelCreated && !debugMode) {
       console.log("Hotel not created yet, creating hotel first");
     } else {
-      console.log("Hotel already created, redirecting directly");
+      console.log("Hotel already created or debug mode enabled, redirecting directly");
     }
     
     // Force immediate redirection
@@ -101,6 +110,17 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
   
   return (
     <div className="space-y-6">
+      {debugMode && (
+        <Alert variant="destructive" className="mb-6">
+          <Bug className="h-4 w-4" />
+          <AlertTitle>Debug Mode Active</AlertTitle>
+          <AlertDescription>
+            You are in debug mode. Hotel creation is simulated and no data is saved to the database.
+            You can safely test the navigation behavior.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center">
           <div className="bg-primary/10 p-3 rounded-full">
@@ -109,16 +129,18 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         </div>
         <h2 className="text-2xl font-bold">Setup Complete!</h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          {hotelCreated 
-            ? "Your hotel has been set up successfully. You will be redirected to your dashboard automatically."
-            : "Review your information and click the button below to complete setup and create your hotel."}
+          {debugMode 
+            ? "Debug mode: Create hotel simulation. Click buttons below to test redirect."
+            : hotelCreated 
+              ? "Your hotel has been set up successfully. You will be redirected to your dashboard automatically."
+              : "Review your information and click the button below to complete setup and create your hotel."}
         </p>
       </div>
 
       <div className="border rounded-md p-6 space-y-4 bg-card">
         <div className="flex items-start gap-3">
-          <div className={`p-1 rounded-full mt-1 ${hotelCreated ? "bg-green-500/20" : "bg-amber-500/20"}`}>
-            {hotelCreated ? (
+          <div className={`p-1 rounded-full mt-1 ${hotelCreated || debugMode ? "bg-green-500/20" : "bg-amber-500/20"}`}>
+            {hotelCreated || debugMode ? (
               <Check className="h-4 w-4 text-green-600" />
             ) : (
               <ChevronRight className="h-4 w-4 text-amber-600" />
@@ -127,9 +149,11 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
           <div>
             <h3 className="font-medium">Hotel Information</h3>
             <p className="text-sm text-muted-foreground">
-              {hotelCreated 
-                ? `${setupData.hotel.name} has been created successfully.` 
-                : `${setupData.hotel.name} will be created when you complete the setup.`}
+              {debugMode 
+                ? `Debug mode: ${setupData.hotel.name} (simulated hotel creation)`
+                : hotelCreated 
+                  ? `${setupData.hotel.name} has been created successfully.` 
+                  : `${setupData.hotel.name} will be created when you complete the setup.`}
             </p>
           </div>
         </div>
@@ -201,8 +225,44 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         </div>
       </div>
 
+      {/* Clearer navigation options */}
+      <div className="border rounded-md p-6 bg-card">
+        <h3 className="font-medium mb-2">Navigation Options</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm">Go to Dashboard</span>
+            <Button 
+              variant="default"
+              onClick={handleDashboardClick} 
+              disabled={isLoading && !debugMode}
+            >
+              {isLoading && !debugMode ? 'Processing...' : 'Dashboard'}
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm">Force Hard Navigation</span>
+            <Button 
+              variant="secondary" 
+              onClick={handleManualDashboardNavigation} 
+            >
+              Direct URL Navigation
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm">Current Location</span>
+            <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+              {window.location.href}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Added alert for manual navigation if redirection fails */}
-      {hotelCreated && redirectAttempted && (
+      {(hotelCreated && redirectAttempted && !debugMode) && (
         <Alert className="bg-amber-50 border-amber-200">
           <AlertDescription className="text-amber-800">
             If you are not redirected automatically, please click the button below to go to your dashboard.
@@ -214,14 +274,20 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         <Button 
           onClick={handleDashboardClick} 
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading && !debugMode}
         >
-          {isLoading ? 'Processing...' : (hotelCreated ? 'Go to Dashboard Now' : 'Complete Setup and Create Hotel')}
-          {!isLoading && <ArrowRight className="ml-1 h-4 w-4" />}
+          {isLoading && !debugMode 
+            ? 'Processing...' 
+            : (hotelCreated || debugMode 
+              ? 'Go to Dashboard Now' 
+              : 'Complete Setup and Create Hotel'
+            )
+          }
+          <ArrowRight className="ml-1 h-4 w-4" />
         </Button>
         
-        {/* Always show manual navigation button if hotel is created */}
-        {hotelCreated && (
+        {/* Always show manual navigation button if hotel is created or in debug mode */}
+        {(hotelCreated || debugMode) && (
           <Button 
             variant="outline" 
             onClick={handleManualDashboardNavigation} 
@@ -232,13 +298,13 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
           </Button>
         )}
         
-        {hotelCreated && redirectCountdown !== null && redirectCountdown > 0 && (
+        {(hotelCreated && redirectCountdown !== null && redirectCountdown > 0 && !debugMode) && (
           <p className="text-xs text-center mt-2 text-muted-foreground">
             Redirecting to dashboard in {redirectCountdown} seconds...
           </p>
         )}
         
-        {isLoading && (
+        {(isLoading && !debugMode) && (
           <p className="text-xs text-center mt-2 text-amber-500">
             Please wait while we set up your hotel...
           </p>
