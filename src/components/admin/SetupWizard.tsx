@@ -1,6 +1,7 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Steps } from "@/components/ui/steps";
-import { Hotel, Check, Users, Bed } from "lucide-react";
+import { Hotel, Check, Users, Bed, Bug } from "lucide-react";
 import HotelSetupStep from "./setup-wizard/HotelSetupStep";
 import RoomsSetupStep from "./setup-wizard/RoomsSetupStep";
 import StaffSetupStep from "./setup-wizard/StaffSetupStep";
