@@ -32,15 +32,30 @@ export const useSetupWizard = () => {
   const [setupData, setSetupData] = useState<SetupData>(initialSetupData);
   const [isLoading, setIsLoading] = useState(false);
   const [hotelCreated, setHotelCreated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
+
+  // Debug information on mount
+  useEffect(() => {
+    console.log("SetupWizard initialized with user:", { 
+      userId: user?.id,
+      userEmail: user?.email,
+      hotelId: user?.hotelId,
+      currentUrl: window.location.href
+    });
+  }, [user]);
 
   // Check if hotel is created on mount and redirect if needed
   useEffect(() => {
     if (user?.hotelId && hotelCreated) {
-      console.log("Hotel detected in user data, redirecting to dashboard");
+      console.log("Hotel detected in user data, forcing navigation to dashboard");
       const timestamp = new Date().getTime();
-      window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload to avoid any navigation issues
+      
+      // Use direct window.location navigation for reliability
+      setTimeout(() => {
+        window.location.href = `/dashboard?t=${timestamp}`;
+      }, 500);
     }
   }, [user?.hotelId, hotelCreated]);
 
@@ -56,11 +71,12 @@ export const useSetupWizard = () => {
     if (hotelCreated) {
       console.log("Hotel already created, forcibly navigating to dashboard");
       const timestamp = new Date().getTime();
-      window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload
+      window.location.href = `/dashboard?t=${timestamp}`; 
       return;
     }
 
     setIsLoading(true);
+    setError(null);
     console.log("Creating hotel with data:", setupData);
 
     try {
@@ -139,15 +155,16 @@ export const useSetupWizard = () => {
       toast.success("Hotel setup completed successfully!");
       setHotelCreated(true);
 
-      // Force navigation with hard redirect to dashboard
-      console.log("Redirecting to dashboard after successful setup");
+      // Force navigation with hard redirect to dashboard after a short delay
+      console.log("Setup complete, scheduling redirect to dashboard");
       setTimeout(() => {
         const timestamp = new Date().getTime();
-        window.location.href = `/dashboard?t=${timestamp}`; // Force hard reload
-      }, 500);
+        window.location.href = `/dashboard?t=${timestamp}`;
+      }, 1000);
       
     } catch (error: any) {
       console.error("Error setting up hotel:", error);
+      setError(error.message || "Unknown error occurred");
       toast.error(`Setup failed: ${error.message || "Unknown error"}`);
       setIsLoading(false);
     }
@@ -171,6 +188,7 @@ export const useSetupWizard = () => {
     setupData,
     updateSetupData,
     isLoading,
+    error,
     handleCreateHotel,
     handleNextStep,
     navigate: handleNavigate,

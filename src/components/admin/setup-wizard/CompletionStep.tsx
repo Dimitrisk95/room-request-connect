@@ -1,9 +1,9 @@
-
 import { useEffect, useState } from "react";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { SetupData } from "../SetupWizard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CompletionStepProps {
   setupData: SetupData;
@@ -21,6 +21,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
   const skippedRooms = !setupData.rooms.addRooms || setupData.rooms.createdRooms === 0;
   const skippedStaff = !setupData.staff.addStaff || setupData.staff.createdStaff === 0;
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
   
   // Debug log to check the completion step is rendering with correct data
   useEffect(() => {
@@ -29,15 +30,17 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       roomsAdded: setupData.rooms.createdRooms,
       staffAdded: setupData.staff.createdStaff,
       hotelCreated,
-      isLoading
+      isLoading,
+      redirectCountdown,
+      redirectAttempted
     });
-  }, [setupData, hotelCreated, isLoading]);
+  }, [setupData, hotelCreated, isLoading, redirectCountdown, redirectAttempted]);
   
   // Start countdown for auto-redirect after hotel is created
   useEffect(() => {
     if (hotelCreated && !isLoading) {
       console.log("CompletionStep: Hotel already created, starting countdown for redirect");
-      setRedirectCountdown(3);
+      setRedirectCountdown(5); // Increased to 5 for better visibility
       
       const interval = setInterval(() => {
         setRedirectCountdown(prev => {
@@ -45,6 +48,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
           if (prev <= 1) {
             clearInterval(interval);
             console.log("CompletionStep: Countdown finished, triggering redirect");
+            setRedirectAttempted(true);
             onComplete();
             return 0;
           }
@@ -55,6 +59,25 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
       return () => clearInterval(interval);
     }
   }, [hotelCreated, isLoading, onComplete]);
+  
+  // Fallback redirect if the countdown completes but we're still on this page
+  useEffect(() => {
+    if (redirectAttempted && redirectCountdown === 0) {
+      const fallbackTimer = setTimeout(() => {
+        console.log("Fallback redirect triggered");
+        window.location.href = `/dashboard?t=${new Date().getTime()}`;
+      }, 2000);
+      
+      return () => clearTimeout(fallbackTimer);
+    }
+  }, [redirectAttempted, redirectCountdown]);
+  
+  // Force manual dashboard navigation
+  const handleManualDashboardNavigation = () => {
+    console.log("Manual dashboard navigation triggered");
+    setRedirectAttempted(true);
+    window.location.href = `/dashboard?t=${new Date().getTime()}`;
+  };
   
   const handleDashboardClick = () => {
     console.log("Dashboard button clicked, triggering onComplete with hotel created status:", hotelCreated);
@@ -72,6 +95,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
     
     // Force immediate redirection
     setRedirectCountdown(0);
+    setRedirectAttempted(true);
     onComplete();
   };
   
@@ -177,19 +201,43 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         </div>
       </div>
 
-      <div className="pt-4">
+      {/* Added alert for manual navigation if redirection fails */}
+      {hotelCreated && redirectAttempted && (
+        <Alert className="bg-amber-50 border-amber-200">
+          <AlertDescription className="text-amber-800">
+            If you are not redirected automatically, please click the button below to go to your dashboard.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="pt-4 space-y-4">
         <Button 
           onClick={handleDashboardClick} 
           className="w-full"
           disabled={isLoading}
         >
           {isLoading ? 'Processing...' : (hotelCreated ? 'Go to Dashboard Now' : 'Complete Setup and Create Hotel')}
+          {!isLoading && <ArrowRight className="ml-1 h-4 w-4" />}
         </Button>
+        
+        {/* Always show manual navigation button if hotel is created */}
+        {hotelCreated && (
+          <Button 
+            variant="outline" 
+            onClick={handleManualDashboardNavigation} 
+            className="w-full mt-2"
+          >
+            Manual Dashboard Navigation
+            <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
+        )}
+        
         {hotelCreated && redirectCountdown !== null && redirectCountdown > 0 && (
           <p className="text-xs text-center mt-2 text-muted-foreground">
             Redirecting to dashboard in {redirectCountdown} seconds...
           </p>
         )}
+        
         {isLoading && (
           <p className="text-xs text-center mt-2 text-amber-500">
             Please wait while we set up your hotel...

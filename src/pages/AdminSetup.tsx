@@ -16,7 +16,8 @@ const AdminSetup = () => {
   console.log("AdminSetup: User state", { 
     isAuthenticated, 
     user, 
-    hasHotel: !!user?.hotelId 
+    hasHotel: !!user?.hotelId,
+    currentPath: window.location.pathname
   });
 
   // If not authenticated, redirect to login
@@ -27,15 +28,20 @@ const AdminSetup = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // If the admin already has a hotel, redirect to dashboard
+  // If the admin already has a hotel, redirect to dashboard 
+  // This now uses a direct window.location approach rather than React Router
   useEffect(() => {
     if (user?.hotelId) {
-      console.log("User already has hotel, redirecting to dashboard");
-      // Force navigation with replace and add a timestamp to avoid caching issues
+      console.log("User already has hotel, forcing redirect to dashboard");
       const timestamp = new Date().getTime();
-      navigate(`/dashboard?t=${timestamp}`, { replace: true });
+      
+      // Use setTimeout to ensure state updates are processed
+      setTimeout(() => {
+        // Force hard navigation to dashboard
+        window.location.href = `/dashboard?t=${timestamp}`;
+      }, 100);
     }
-  }, [user?.hotelId, navigate]);
+  }, [user?.hotelId]);
 
   if (!isAuthenticated) {
     return null; // Don't render anything while redirecting to login
