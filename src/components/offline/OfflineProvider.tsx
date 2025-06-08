@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import * as React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wifi, WifiOff } from "lucide-react";
 
@@ -8,10 +8,10 @@ interface OfflineContextType {
   hasBeenOffline: boolean;
 }
 
-const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
+const OfflineContext = React.createContext<OfflineContextType | undefined>(undefined);
 
 export const useOffline = () => {
-  const context = useContext(OfflineContext);
+  const context = React.useContext(OfflineContext);
   if (!context) {
     throw new Error("useOffline must be used within OfflineProvider");
   }
@@ -19,15 +19,15 @@ export const useOffline = () => {
 };
 
 interface OfflineProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [hasBeenOffline, setHasBeenOffline] = useState<boolean>(false);
-  const [showReconnectedMessage, setShowReconnectedMessage] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = React.useState<boolean>(navigator.onLine);
+  const [hasBeenOffline, setHasBeenOffline] = React.useState<boolean>(false);
+  const [showReconnectedMessage, setShowReconnectedMessage] = React.useState<boolean>(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
       if (hasBeenOffline) {
