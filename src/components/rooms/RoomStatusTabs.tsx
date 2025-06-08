@@ -1,7 +1,8 @@
 
-import { Room } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import FloorSection from "./FloorSection";
+import { Badge } from "@/components/ui/badge";
+import RoomsGrid from "./RoomsGrid";
+import { Room } from "@/types";
 
 interface RoomStatusTabsProps {
   roomsData: Room[];
@@ -11,66 +12,62 @@ interface RoomStatusTabsProps {
 }
 
 const RoomStatusTabs = ({ roomsData, filterRooms, getStatusColor, onRoomClick }: RoomStatusTabsProps) => {
-  const floorGroups = roomsData.reduce((acc, room) => {
-    acc[room.floor] = acc[room.floor] || [];
-    acc[room.floor].push(room);
-    return acc;
-  }, {} as Record<number, Room[]>);
+  const statusCounts = {
+    all: roomsData.length,
+    vacant: roomsData.filter(room => room.status === "vacant").length,
+    occupied: roomsData.filter(room => room.status === "occupied").length,
+    maintenance: roomsData.filter(room => room.status === "maintenance").length,
+    cleaning: roomsData.filter(room => room.status === "cleaning").length,
+  };
 
-  const floors = Object.keys(floorGroups).map(Number).sort();
+  const getFilteredRooms = (status: string) => {
+    return status === "all" ? roomsData : roomsData.filter(room => room.status === status);
+  };
 
   return (
-    <Tabs defaultValue="all">
-      <TabsList className="mb-6">
-        <TabsTrigger value="all">All Rooms</TabsTrigger>
-        <TabsTrigger value="occupied">Occupied</TabsTrigger>
-        <TabsTrigger value="vacant">Vacant</TabsTrigger>
-        <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+    <Tabs defaultValue="all" className="w-full" data-tutorial="room-tabs">
+      <TabsList className="grid w-full grid-cols-5">
+        <TabsTrigger value="all" className="flex items-center gap-2">
+          All
+          <Badge variant="secondary" className="text-xs">
+            {statusCounts.all}
+          </Badge>
+        </TabsTrigger>
+        <TabsTrigger value="vacant" className="flex items-center gap-2">
+          Vacant
+          <Badge variant="secondary" className="text-xs">
+            {statusCounts.vacant}
+          </Badge>
+        </TabsTrigger>
+        <TabsTrigger value="occupied" className="flex items-center gap-2">
+          Occupied
+          <Badge variant="secondary" className="text-xs">
+            {statusCounts.occupied}
+          </Badge>
+        </TabsTrigger>
+        <TabsTrigger value="maintenance" className="flex items-center gap-2">
+          Maintenance
+          <Badge variant="secondary" className="text-xs">
+            {statusCounts.maintenance}
+          </Badge>
+        </TabsTrigger>
+        <TabsTrigger value="cleaning" className="flex items-center gap-2">
+          Cleaning
+          <Badge variant="secondary" className="text-xs">
+            {statusCounts.cleaning}
+          </Badge>
+        </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="all" className="space-y-6">
-        {floors.map((floor) => (
-          <FloorSection
-            key={floor}
-            floor={floor}
-            rooms={filterRooms(floorGroups[floor], floor)}
-            getStatusColor={getStatusColor}
+      {["all", "vacant", "occupied", "maintenance", "cleaning"].map((status) => (
+        <TabsContent key={status} value={status} className="mt-6">
+          <RoomsGrid
+            rooms={getFilteredRooms(status)}
             onRoomClick={onRoomClick}
+            getStatusColor={getStatusColor}
           />
-        ))}
-      </TabsContent>
-
-      <TabsContent value="occupied" className="space-y-6">
-        <FloorSection
-          floor={0}
-          rooms={filterRooms(roomsData.filter((r) => r.status === "occupied"), null)}
-          getStatusColor={getStatusColor}
-          onRoomClick={onRoomClick}
-        />
-      </TabsContent>
-
-      <TabsContent value="vacant" className="space-y-6">
-        <FloorSection
-          floor={0}
-          rooms={filterRooms(roomsData.filter((r) => r.status === "vacant"), null)}
-          getStatusColor={getStatusColor}
-          onRoomClick={onRoomClick}
-        />
-      </TabsContent>
-
-      <TabsContent value="maintenance" className="space-y-6">
-        <FloorSection
-          floor={0}
-          rooms={filterRooms(
-            roomsData.filter((r) =>
-              ["maintenance", "cleaning"].includes(r.status)
-            ),
-            null
-          )}
-          getStatusColor={getStatusColor}
-          onRoomClick={onRoomClick}
-        />
-      </TabsContent>
+        </TabsContent>
+      ))}
     </Tabs>
   );
 };

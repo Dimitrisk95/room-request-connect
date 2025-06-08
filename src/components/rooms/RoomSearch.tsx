@@ -18,8 +18,11 @@ const RoomSearch = ({ searchTerm, onSearchChange, onAddReservation }: RoomSearch
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           className="max-w-[220px]"
+          data-tutorial="search-rooms"
         />
-        <Button onClick={onAddReservation}>Add Reservation</Button>
+        <Button onClick={onAddReservation} data-tutorial="add-reservation">
+          Add Reservation
+        </Button>
       </div>
     </div>
   );

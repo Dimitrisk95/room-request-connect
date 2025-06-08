@@ -9,8 +9,8 @@ import { useAuth } from "@/context";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { useAccessibility } from "@/components/accessibility/AccessibilityProvider";
 import { useTutorial } from "@/hooks/useTutorial";
-import { TutorialDialog } from "@/components/ui/tutorial-dialog";
-import { getTutorialContent } from "@/components/tutorials/TutorialContent";
+import { SpotlightTutorial } from "@/components/tutorials/SpotlightTutorial";
+import { getTutorialSteps } from "@/components/tutorials/TutorialContent";
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -21,9 +21,15 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   const { logout, user } = useAuth();
   const { announceToScreenReader } = useAccessibility();
   const [showNotifications, setShowNotifications] = useState(false);
-  const { markTutorialAsViewed, hasTutorialBeenViewed } = useTutorial();
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [currentTutorial, setCurrentTutorial] = useState<string | null>(null);
+  const { 
+    startTutorial, 
+    hasTutorialBeenViewed, 
+    activeTutorial, 
+    currentStep, 
+    nextStep, 
+    skipTutorial, 
+    markTutorialAsViewed 
+  } = useTutorial();
 
   console.log("DashboardShell - user permissions:", {
     role: user?.role,
@@ -62,10 +68,12 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
     const navItem = navigation.find(item => item.href === pathname);
     
     if (navItem?.tutorialId && !hasTutorialBeenViewed(navItem.tutorialId)) {
-      setCurrentTutorial(navItem.tutorialId);
-      setShowTutorial(true);
+      // Small delay to ensure DOM elements are rendered
+      setTimeout(() => {
+        startTutorial(navItem.tutorialId);
+      }, 500);
     }
-  }, [pathname, navigation, hasTutorialBeenViewed]);
+  }, [pathname, navigation, hasTutorialBeenViewed, startTutorial]);
 
   const handleLogout = () => {
     announceToScreenReader("Logging out...");
@@ -77,23 +85,23 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
     announceToScreenReader(showNotifications ? "Notifications closed" : "Notifications opened");
   };
 
-  const handleTutorialClose = () => {
-    if (currentTutorial) {
-      markTutorialAsViewed(currentTutorial);
+  const handleTutorialComplete = () => {
+    if (activeTutorial) {
+      markTutorialAsViewed(activeTutorial);
     }
-    setShowTutorial(false);
-    setCurrentTutorial(null);
   };
 
-  const handleTutorialSkip = () => {
-    if (currentTutorial) {
-      markTutorialAsViewed(currentTutorial);
+  // Clean up highlight attributes when tutorial ends
+  useEffect(() => {
+    if (!activeTutorial) {
+      const highlightedElements = document.querySelectorAll('[data-tutorial-highlight]');
+      highlightedElements.forEach(el => {
+        el.removeAttribute('data-tutorial-highlight');
+      });
     }
-    setShowTutorial(false);
-    setCurrentTutorial(null);
-  };
+  }, [activeTutorial]);
 
-  const tutorialContent = currentTutorial ? getTutorialContent(currentTutorial) : null;
+  const currentTutorialSteps = activeTutorial ? getTutorialSteps(activeTutorial) : [];
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -206,17 +214,15 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
         onClose={() => setShowNotifications(false)} 
       />
 
-      {/* Tutorial Dialog */}
-      {tutorialContent && (
-        <TutorialDialog
-          isOpen={showTutorial}
-          onClose={handleTutorialClose}
-          onSkip={handleTutorialSkip}
-          title={tutorialContent.title}
-          description={tutorialContent.description}
-          content={tutorialContent.content}
-        />
-      )}
+      {/* Spotlight Tutorial */}
+      <SpotlightTutorial
+        isActive={!!activeTutorial}
+        steps={currentTutorialSteps}
+        currentStep={currentStep}
+        onNext={nextStep}
+        onSkip={skipTutorial}
+        onComplete={handleTutorialComplete}
+      />
     </div>
   );
 };
