@@ -8,17 +8,22 @@ export const useSetupWizard = () => {
   const { isLoading, hotelCreated, setHotelCreated, error, handleCreateHotel } = useHotelCreation();
   const { currentStep, setCurrentStep, handleNextStep, navigate } = useSetupNavigation();
 
-  // Create hotel with current setup data and handle navigation
+  // Simplified hotel creation and navigation
   const createHotelAndNavigate = async () => {
     console.log("Creating hotel and navigating...");
+    
+    if (hotelCreated) {
+      console.log("Hotel already created, navigating directly");
+      navigate();
+      return;
+    }
+    
     const success = await handleCreateHotel(setupData);
     
     if (success) {
       console.log("Hotel created successfully, navigating to dashboard");
-      // Small delay to ensure state updates are processed
-      setTimeout(() => {
-        navigate();
-      }, 500);
+      // Navigate immediately after successful creation
+      navigate();
     } else {
       console.error("Hotel creation failed");
     }

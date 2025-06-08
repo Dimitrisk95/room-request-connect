@@ -40,24 +40,25 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
   // Simple manual navigation
   const handleManualDashboardNavigation = () => {
     console.log("Manual dashboard navigation triggered");
-    window.location.href = `/dashboard`;
+    window.location.replace('/dashboard');
   };
   
-  const handleDashboardClick = async () => {
-    console.log("Dashboard button clicked, triggering onComplete");
+  const handleDashboardClick = () => {
+    console.log("Dashboard button clicked");
     
     if (isLoading) {
-      console.log("Still loading, not triggering redirect");
+      console.log("Still loading, ignoring click");
       return;
     }
     
-    if (!hotelCreated && !debugMode) {
-      console.log("Hotel not created yet, creating hotel first");
-      await onComplete();
-    } else {
-      console.log("Hotel already created or debug mode enabled, redirecting directly");
+    if (debugMode) {
+      console.log("Debug mode enabled, redirecting directly");
       handleManualDashboardNavigation();
+      return;
     }
+    
+    console.log("Triggering onComplete");
+    onComplete();
   };
   
   return (

@@ -13,8 +13,13 @@ export const useHotelCreation = () => {
 
   const handleCreateHotel = useCallback(async (setupData: SetupData) => {
     if (hotelCreated) {
-      console.log("Hotel already created, skipping creation");
+      console.log("Hotel already created, returning success");
       return true;
+    }
+
+    if (isLoading) {
+      console.log("Already creating hotel, skipping");
+      return false;
     }
 
     setIsLoading(true);
@@ -82,7 +87,6 @@ export const useHotelCreation = () => {
       // Everything succeeded!
       toast.success("Hotel setup completed successfully!");
       setHotelCreated(true);
-      setIsLoading(false);
       console.log("Hotel creation completed successfully");
       
       return true;
@@ -91,10 +95,11 @@ export const useHotelCreation = () => {
       console.error("Error setting up hotel:", error);
       setError(error.message || "Unknown error occurred");
       toast.error(`Setup failed: ${error.message || "Unknown error"}`);
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, [user, updateUser, hotelCreated]);
+  }, [user, updateUser, hotelCreated, isLoading]);
 
   return {
     isLoading,
