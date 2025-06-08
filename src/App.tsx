@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -132,6 +131,14 @@ const App: React.FC = () => {
                     element={
                       <ProtectedRoute>
                         <Requests />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/request/:id"
+                    element={
+                      <ProtectedRoute>
+                        <RequestDetails />
                       </ProtectedRoute>
                     }
                   />

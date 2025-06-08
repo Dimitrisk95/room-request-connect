@@ -1,6 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context";
-import { fetchRequests, Request } from "@/context/requests/requestHandlers";
+import { 
+  fetchRequests, 
+  updateRequestStatus, 
+  addRequestNote,
+  Request 
+} from "@/context/requests/requestHandlers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,10 +16,20 @@ import {
   CheckCircle, 
   XCircle, 
   AlertTriangle,
-  ArrowUpCircle
+  ArrowUpCircle,
+  MessageSquare,
+  User
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RequestStatus } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const RequestsTable = () => {
   const { user } = useAuth();
@@ -21,6 +37,9 @@ const RequestsTable = () => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isStaffView, setIsStaffView] = useState(true);
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const [note, setNote] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (user?.hotelId) {
@@ -36,7 +55,14 @@ const RequestsTable = () => {
     try {
       setIsLoading(true);
       const fetchedRequests = await fetchRequests(user?.hotelId || '');
-      setRequests(fetchedRequests);
+      
+      // Filter by user role
+      let filteredRequests = fetchedRequests;
+      if (user?.role === "guest" && user?.roomNumber) {
+        filteredRequests = fetchedRequests.filter(req => req.roomNumber === user.roomNumber);
+      }
+      
+      setRequests(filteredRequests);
     } catch (error) {
       console.error('Error loading requests:', error);
       toast({
@@ -49,19 +75,74 @@ const RequestsTable = () => {
     }
   };
 
-  const handleStatusChange = (requestId: string, newStatus: RequestStatus) => {
-    // Create a new array with the updated request
-    const updatedRequests = requests.map(req => 
-      req.id === requestId ? {...req, status: newStatus} : req
-    );
+  const handleStatusChange = async (requestId: string, newStatus: RequestStatus) => {
+    if (!user) return;
     
-    // Update the local state
-    setRequests(updatedRequests);
-    
-    toast({
-      title: "Request Updated",
-      description: `Request status changed to ${newStatus}`,
-    });
+    try {
+      setIsUpdating(true);
+      const updatedRequest = await updateRequestStatus(
+        requestId, 
+        newStatus, 
+        user.id, 
+        user.name
+      );
+      
+      // Update local state
+      setRequests(prev => prev.map(req => 
+        req.id === requestId ? updatedRequest : req
+      ));
+      
+      toast({
+        title: "Request Updated",
+        description: `Request status changed to ${newStatus}`,
+      });
+    } catch (error) {
+      console.error('Error updating request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update request. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleAddNote = async (requestId: string) => {
+    if (!note.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a note",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      const noteWithAuthor = `${user?.name}: ${note}`;
+      await addRequestNote(requestId, noteWithAuthor);
+      
+      // Reload requests to get updated notes
+      await loadRequests();
+      
+      setNote("");
+      setSelectedRequest(null);
+      
+      toast({
+        title: "Note Added",
+        description: "Your note has been added to the request",
+      });
+    } catch (error) {
+      console.error('Error adding note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add note. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -167,6 +248,12 @@ const RequestsTable = () => {
                   <div>
                     <div className="font-medium">{request.title}</div>
                     <div className="text-sm text-muted-foreground line-clamp-2">{request.description}</div>
+                    {request.assignedToName && (
+                      <div className="text-xs text-blue-600 flex items-center gap-1 mt-1">
+                        <User className="h-3 w-3" />
+                        Assigned to: {request.assignedToName}
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -183,8 +270,9 @@ const RequestsTable = () => {
                           size="sm" 
                           variant="outline"
                           onClick={() => handleStatusChange(request.id, "in-progress")}
+                          disabled={isUpdating}
                         >
-                          Process
+                          Claim
                         </Button>
                       )}
                       {(request.status === "pending" || request.status === "in-progress") && (
@@ -192,10 +280,73 @@ const RequestsTable = () => {
                           size="sm" 
                           className="bg-green-600 hover:bg-green-700" 
                           onClick={() => handleStatusChange(request.id, "resolved")}
+                          disabled={isUpdating}
                         >
                           Complete
                         </Button>
                       )}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setSelectedRequest(request)}
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add Note to Request</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <p className="font-medium">{request.title}</p>
+                              <p className="text-sm text-muted-foreground">Room {request.roomNumber} • {request.guestName}</p>
+                            </div>
+                            
+                            {request.notes && request.notes.length > 0 && (
+                              <div>
+                                <h4 className="font-medium mb-2">Previous Notes:</h4>
+                                <div className="space-y-2 max-h-32 overflow-y-auto">
+                                  {request.notes.map((note, index) => (
+                                    <div key={index} className="text-sm p-2 bg-muted rounded">
+                                      {note}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div>
+                              <Textarea
+                                placeholder="Add a note about this request..."
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                rows={3}
+                              />
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button 
+                                onClick={() => handleAddNote(request.id)}
+                                disabled={isUpdating || !note.trim()}
+                              >
+                                Add Note
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                onClick={() => {
+                                  setSelectedRequest(null);
+                                  setNote("");
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </TableCell>
                 )}

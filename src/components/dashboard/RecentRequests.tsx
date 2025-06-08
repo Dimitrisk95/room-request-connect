@@ -1,14 +1,34 @@
 
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context";
+import { fetchRequestsByStatus, Request } from "@/context/requests/requestHandlers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Request } from "@/context/requests/requestHandlers";
 
-interface RecentRequestsProps {
-  pendingRequests: Request[];
-}
+export const RecentRequests = () => {
+  const { user } = useAuth();
+  const [pendingRequests, setPendingRequests] = useState<Request[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-export const RecentRequests = ({ pendingRequests }: RecentRequestsProps) => {
+  useEffect(() => {
+    if (user?.hotelId) {
+      loadPendingRequests();
+    }
+  }, [user?.hotelId]);
+
+  const loadPendingRequests = async () => {
+    try {
+      setIsLoading(true);
+      const requests = await fetchRequestsByStatus(user?.hotelId || '', 'pending');
+      setPendingRequests(requests);
+    } catch (error) {
+      console.error('Error loading pending requests:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="col-span-1">
       <CardHeader>
@@ -16,7 +36,11 @@ export const RecentRequests = ({ pendingRequests }: RecentRequestsProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {pendingRequests.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Loading requests...
+            </div>
+          ) : pendingRequests.length > 0 ? (
             pendingRequests.slice(0, 5).map((request) => (
               <div key={request.id} className="flex items-center gap-4 p-3 rounded-lg border">
                 <div className={`h-2 w-2 rounded-full ${
