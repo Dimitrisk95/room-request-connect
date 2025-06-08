@@ -26,6 +26,7 @@ import GuestView from "./pages/GuestView";
 import AdminSetup from "./pages/AdminSetup";
 import GuestConnect from "./pages/GuestConnect";
 import Index from "./pages/Index";
+import Analytics from "./pages/Analytics";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import { Toaster } from "@/components/ui/toaster";
@@ -163,6 +164,14 @@ const App: React.FC = () => {
                     element={
                       <ProtectedRoute>
                         <AccessCodes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <Analytics />
                       </ProtectedRoute>
                     }
                   />
