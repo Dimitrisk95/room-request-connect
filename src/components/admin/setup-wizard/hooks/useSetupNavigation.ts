@@ -16,23 +16,18 @@ export const useSetupNavigation = () => {
     });
   }, [user]);
 
-  // Check if hotel is already created and redirect if needed
-  useEffect(() => {
-    if (user?.hotelId) {
-      console.log("Hotel detected in user data, redirecting to dashboard");
-      window.location.href = `/dashboard`;
-    }
-  }, [user?.hotelId]);
-
   // Handle moving to the next step
   const handleNextStep = useCallback(() => {
     setCurrentStep(prev => Math.min(prev + 1, 3));
   }, []);
   
-  // Navigate to dashboard
+  // Simple navigation to dashboard - no complex logic
   const handleNavigate = useCallback(() => {
-    console.log("Navigating to dashboard");
-    window.location.href = `/dashboard`;
+    console.log("Navigating to dashboard via window.location");
+    // Use a timeout to ensure any pending state updates complete
+    setTimeout(() => {
+      window.location.href = `/dashboard`;
+    }, 100);
   }, []);
 
   return {

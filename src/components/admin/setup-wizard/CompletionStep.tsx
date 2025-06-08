@@ -7,8 +7,7 @@ import {
   DebugModeAlert, 
   CompletionHeader, 
   SetupSummary, 
-  NavigationOptions, 
-  RedirectHandler 
+  NavigationOptions 
 } from "./completion";
 
 interface CompletionStepProps {
@@ -38,14 +37,14 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
     });
   }, [setupData, hotelCreated, isLoading, debugMode]);
   
-  // Force manual dashboard navigation
+  // Simple manual navigation
   const handleManualDashboardNavigation = () => {
     console.log("Manual dashboard navigation triggered");
-    window.location.href = `/dashboard?t=${new Date().getTime()}`;
+    window.location.href = `/dashboard`;
   };
   
-  const handleDashboardClick = () => {
-    console.log("Dashboard button clicked, triggering onComplete with hotel created status:", hotelCreated);
+  const handleDashboardClick = async () => {
+    console.log("Dashboard button clicked, triggering onComplete");
     
     if (isLoading) {
       console.log("Still loading, not triggering redirect");
@@ -54,11 +53,11 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
     
     if (!hotelCreated && !debugMode) {
       console.log("Hotel not created yet, creating hotel first");
+      await onComplete();
     } else {
       console.log("Hotel already created or debug mode enabled, redirecting directly");
+      handleManualDashboardNavigation();
     }
-    
-    onComplete();
   };
   
   return (
@@ -78,13 +77,6 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
         onManualNavigation={handleManualDashboardNavigation}
       />
 
-      <RedirectHandler 
-        hotelCreated={hotelCreated}
-        isLoading={isLoading}
-        debugMode={debugMode}
-        onComplete={onComplete}
-      />
-
       <div className="pt-4 space-y-4">
         <Button 
           onClick={handleDashboardClick} 
@@ -92,28 +84,27 @@ const CompletionStep: React.FC<CompletionStepProps> = ({
           disabled={isLoading && !debugMode}
         >
           {isLoading && !debugMode 
-            ? 'Processing...' 
+            ? 'Creating Hotel...' 
             : (hotelCreated || debugMode 
-              ? 'Go to Dashboard Now' 
+              ? 'Go to Dashboard' 
               : 'Complete Setup and Create Hotel'
             )
           }
           <ArrowRight className="ml-1 h-4 w-4" />
         </Button>
         
-        {(hotelCreated || debugMode) && (
-          <Button 
-            variant="outline" 
-            onClick={handleManualDashboardNavigation} 
-            className="w-full mt-2"
-          >
-            Manual Dashboard Navigation
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
-        )}
+        <Button 
+          variant="outline" 
+          onClick={handleManualDashboardNavigation} 
+          className="w-full"
+          disabled={isLoading && !debugMode}
+        >
+          Force Dashboard Navigation
+          <ArrowRight className="ml-1 h-4 w-4" />
+        </Button>
         
         {(isLoading && !debugMode) && (
-          <p className="text-xs text-center mt-2 text-amber-500">
+          <p className="text-xs text-center mt-2 text-amber-600">
             Please wait while we set up your hotel...
           </p>
         )}

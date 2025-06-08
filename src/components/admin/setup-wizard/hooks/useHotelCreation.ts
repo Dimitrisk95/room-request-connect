@@ -13,9 +13,8 @@ export const useHotelCreation = () => {
 
   const handleCreateHotel = useCallback(async (setupData: SetupData) => {
     if (hotelCreated) {
-      console.log("Hotel already created, navigating to dashboard");
-      window.location.href = `/dashboard`;
-      return;
+      console.log("Hotel already created, skipping creation");
+      return true;
     }
 
     setIsLoading(true);
@@ -84,18 +83,16 @@ export const useHotelCreation = () => {
       toast.success("Hotel setup completed successfully!");
       setHotelCreated(true);
       setIsLoading(false);
-
-      // Navigate to dashboard after successful creation
-      console.log("Setup complete, navigating to dashboard");
-      setTimeout(() => {
-        window.location.href = `/dashboard`;
-      }, 1000);
+      console.log("Hotel creation completed successfully");
+      
+      return true;
       
     } catch (error: any) {
       console.error("Error setting up hotel:", error);
       setError(error.message || "Unknown error occurred");
       toast.error(`Setup failed: ${error.message || "Unknown error"}`);
       setIsLoading(false);
+      return false;
     }
   }, [user, updateUser, hotelCreated]);
 
