@@ -26,7 +26,14 @@ import GuestView from "./pages/GuestView";
 import AdminSetup from "./pages/AdminSetup";
 import GuestConnect from "./pages/GuestConnect";
 import Index from "./pages/Index";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import { Toaster } from "@/components/ui/toaster";
+import ErrorBoundary from "./components/error/ErrorBoundary";
+import { RateLimitProvider } from "./components/security/RateLimitProvider";
+import { AccessibilityProvider } from "./components/accessibility/AccessibilityProvider";
+import { PWAProvider } from "./components/pwa/PWAProvider";
+import { OfflineProvider, registerServiceWorker } from "./components/offline/OfflineProvider";
 
 // Protected route that also checks if hotel setup is required
 const ProtectedRoute = ({ children, requiresHotel = false }: { 
@@ -65,112 +72,129 @@ const ProtectedRoute = ({ children, requiresHotel = false }: {
 };
 
 const App: React.FC = () => {
+  useEffect(() => {
+    // Register service worker for PWA functionality
+    registerServiceWorker();
+  }, []);
+
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/guest-connect" element={<GuestConnect />} />
-          <Route path="/setup" element={<AdminSetup />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/rooms"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <RoomManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff-management"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <StaffManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin-dashboard"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/calendar"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <Calendar />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/requests"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <Requests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <Staff />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/hotel-settings"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <HotelSettings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/role-management"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <RoleManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/access-codes"
-            element={
-              <ProtectedRoute requiresHotel={true}>
-                <AccessCodes />
-              </ProtectedRoute>
-            }
-          />
-          <Route 
-            path="/guest/:roomCode" 
-            element={<GuestView />} 
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <OfflineProvider>
+        <PWAProvider>
+          <AccessibilityProvider>
+            <RateLimitProvider>
+              <Router>
+                <AuthProvider>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/guest-connect" element={<GuestConnect />} />
+                    <Route path="/setup" element={<AdminSetup />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsOfService />} />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/rooms"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <RoomManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/staff-management"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <StaffManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/settings"
+                      element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin-dashboard"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/calendar"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <Calendar />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/requests"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <Requests />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/staff"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <Staff />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/hotel-settings"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <HotelSettings />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/role-management"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <RoleManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/access-codes"
+                      element={
+                        <ProtectedRoute requiresHotel={true}>
+                          <AccessCodes />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route 
+                      path="/guest/:roomCode" 
+                      element={<GuestView />} 
+                    />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <Toaster />
+                </AuthProvider>
+              </Router>
+            </RateLimitProvider>
+          </AccessibilityProvider>
+        </PWAProvider>
+      </OfflineProvider>
+    </ErrorBoundary>
   );
 };
 

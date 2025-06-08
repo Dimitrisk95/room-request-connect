@@ -1,9 +1,13 @@
-import React, { ReactNode } from "react";
+
+import React, { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Hotel, LogOut, MessageSquare, User, Users, Shield, Building, Settings, Key } from "lucide-react";
+import { Calendar, Hotel, LogOut, MessageSquare, User, Users, Shield, Building, Settings, Key, Bell, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import { useAccessibility } from "@/components/accessibility/AccessibilityProvider";
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -12,6 +16,8 @@ interface DashboardShellProps {
 const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   const { pathname } = useLocation();
   const { logout, user } = useAuth();
+  const { announceToScreenReader } = useAccessibility();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   console.log("DashboardShell - user permissions:", {
     role: user?.role,
@@ -21,12 +27,13 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
 
   // Basic navigation for all user roles
   const baseNavigation = [
-    { name: "Dashboard", href: "/dashboard", icon: Hotel },
-    { name: "Rooms", href: "/rooms", icon: Building },
+    { name: "Dashboard", href: "/dashboard", icon: Hotel, dataTour: "dashboard" },
+    { name: "Rooms", href: "/rooms", icon: Building, dataTour: "rooms" },
     { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Requests", href: "/requests", icon: MessageSquare },
-    { name: "Staff", href: "/staff", icon: Users },
+    { name: "Requests", href: "/requests", icon: MessageSquare, dataTour: "requests" },
+    { name: "Staff", href: "/staff", icon: Users, dataTour: "staff" },
     { name: "Access Codes", href: "/access-codes", icon: Key },
+    { name: "Analytics", href: "/analytics", icon: BarChart3, dataTour: "analytics" },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
   
@@ -43,6 +50,16 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   // Combine navigation based on user role and permissions
   const navigation = [...baseNavigation, ...permissionBasedNavigation];
 
+  const handleLogout = () => {
+    announceToScreenReader("Logging out...");
+    logout();
+  };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+    announceToScreenReader(showNotifications ? "Notifications closed" : "Notifications opened");
+  };
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
@@ -53,17 +70,19 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
               <h1 className="text-xl font-bold">Roomlix</h1>
             </div>
             <div className="flex flex-col flex-grow">
-              <nav className="flex-1 px-2 space-y-1">
+              <nav className="flex-1 px-2 space-y-1" role="navigation" aria-label="Main navigation">
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
                     to={item.href}
+                    data-tour={item.dataTour}
                     className={cn(
                       pathname === item.href
                         ? "bg-accent text-accent-foreground"
                         : "text-primary-foreground hover:bg-primary-foreground/10",
                       "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                     )}
+                    aria-current={pathname === item.href ? "page" : undefined}
                   >
                     <item.icon
                       className={cn(
@@ -94,7 +113,8 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
                   variant="ghost"
                   size="icon"
                   className="text-primary-foreground hover:bg-primary-foreground/10"
-                  onClick={logout}
+                  onClick={handleLogout}
+                  aria-label="Logout"
                 >
                   <LogOut size={18} />
                 </Button>
@@ -109,12 +129,47 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
         {/* Mobile header */}
         <div className="md:hidden bg-primary text-primary-foreground p-4 flex items-center justify-between">
           <h1 className="text-lg font-bold">Roomlix</h1>
-          {/* Mobile menu button would go here */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleNotifications}
+              className="text-primary-foreground hover:bg-primary-foreground/10 relative"
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500">
+                3
+              </Badge>
+            </Button>
+          </div>
         </div>
-        <main className="flex-1 relative overflow-y-auto focus:outline-none p-4 md:p-6 bg-background">
+
+        {/* Desktop header */}
+        <div className="hidden md:flex bg-background border-b p-4 justify-end">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleNotifications}
+            className="relative"
+            aria-label="Notifications"
+          >
+            <Bell className="h-5 w-5" />
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500">
+              3
+            </Badge>
+          </Button>
+        </div>
+
+        <main className="flex-1 relative overflow-y-auto focus:outline-none p-4 md:p-6 bg-background" role="main">
           {children}
         </main>
       </div>
+
+      <NotificationCenter 
+        isOpen={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
+      />
     </div>
   );
 };
