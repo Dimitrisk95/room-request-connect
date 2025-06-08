@@ -1,7 +1,7 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Wifi, WifiOff } from "lucide-react";
+import { Wifi, WifiOff } from "lucide-react";
 
 interface OfflineContextType {
   isOnline: boolean;
@@ -19,13 +19,13 @@ export const useOffline = () => {
 };
 
 interface OfflineProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [hasBeenOffline, setHasBeenOffline] = useState(false);
-  const [showReconnectedMessage, setShowReconnectedMessage] = useState(false);
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [hasBeenOffline, setHasBeenOffline] = useState<boolean>(false);
+  const [showReconnectedMessage, setShowReconnectedMessage] = useState<boolean>(false);
 
   useEffect(() => {
     const handleOnline = () => {
