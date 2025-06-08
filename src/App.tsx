@@ -33,7 +33,6 @@ import ErrorBoundary from "./components/error/ErrorBoundary";
 import { RateLimitProvider } from "./components/security/RateLimitProvider";
 import { AccessibilityProvider } from "./components/accessibility/AccessibilityProvider";
 import { PWAProvider } from "./components/pwa/PWAProvider";
-import { OfflineProvider, registerServiceWorker } from "./components/offline/OfflineProvider";
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -64,128 +63,121 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App: React.FC = () => {
-  useEffect(() => {
-    // Register service worker for PWA functionality
-    registerServiceWorker();
-  }, []);
-
   return (
     <ErrorBoundary>
-      <OfflineProvider>
-        <PWAProvider>
-          <AccessibilityProvider>
-            <RateLimitProvider>
-              <Router>
-                <AuthProvider>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/guest-connect" element={<GuestConnect />} />
-                    <Route path="/setup" element={<AdminSetup />} />
-                    <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="/terms" element={<TermsOfService />} />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/rooms"
-                      element={
-                        <ProtectedRoute>
-                          <RoomManagement />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/staff-management"
-                      element={
-                        <ProtectedRoute>
-                          <StaffManagement />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/settings"
-                      element={
-                        <ProtectedRoute>
-                          <Settings />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <AdminDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/calendar"
-                      element={
-                        <ProtectedRoute>
-                          <Calendar />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/requests"
-                      element={
-                        <ProtectedRoute>
-                          <Requests />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/staff"
-                      element={
-                        <ProtectedRoute>
-                          <Staff />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/hotel-settings"
-                      element={
-                        <ProtectedRoute>
-                          <HotelSettings />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/role-management"
-                      element={
-                        <ProtectedRoute>
-                          <RoleManagement />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/access-codes"
-                      element={
-                        <ProtectedRoute>
-                          <AccessCodes />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route 
-                      path="/guest/:roomCode" 
-                      element={<GuestView />} 
-                    />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <Toaster />
-                </AuthProvider>
-              </Router>
-            </RateLimitProvider>
-          </AccessibilityProvider>
-        </PWAProvider>
-      </OfflineProvider>
+      <PWAProvider>
+        <AccessibilityProvider>
+          <RateLimitProvider>
+            <Router>
+              <AuthProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/guest-connect" element={<GuestConnect />} />
+                  <Route path="/setup" element={<AdminSetup />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/rooms"
+                    element={
+                      <ProtectedRoute>
+                        <RoomManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff-management"
+                    element={
+                      <ProtectedRoute>
+                        <StaffManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar"
+                    element={
+                      <ProtectedRoute>
+                        <Calendar />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/requests"
+                    element={
+                      <ProtectedRoute>
+                        <Requests />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff"
+                    element={
+                      <ProtectedRoute>
+                        <Staff />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hotel-settings"
+                    element={
+                      <ProtectedRoute>
+                        <HotelSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/role-management"
+                    element={
+                      <ProtectedRoute>
+                        <RoleManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/access-codes"
+                    element={
+                      <ProtectedRoute>
+                        <AccessCodes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route 
+                    path="/guest/:roomCode" 
+                    element={<GuestView />} 
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </AuthProvider>
+            </Router>
+          </RateLimitProvider>
+        </AccessibilityProvider>
+      </PWAProvider>
     </ErrorBoundary>
   );
 };
