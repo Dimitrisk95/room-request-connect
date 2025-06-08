@@ -6,7 +6,6 @@ import { Building, Key, UserPlus, Bed } from "lucide-react";
 import DashboardShell from "@/components/ui/dashboard-shell";
 import HotelSettings from "@/components/admin/HotelSettings";
 import RoleManagement from "@/components/admin/role-management";
-import HotelCreation from "@/components/admin/HotelCreation";
 import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
 import HotelInfoTab from "@/components/admin/HotelInfoTab";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("hotel-creation");
+  const [activeTab, setActiveTab] = useState("hotel-settings");
   const navigate = useNavigate();
 
   if (!user) {
@@ -71,12 +70,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
-            <TabsTrigger value="hotel-creation" className="flex items-center">
-              <Building className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Create Hotel</span>
-              <span className="sm:hidden">Create</span>
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="hotel-settings" className="flex items-center">
               <Building className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Hotel Settings</span>
@@ -98,12 +92,6 @@ const AdminDashboard = () => {
               <span className="sm:hidden">Staff</span>
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="hotel-creation" className="space-y-6">
-            <div className="grid md:grid-cols-1 gap-6">
-              <HotelCreation />
-            </div>
-          </TabsContent>
 
           <TabsContent value="hotel-settings" className="space-y-6">
             <div className="grid md:grid-cols-1 gap-6">

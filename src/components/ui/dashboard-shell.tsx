@@ -1,5 +1,5 @@
 
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Calendar, Hotel, LogOut, MessageSquare, User, Users, Shield, Building, Settings, Key, Bell, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { useAccessibility } from "@/components/accessibility/AccessibilityProvider";
+import { useTutorial } from "@/hooks/useTutorial";
+import { TutorialDialog } from "@/components/ui/tutorial-dialog";
+import { getTutorialContent } from "@/components/tutorials/TutorialContent";
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -18,6 +21,9 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   const { logout, user } = useAuth();
   const { announceToScreenReader } = useAccessibility();
   const [showNotifications, setShowNotifications] = useState(false);
+  const { markTutorialAsViewed, hasTutorialBeenViewed } = useTutorial();
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [currentTutorial, setCurrentTutorial] = useState<string | null>(null);
 
   console.log("DashboardShell - user permissions:", {
     role: user?.role,
@@ -27,14 +33,14 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
 
   // Basic navigation for all user roles
   const baseNavigation = [
-    { name: "Dashboard", href: "/dashboard", icon: Hotel, dataTour: "dashboard" },
-    { name: "Rooms", href: "/rooms", icon: Building, dataTour: "rooms" },
-    { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Requests", href: "/requests", icon: MessageSquare, dataTour: "requests" },
-    { name: "Staff", href: "/staff", icon: Users, dataTour: "staff" },
-    { name: "Access Codes", href: "/access-codes", icon: Key },
-    { name: "Analytics", href: "/analytics", icon: BarChart3, dataTour: "analytics" },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Dashboard", href: "/dashboard", icon: Hotel, dataTour: "dashboard", tutorialId: "dashboard" },
+    { name: "Rooms", href: "/rooms", icon: Building, dataTour: "rooms", tutorialId: "rooms" },
+    { name: "Calendar", href: "/calendar", icon: Calendar, tutorialId: "calendar" },
+    { name: "Requests", href: "/requests", icon: MessageSquare, dataTour: "requests", tutorialId: "requests" },
+    { name: "Staff", href: "/staff", icon: Users, dataTour: "staff", tutorialId: "staff" },
+    { name: "Access Codes", href: "/access-codes", icon: Key, tutorialId: "access-codes" },
+    { name: "Analytics", href: "/analytics", icon: BarChart3, dataTour: "analytics", tutorialId: "analytics" },
+    { name: "Settings", href: "/settings", icon: Settings, tutorialId: "settings" },
   ];
   
   // Admin-only and permitted staff navigation items
@@ -43,12 +49,23 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   // Add Staff Management link for users with permission
   if (user?.role === "admin" || user?.can_manage_staff === true) {
     permissionBasedNavigation.push(
-      { name: "Staff Management", href: "/staff-management", icon: User }
+      { name: "Staff Management", href: "/staff-management", icon: User, tutorialId: "staff-management" }
     );
   }
   
   // Combine navigation based on user role and permissions
   const navigation = [...baseNavigation, ...permissionBasedNavigation];
+
+  // Check for tutorial on route change
+  useEffect(() => {
+    const currentRoute = pathname.replace("/", "") || "dashboard";
+    const navItem = navigation.find(item => item.href === pathname);
+    
+    if (navItem?.tutorialId && !hasTutorialBeenViewed(navItem.tutorialId)) {
+      setCurrentTutorial(navItem.tutorialId);
+      setShowTutorial(true);
+    }
+  }, [pathname, navigation, hasTutorialBeenViewed]);
 
   const handleLogout = () => {
     announceToScreenReader("Logging out...");
@@ -59,6 +76,24 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
     setShowNotifications(!showNotifications);
     announceToScreenReader(showNotifications ? "Notifications closed" : "Notifications opened");
   };
+
+  const handleTutorialClose = () => {
+    if (currentTutorial) {
+      markTutorialAsViewed(currentTutorial);
+    }
+    setShowTutorial(false);
+    setCurrentTutorial(null);
+  };
+
+  const handleTutorialSkip = () => {
+    if (currentTutorial) {
+      markTutorialAsViewed(currentTutorial);
+    }
+    setShowTutorial(false);
+    setCurrentTutorial(null);
+  };
+
+  const tutorialContent = currentTutorial ? getTutorialContent(currentTutorial) : null;
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -170,6 +205,18 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
       />
+
+      {/* Tutorial Dialog */}
+      {tutorialContent && (
+        <TutorialDialog
+          isOpen={showTutorial}
+          onClose={handleTutorialClose}
+          onSkip={handleTutorialSkip}
+          title={tutorialContent.title}
+          description={tutorialContent.description}
+          content={tutorialContent.content}
+        />
+      )}
     </div>
   );
 };
