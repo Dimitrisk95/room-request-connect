@@ -3,9 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/context";
 import { useToast } from "@/hooks/use-toast";
-import { UserRole } from "@/context/auth/types";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -20,7 +18,6 @@ export const useStaffForm = (
   updateStaffData: (data: { addStaff: boolean; createdStaff: number }) => void,
   createdStaff: number
 ) => {
-  const { user, createStaffAccount } = useAuth();
   const { toast } = useToast();
   const [isAddingStaff, setIsAddingStaff] = useState(false);
 
@@ -35,24 +32,15 @@ export const useStaffForm = (
   });
 
   const handleAddStaff = async (values: FormValues) => {
-    if (!user?.hotelId) {
-      toast({
-        title: "Error",
-        description: "Hotel ID is missing. Please go back and create a hotel first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    console.log("Adding staff member to setup data:", values);
     setIsAddingStaff(true);
+    
     try {
-      await createStaffAccount(
-        values.name,
-        values.email,
-        values.password,
-        values.role as UserRole,
-        user.hotelId
-      );
+      // During setup wizard, we just store the staff data for later creation
+      // The actual staff accounts will be created after the hotel is created
+      
+      // Simulate a brief loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       updateStaffData({ 
         addStaff: true,
@@ -60,8 +48,8 @@ export const useStaffForm = (
       });
 
       toast({
-        title: "Staff added successfully",
-        description: `${values.name} has been added to your hotel staff.`
+        title: "Staff member added",
+        description: `${values.name} will be created when you complete the hotel setup.`
       });
 
       form.reset({

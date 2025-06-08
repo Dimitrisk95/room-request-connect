@@ -11,7 +11,6 @@ interface RedirectHandlerProps {
 
 export const RedirectHandler = ({ hotelCreated, isLoading, debugMode, onComplete }: RedirectHandlerProps) => {
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
-  const [redirectAttempted, setRedirectAttempted] = useState(false);
 
   // Start countdown for auto-redirect after hotel is created
   useEffect(() => {
@@ -22,17 +21,16 @@ export const RedirectHandler = ({ hotelCreated, isLoading, debugMode, onComplete
     }
     
     if (hotelCreated && !isLoading) {
-      console.log("RedirectHandler: Hotel already created, starting countdown for redirect");
-      setRedirectCountdown(5);
+      console.log("Hotel created successfully, starting redirect countdown");
+      setRedirectCountdown(3);
       
       const interval = setInterval(() => {
         setRedirectCountdown(prev => {
           if (prev === null) return null;
           if (prev <= 1) {
             clearInterval(interval);
-            console.log("RedirectHandler: Countdown finished, triggering redirect");
-            setRedirectAttempted(true);
-            onComplete();
+            console.log("Redirect countdown finished, navigating to dashboard");
+            window.location.href = `/dashboard`;
             return 0;
           }
           return prev - 1;
@@ -41,19 +39,7 @@ export const RedirectHandler = ({ hotelCreated, isLoading, debugMode, onComplete
       
       return () => clearInterval(interval);
     }
-  }, [hotelCreated, isLoading, onComplete, debugMode]);
-  
-  // Fallback redirect if the countdown completes but we're still on this page
-  useEffect(() => {
-    if (redirectAttempted && redirectCountdown === 0 && !debugMode) {
-      const fallbackTimer = setTimeout(() => {
-        console.log("Fallback redirect triggered");
-        window.location.href = `/dashboard?t=${new Date().getTime()}`;
-      }, 2000);
-      
-      return () => clearTimeout(fallbackTimer);
-    }
-  }, [redirectAttempted, redirectCountdown, debugMode]);
+  }, [hotelCreated, isLoading, debugMode]);
 
   return (
     <>
@@ -63,10 +49,10 @@ export const RedirectHandler = ({ hotelCreated, isLoading, debugMode, onComplete
         </p>
       )}
       
-      {(hotelCreated && redirectAttempted && !debugMode) && (
-        <Alert className="bg-amber-50 border-amber-200">
-          <AlertDescription className="text-amber-800">
-            If you are not redirected automatically, please click the button below to go to your dashboard.
+      {(hotelCreated && !debugMode) && (
+        <Alert className="bg-green-50 border-green-200 mt-4">
+          <AlertDescription className="text-green-800">
+            Hotel setup completed successfully! You will be redirected to your dashboard shortly.
           </AlertDescription>
         </Alert>
       )}

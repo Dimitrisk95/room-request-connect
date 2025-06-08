@@ -16,16 +16,11 @@ export const useSetupNavigation = () => {
     });
   }, [user]);
 
-  // Check if hotel is created on mount and redirect if needed
+  // Check if hotel is already created and redirect if needed
   useEffect(() => {
     if (user?.hotelId) {
-      console.log("Hotel detected in user data, forcing navigation to dashboard");
-      const timestamp = new Date().getTime();
-      
-      // Use direct window.location navigation for reliability
-      setTimeout(() => {
-        window.location.href = `/dashboard?t=${timestamp}`;
-      }, 500);
+      console.log("Hotel detected in user data, redirecting to dashboard");
+      window.location.href = `/dashboard`;
     }
   }, [user?.hotelId]);
 
@@ -34,21 +29,10 @@ export const useSetupNavigation = () => {
     setCurrentStep(prev => Math.min(prev + 1, 3));
   }, []);
   
-  // Navigate to dashboard - using direct window location for reliability
+  // Navigate to dashboard
   const handleNavigate = useCallback(() => {
-    console.log("Explicitly navigating to dashboard");
-    
-    // First try window.location.replace which doesn't add to browser history
-    try {
-      const timestamp = new Date().getTime();
-      window.location.replace(`/dashboard?t=${timestamp}`);
-    } catch (e) {
-      console.error("Error with window.location.replace:", e);
-      
-      // Fallback to window.location.href
-      const timestamp = new Date().getTime();
-      window.location.href = `/dashboard?t=${timestamp}`;
-    }
+    console.log("Navigating to dashboard");
+    window.location.href = `/dashboard`;
   }, []);
 
   return {

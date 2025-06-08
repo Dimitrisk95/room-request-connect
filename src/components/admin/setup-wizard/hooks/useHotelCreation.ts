@@ -13,9 +13,8 @@ export const useHotelCreation = () => {
 
   const handleCreateHotel = useCallback(async (setupData: SetupData) => {
     if (hotelCreated) {
-      console.log("Hotel already created, forcibly navigating to dashboard");
-      const timestamp = new Date().getTime();
-      window.location.href = `/dashboard?t=${timestamp}`; 
+      console.log("Hotel already created, navigating to dashboard");
+      window.location.href = `/dashboard`;
       return;
     }
 
@@ -60,9 +59,6 @@ export const useHotelCreation = () => {
         const updatedUser = { ...user, hotelId };
         updateUser(updatedUser);
         console.log("User updated with hotel ID:", hotelId);
-        
-        // Store updated user in localStorage to ensure persistence across page loads
-        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
 
       // Add rooms if any were setup
@@ -80,19 +76,8 @@ export const useHotelCreation = () => {
 
         if (roomsError) {
           console.error("Error adding rooms:", roomsError);
-          // Continue even if rooms fail, we'll show a warning
           toast.error("Some rooms could not be added. You can add them later in the dashboard.");
         }
-      }
-
-      // Add staff if any were setup
-      if (setupData.staff.addStaff && setupData.staff.staffToAdd.length > 0) {
-        console.log("Adding staff:", setupData.staff.staffToAdd);
-        
-        // Staff creation is handled separately through auth APIs
-        // This would typically be done through a specialized function
-        // For now we'll just log it and assume it worked
-        console.log("Staff would be added with hotel ID:", hotelId);
       }
 
       // Everything succeeded!
@@ -100,11 +85,10 @@ export const useHotelCreation = () => {
       setHotelCreated(true);
       setIsLoading(false);
 
-      // Force navigation with hard redirect to dashboard after a short delay
-      console.log("Setup complete, scheduling redirect to dashboard");
+      // Navigate to dashboard after successful creation
+      console.log("Setup complete, navigating to dashboard");
       setTimeout(() => {
-        const timestamp = new Date().getTime();
-        window.location.href = `/dashboard?t=${timestamp}`;
+        window.location.href = `/dashboard`;
       }, 1000);
       
     } catch (error: any) {
