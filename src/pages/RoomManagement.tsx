@@ -1,7 +1,6 @@
 
 import DashboardShell from "@/components/ui/dashboard-shell";
 import { RoomDetailsDialog } from "@/components/rooms/RoomDetailsDialog";
-import { AddReservationDialog } from "@/components/reservations/AddReservationDialog";
 import { useRoomManagement } from "@/hooks/useRoomManagement";
 import RoomSearch from "@/components/rooms/RoomSearch";
 import RoomStatusTabs from "@/components/rooms/RoomStatusTabs";
@@ -22,8 +21,6 @@ const RoomManagement = () => {
     error,
     selectedRoom,
     setSelectedRoom,
-    showAddReservation,
-    setShowAddReservation,
     filterRooms,
     getStatusColor,
     refetchRooms
@@ -56,7 +53,6 @@ const RoomManagement = () => {
         <RoomSearch
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          onAddReservation={() => setShowAddReservation(true)}
         />
 
         {isLoading ? (
@@ -75,7 +71,7 @@ const RoomManagement = () => {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-lg text-muted-foreground mb-4">No rooms found</p>
-              <Button onClick={() => setShowAddReservation(true)}>Add Reservation</Button>
+              <p className="text-sm text-muted-foreground">Use the admin dashboard to add rooms to your hotel.</p>
             </CardContent>
           </Card>
         ) : (
@@ -100,12 +96,6 @@ const RoomManagement = () => {
         onReservationDeleted={(id) => {
           setReservations(prev => prev.filter(r => r.id !== id));
         }}
-      />
-
-      <AddReservationDialog
-        open={showAddReservation}
-        onOpenChange={setShowAddReservation}
-        onReservationAdded={(res) => setReservations([...reservations, res])}
       />
     </DashboardShell>
   );

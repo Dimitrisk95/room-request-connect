@@ -8,6 +8,7 @@ import HotelSettings from "@/components/admin/HotelSettings";
 import RoleManagement from "@/components/admin/role-management";
 import HotelRoomManagement from "@/components/admin/HotelRoomManagement";
 import HotelInfoTab from "@/components/admin/HotelInfoTab";
+import AdminReservationManagement from "@/components/admin/AdminReservationManagement";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -64,13 +65,13 @@ const AdminDashboard = () => {
           <div>
             <h1 className="text-2xl font-bold mb-1">Admin Dashboard</h1>
             <p className="text-muted-foreground">
-              Manage your hotel settings, rooms, and staff roles
+              Manage your hotel settings, rooms, reservations, and staff
             </p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="hotel-settings" className="flex items-center">
               <Building className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Hotel Settings</span>
@@ -83,12 +84,17 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="room-management" className="flex items-center">
               <Bed className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Room Management</span>
+              <span className="hidden sm:inline">Rooms</span>
               <span className="sm:hidden">Rooms</span>
+            </TabsTrigger>
+            <TabsTrigger value="reservations" className="flex items-center">
+              <Building className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Reservations</span>
+              <span className="sm:hidden">Reservations</span>
             </TabsTrigger>
             <TabsTrigger value="staff-management" className="flex items-center">
               <UserPlus className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Staff Management</span>
+              <span className="hidden sm:inline">Staff</span>
               <span className="sm:hidden">Staff</span>
             </TabsTrigger>
           </TabsList>
@@ -108,6 +114,12 @@ const AdminDashboard = () => {
           <TabsContent value="room-management" className="space-y-6">
             <div className="grid md:grid-cols-1 gap-6">
               <HotelRoomManagement />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reservations" className="space-y-6">
+            <div className="grid md:grid-cols-1 gap-6">
+              <AdminReservationManagement />
             </div>
           </TabsContent>
 

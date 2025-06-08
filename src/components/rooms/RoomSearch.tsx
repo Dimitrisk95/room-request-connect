@@ -1,14 +1,12 @@
 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 interface RoomSearchProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  onAddReservation: () => void;
 }
 
-const RoomSearch = ({ searchTerm, onSearchChange, onAddReservation }: RoomSearchProps) => {
+const RoomSearch = ({ searchTerm, onSearchChange }: RoomSearchProps) => {
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <h1 className="text-2xl font-bold tracking-tight">Room Management</h1>
@@ -20,9 +18,6 @@ const RoomSearch = ({ searchTerm, onSearchChange, onAddReservation }: RoomSearch
           className="max-w-[220px]"
           data-tutorial="search-rooms"
         />
-        <Button onClick={onAddReservation} data-tutorial="add-reservation">
-          Add Reservation
-        </Button>
       </div>
     </div>
   );
