@@ -47,8 +47,8 @@ const MobileAppHeader: React.FC<MobileAppHeaderProps> = ({
           )}
           <div>
             <h1 className="text-lg font-semibold">{title}</h1>
-            {user?.hotelName && (
-              <p className="text-sm text-primary-foreground/80">{user.hotelName}</p>
+            {user?.name && (
+              <p className="text-sm text-primary-foreground/80">Welcome, {user.name}</p>
             )}
           </div>
         </div>

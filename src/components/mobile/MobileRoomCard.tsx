@@ -48,7 +48,7 @@ const MobileRoomCard: React.FC<MobileRoomCardProps> = ({
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div>
-            <h3 className="text-lg font-semibold">Room {room.number}</h3>
+            <h3 className="text-lg font-semibold">Room {room.roomNumber}</h3>
             <p className="text-sm text-muted-foreground">{room.type}</p>
           </div>
           <Badge 
@@ -60,31 +60,18 @@ const MobileRoomCard: React.FC<MobileRoomCardProps> = ({
           </Badge>
         </div>
 
-        {room.currentGuest && (
-          <div className="mb-3 p-2 bg-blue-50 rounded-md">
-            <p className="text-sm font-medium text-blue-900">
-              Guest: {room.currentGuest}
-            </p>
-            {room.checkOutDate && (
-              <p className="text-xs text-blue-700">
-                Check-out: {new Date(room.checkOutDate).toLocaleDateString()}
-              </p>
-            )}
-          </div>
-        )}
-
         <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Bed className="h-3 w-3" />
-            <span>{room.beds} beds</span>
+            <span>{room.bedType}</span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-3 w-3" />
             <span>{room.capacity} guests</span>
           </div>
-          {room.amenities?.includes('wifi') && <Wifi className="h-3 w-3" />}
-          {room.amenities?.includes('coffee') && <Coffee className="h-3 w-3" />}
-          {room.amenities?.includes('parking') && <Car className="h-3 w-3" />}
+          <Wifi className="h-3 w-3" />
+          <Coffee className="h-3 w-3" />
+          <Car className="h-3 w-3" />
         </div>
 
         <div className="flex gap-2">
@@ -101,7 +88,7 @@ const MobileRoomCard: React.FC<MobileRoomCardProps> = ({
               key={action.action}
               variant="secondary"
               size="sm"
-              onClick={() => onQuickAction(room.number, action.action)}
+              onClick={() => onQuickAction(room.roomNumber, action.action)}
               className="flex-1"
             >
               {action.label}
