@@ -9,6 +9,8 @@ import Sidebar from "@/components/ui/sidebar/Sidebar";
 import MobileHeader from "@/components/ui/header/MobileHeader";
 import DesktopHeader from "@/components/ui/header/DesktopHeader";
 import TutorialManager from "@/components/ui/tutorial/TutorialManager";
+import MobileLayout from "@/components/mobile/MobileLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -18,6 +20,8 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
   const { logout, user } = useAuth();
   const { announceToScreenReader } = useAccessibility();
   const [showNotifications, setShowNotifications] = useState(false);
+  const isMobile = useIsMobile();
+  const location = useLocation();
 
   console.log("DashboardShell - user permissions:", {
     role: user?.role,
@@ -60,6 +64,34 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
     announceToScreenReader(showNotifications ? "Notifications closed" : "Notifications opened");
   };
 
+  // Get page title for mobile header
+  const getPageTitle = () => {
+    const currentNav = navigation.find(nav => nav.href === location.pathname);
+    return currentNav?.name || "Dashboard";
+  };
+
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <>
+        <MobileLayout
+          title={getPageTitle()}
+          onNotificationClick={toggleNotifications}
+        >
+          {children}
+        </MobileLayout>
+        
+        <NotificationCenter 
+          isOpen={showNotifications} 
+          onClose={() => setShowNotifications(false)} 
+        />
+        
+        <TutorialManager navigation={navigation} />
+      </>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
