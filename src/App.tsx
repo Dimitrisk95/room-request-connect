@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -28,6 +29,7 @@ import Index from "./pages/Index";
 import Analytics from "./pages/Analytics";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import RequestDetails from "./pages/RequestDetails";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { RateLimitProvider } from "./components/security/RateLimitProvider";
