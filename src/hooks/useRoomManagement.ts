@@ -16,9 +16,13 @@ export const useRoomManagement = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchRooms = useCallback(async () => {
+    console.log("useRoomManagement fetchRooms called - user:", user?.email, "hotelId:", user?.hotelId);
+    
     if (!user?.hotelId) {
+      console.log("No hotel ID found in useRoomManagement");
       setRoomsData([]);
       setIsLoading(false);
+      setError(null);
       return;
     }
 
@@ -33,11 +37,12 @@ export const useRoomManagement = () => {
         .eq("hotel_id", user.hotelId);
 
       if (error) {
+        console.error("Supabase error in useRoomManagement:", error);
         throw error;
       }
 
       if (data) {
-        console.log('Rooms fetched successfully:', data.length);
+        console.log('Rooms fetched successfully in useRoomManagement:', data.length);
         const transformedRooms = data.map((room) => ({
           id: room.id,
           roomNumber: room.room_number,
@@ -48,11 +53,16 @@ export const useRoomManagement = () => {
           capacity: room.capacity,
           room_code: room.room_code,
         }));
+        console.log("Transformed rooms in useRoomManagement:", transformedRooms);
         setRoomsData(transformedRooms);
+      } else {
+        console.log("No rooms data received");
+        setRoomsData([]);
       }
     } catch (e: any) {
-      console.error("Error fetching rooms:", e);
+      console.error("Error fetching rooms in useRoomManagement:", e);
       setError(e.message);
+      setRoomsData([]);
       toast({
         title: "Error",
         description: "Failed to load rooms. Please try again.",
@@ -60,10 +70,12 @@ export const useRoomManagement = () => {
       });
     } finally {
       setIsLoading(false);
+      console.log("useRoomManagement fetchRooms completed");
     }
   }, [user?.hotelId, toast]);
 
   useEffect(() => {
+    console.log("useRoomManagement useEffect triggered");
     fetchRooms();
   }, [fetchRooms]);
 

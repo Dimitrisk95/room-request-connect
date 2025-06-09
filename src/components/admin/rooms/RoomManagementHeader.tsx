@@ -17,7 +17,8 @@ export const RoomManagementHeader = () => {
   console.log("RoomManagementHeader - user permissions:", {
     role: user?.role,
     can_manage_rooms: user?.can_manage_rooms,
-    canManageRooms
+    canManageRooms,
+    currentPath: location.pathname
   });
   
   return (
@@ -27,7 +28,7 @@ export const RoomManagementHeader = () => {
           <Button 
             variant="outline" 
             size="icon"
-            onClick={() => navigate("/rooms")}
+            onClick={() => navigate("/admin-dashboard")}
             className="mr-2"
           >
             <ArrowLeft className="h-4 w-4" />

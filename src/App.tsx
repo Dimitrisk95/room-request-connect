@@ -15,6 +15,7 @@ import RoomManagement from "./pages/RoomManagement";
 import StaffManagement from "./pages/StaffManagement";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminRooms from "./pages/AdminRooms";
 import Calendar from "./pages/Calendar";
 import Requests from "./pages/Requests";
 import Staff from "./pages/Staff";
@@ -30,39 +31,12 @@ import Analytics from "./pages/Analytics";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import RequestDetails from "./pages/RequestDetails";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { RateLimitProvider } from "./components/security/RateLimitProvider";
 import { AccessibilityProvider } from "./components/accessibility/AccessibilityProvider";
 import { PWAProvider } from "./components/pwa/PWAProvider";
-
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const auth = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      setIsAuthenticated(!!auth.user);
-      setLoading(false);
-    };
-
-    checkAuth();
-  }, [auth.user]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  // Not authenticated - redirect to login
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-
-  return <>{children}</>;
-};
 
 const App: React.FC = () => {
   return (
@@ -91,15 +65,23 @@ const App: React.FC = () => {
                   <Route
                     path="/rooms"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute requiresRoomManage={true}>
                         <RoomManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/rooms"
+                    element={
+                      <ProtectedRoute allowedRoles={["admin"]}>
+                        <AdminRooms />
                       </ProtectedRoute>
                     }
                   />
                   <Route
                     path="/staff-management"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute requiresStaffManage={true}>
                         <StaffManagement />
                       </ProtectedRoute>
                     }
@@ -115,7 +97,7 @@ const App: React.FC = () => {
                   <Route
                     path="/admin-dashboard"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={["admin"]}>
                         <AdminDashboard />
                       </ProtectedRoute>
                     }
@@ -155,7 +137,7 @@ const App: React.FC = () => {
                   <Route
                     path="/hotel-settings"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={["admin"]}>
                         <HotelSettings />
                       </ProtectedRoute>
                     }
@@ -163,7 +145,7 @@ const App: React.FC = () => {
                   <Route
                     path="/role-management"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute requiresStaffManage={true}>
                         <RoleManagement />
                       </ProtectedRoute>
                     }
@@ -171,7 +153,7 @@ const App: React.FC = () => {
                   <Route
                     path="/access-codes"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={["admin"]}>
                         <AccessCodes />
                       </ProtectedRoute>
                     }
@@ -179,7 +161,7 @@ const App: React.FC = () => {
                   <Route
                     path="/analytics"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={["admin"]}>
                         <Analytics />
                       </ProtectedRoute>
                     }

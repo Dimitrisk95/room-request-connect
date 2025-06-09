@@ -18,19 +18,30 @@ export const useHotelRooms = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const fetchRooms = async () => {
+    console.log("fetchRooms called - user:", user?.email, "hotelId:", user?.hotelId);
+    
     if (!user?.hotelId) {
+      console.log("No hotel ID found, setting empty rooms");
       setRooms([]);
+      setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
     try {
+      console.log("Fetching rooms for hotel:", user.hotelId);
+      
       const { data, error } = await supabase
         .from("rooms")
         .select("*")
         .eq("hotel_id", user.hotelId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error fetching rooms:", error);
+        throw error;
+      }
+
+      console.log("Rooms data received:", data);
 
       const transformedRooms: Room[] = (data as Tables<"rooms">[] | null)?.map((room) => ({
         id: room.id,
@@ -42,6 +53,7 @@ export const useHotelRooms = () => {
         capacity: room.capacity,
       })) || [];
       
+      console.log("Transformed rooms:", transformedRooms);
       setRooms(transformedRooms);
     } catch (error) {
       console.error("Error fetching rooms:", error);
@@ -50,12 +62,15 @@ export const useHotelRooms = () => {
         description: "There was an error loading the rooms. Please try again.",
         variant: "destructive",
       });
+      setRooms([]);
     } finally {
       setIsLoading(false);
+      console.log("fetchRooms completed, isLoading set to false");
     }
   };
 
   useEffect(() => {
+    console.log("useHotelRooms useEffect triggered, user.hotelId:", user?.hotelId);
     fetchRooms();
   }, [user?.hotelId]);
 
