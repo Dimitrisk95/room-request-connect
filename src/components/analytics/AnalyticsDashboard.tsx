@@ -66,7 +66,7 @@ const AnalyticsDashboard = () => {
     color: ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe'][index % 5]
   }));
 
-  const requestStatusData = analyticsData.requests.reduce((acc, req) => {
+  const requestStatusData: Record<string, number> = analyticsData.requests.reduce((acc, req) => {
     acc[req.status] = (acc[req.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
