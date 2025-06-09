@@ -1,23 +1,29 @@
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import MobileAppHeader from './MobileAppHeader';
 import MobileBottomNav from './MobileBottomNav';
+import MobileQRScanButton from './MobileQRScanButton';
+import QRCodeScanner from './QRCodeScanner';
 import { useNavigate } from 'react-router-dom';
+import { useQRCodeScanner } from '@/hooks/useQRCodeScanner';
 
 interface MobileLayoutProps {
   children: ReactNode;
   title: string;
   showBackButton?: boolean;
   onNotificationClick?: () => void;
+  showQRScan?: boolean;
 }
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({
   children,
   title,
   showBackButton = false,
-  onNotificationClick
+  onNotificationClick,
+  showQRScan = true
 }) => {
   const navigate = useNavigate();
+  const { isScanning, startScanning, stopScanning, handleScanResult } = useQRCodeScanner();
 
   const handleBackClick = () => {
     navigate(-1);
@@ -37,6 +43,16 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
       </main>
       
       <MobileBottomNav />
+      
+      {showQRScan && (
+        <MobileQRScanButton onScanPress={startScanning} />
+      )}
+      
+      <QRCodeScanner
+        isOpen={isScanning}
+        onScanResult={handleScanResult}
+        onClose={stopScanning}
+      />
     </div>
   );
 };
