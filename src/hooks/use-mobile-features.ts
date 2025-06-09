@@ -4,11 +4,11 @@ import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { Camera } from '@capacitor/camera';
+import { Camera, CameraPermissionState } from '@capacitor/camera';
 
 export const useMobileFeatures = () => {
   const [isNative, setIsNative] = useState(false);
-  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+  const [cameraPermission, setCameraPermission] = useState<CameraPermissionState>('prompt');
 
   useEffect(() => {
     setIsNative(Capacitor.isNativePlatform());
