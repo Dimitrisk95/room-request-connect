@@ -55,6 +55,10 @@ export const BulkRoomActions = ({
     }
   };
 
+  const handleStatusChange = (value: string) => {
+    setBulkStatus(value as RoomStatus | "");
+  };
+
   if (selectedRooms.length === 0) return null;
 
   return (
@@ -69,7 +73,7 @@ export const BulkRoomActions = ({
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
-        <Select value={bulkStatus} onValueChange={setBulkStatus}>
+        <Select value={bulkStatus} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Set status" />
           </SelectTrigger>

@@ -62,6 +62,10 @@ export const RoomStatusDialog = ({
     }
   };
 
+  const handleStatusChange = (value: string) => {
+    setNewStatus(value as RoomStatus | "");
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "vacant":
@@ -111,7 +115,7 @@ export const RoomStatusDialog = ({
 
           <div className="space-y-2">
             <Label htmlFor="status">New Status</Label>
-            <Select value={newStatus} onValueChange={setNewStatus}>
+            <Select value={newStatus} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select new status" />
               </SelectTrigger>

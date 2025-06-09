@@ -73,6 +73,10 @@ const RoomManagement = () => {
     toast({ title: "Refreshed", description: "Room data has been updated" });
   };
 
+  const handleSummaryRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   return (
     <DashboardShell>
       <div className="space-y-6">
@@ -89,7 +93,7 @@ const RoomManagement = () => {
           </Button>
         </div>
 
-        <RoomStatusSummary onRefresh={refreshKey} />
+        <RoomStatusSummary onRefresh={handleSummaryRefresh} />
         
         <RoomSearch
           searchTerm={searchTerm}
