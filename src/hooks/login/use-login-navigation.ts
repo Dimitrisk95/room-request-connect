@@ -33,13 +33,20 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
         hotelId: user?.hotelId
       });
       
+      // Check if admin needs to create a hotel
+      if (user?.role === "admin" && !user?.hotelId) {
+        console.log("Admin user without hotel, redirecting to setup");
+        navigate("/setup");
+        return;
+      }
+      
       // If we have a stored location, redirect there
       if (locationState?.from) {
         navigate(locationState.from);
       } else if (user?.role === "guest" && user.roomNumber) {
         navigate(`/guest/${user.roomNumber}`);
       } else {
-        // Always redirect to dashboard for admins and staff
+        // Always redirect to dashboard for admins and staff with hotels
         navigate("/dashboard");
       }
     }

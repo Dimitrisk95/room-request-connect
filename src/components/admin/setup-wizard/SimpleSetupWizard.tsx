@@ -2,13 +2,11 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Steps } from "@/components/ui/steps";
-import { Hotel, Check, Users, Bed } from "lucide-react";
+import { Hotel, Check } from "lucide-react";
 import { useAuth } from "@/context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import HotelSetupStep from "./HotelSetupStep";
-import RoomsSetupStep from "./RoomsSetupStep";
-import StaffSetupStep from "./StaffSetupStep";
 import { SetupData } from "./types";
 
 interface SimpleSetupWizardProps {
@@ -41,8 +39,6 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
 
   const steps = [
     { id: "hotel", label: "Hotel Information", icon: <Hotel className="h-5 w-5" />, required: true },
-    { id: "rooms", label: "Add Rooms", icon: <Bed className="h-5 w-5" />, required: false },
-    { id: "staff", label: "Add Staff", icon: <Users className="h-5 w-5" />, required: false },
     { id: "complete", label: "Complete", icon: <Check className="h-5 w-5" />, required: true },
   ];
 
@@ -74,15 +70,23 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
     console.log("Creating hotel with data:", setupData);
 
     try {
+      // Validate required fields
+      if (!setupData.hotel.name.trim()) {
+        throw new Error("Hotel name is required");
+      }
+      if (!setupData.hotel.hotelCode.trim()) {
+        throw new Error("Hotel code is required");
+      }
+
       // Insert the hotel
       const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
         .insert({
-          name: setupData.hotel.name,
-          address: setupData.hotel.address || null,
-          contact_email: setupData.hotel.contactEmail || null,
-          contact_phone: setupData.hotel.contactPhone || null,
-          hotel_code: setupData.hotel.hotelCode || null
+          name: setupData.hotel.name.trim(),
+          address: setupData.hotel.address?.trim() || null,
+          contact_email: setupData.hotel.contactEmail?.trim() || null,
+          contact_phone: setupData.hotel.contactPhone?.trim() || null,
+          hotel_code: setupData.hotel.hotelCode.trim()
         })
         .select()
         .single();
@@ -111,25 +115,6 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
         console.log("User updated with hotel ID:", hotelId);
       }
 
-      // Add rooms if any were setup
-      if (setupData.rooms.addRooms && setupData.rooms.roomsToAdd.length > 0) {
-        console.log("Adding rooms:", setupData.rooms.roomsToAdd);
-        
-        const roomsWithHotelId = setupData.rooms.roomsToAdd.map(room => ({
-          ...room,
-          hotel_id: hotelId
-        }));
-
-        const { error: roomsError } = await supabase
-          .from("rooms")
-          .insert(roomsWithHotelId);
-
-        if (roomsError) {
-          console.error("Error adding rooms:", roomsError);
-          toast.error("Some rooms could not be added. You can add them later in the dashboard.");
-        }
-      }
-
       toast.success("Hotel setup completed successfully!");
       console.log("Hotel creation completed, redirecting to dashboard");
       
@@ -140,7 +125,15 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
       
     } catch (error: any) {
       console.error("Error setting up hotel:", error);
-      toast.error(`Setup failed: ${error.message || "Unknown error"}`);
+      
+      let errorMessage = "Setup failed. Please try again.";
+      if (error.message?.includes("duplicate key")) {
+        errorMessage = "A hotel with this code already exists. Please choose a different code.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       setIsCreating(false);
     }
   };
@@ -149,16 +142,8 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
     updateSetupData({ hotel: { ...setupData.hotel, ...data } });
   };
 
-  const updateRoomsData = (data: Partial<typeof setupData.rooms>) => {
-    updateSetupData({ rooms: { ...setupData.rooms, ...data } });
-  };
-
-  const updateStaffData = (data: Partial<typeof setupData.staff>) => {
-    updateSetupData({ staff: { ...setupData.staff, ...data } });
-  };
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-4 py-8">
       {debugMode && (
         <div className="mb-6 p-3 bg-red-100 border border-red-300 rounded-md">
           <p className="text-red-700 font-medium">
@@ -186,46 +171,27 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
           )}
           
           {currentStep === 1 && (
-            <RoomsSetupStep 
-              roomsData={setupData.rooms}
-              updateRoomsData={updateRoomsData}
-              onNext={nextStep}
-              onSkip={nextStep}
-              onBack={prevStep}
-              skipToCompletion={() => setCurrentStep(3)}
-            />
-          )}
-          
-          {currentStep === 2 && (
-            <StaffSetupStep 
-              staffData={setupData.staff}
-              updateStaffData={updateStaffData}
-              onNext={nextStep}
-              onSkip={nextStep}
-              onBack={prevStep}
-              skipToCompletion={() => setCurrentStep(3)}
-            />
-          )}
-          
-          {currentStep === 3 && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">Setup Complete!</h2>
+                <h2 className="text-xl font-semibold mb-2">Ready to Create Your Hotel!</h2>
                 <p className="text-muted-foreground mb-6">
-                  Ready to create your hotel and start managing your property.
+                  Your hotel information has been collected. Click below to create your hotel and start managing your property.
                 </p>
               </div>
 
               <div className="bg-muted p-4 rounded-md">
-                <h3 className="font-medium mb-2">Setup Summary</h3>
+                <h3 className="font-medium mb-2">Hotel Details</h3>
                 <ul className="text-sm space-y-1">
-                  <li>Hotel Name: {setupData.hotel.name}</li>
-                  <li>Hotel Code: {setupData.hotel.hotelCode}</li>
-                  {setupData.rooms.addRooms && (
-                    <li>Rooms to add: {setupData.rooms.roomsToAdd.length}</li>
+                  <li><strong>Name:</strong> {setupData.hotel.name}</li>
+                  <li><strong>Code:</strong> {setupData.hotel.hotelCode}</li>
+                  {setupData.hotel.address && (
+                    <li><strong>Address:</strong> {setupData.hotel.address}</li>
                   )}
-                  {setupData.staff.addStaff && (
-                    <li>Staff to add: {setupData.staff.staffToAdd.length}</li>
+                  {setupData.hotel.contactEmail && (
+                    <li><strong>Email:</strong> {setupData.hotel.contactEmail}</li>
+                  )}
+                  {setupData.hotel.contactPhone && (
+                    <li><strong>Phone:</strong> {setupData.hotel.contactPhone}</li>
                   )}
                 </ul>
               </div>
@@ -234,9 +200,9 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                 <button
                   onClick={handleCreateHotel}
                   disabled={isCreating || debugMode}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md font-medium disabled:opacity-50"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-4 py-2 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCreating ? 'Creating Hotel...' : 'Complete Setup & Create Hotel'}
+                  {isCreating ? 'Creating Hotel...' : 'Create Hotel & Continue'}
                 </button>
                 
                 {debugMode && (
@@ -253,7 +219,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                   disabled={isCreating}
                   className="w-full bg-muted text-muted-foreground hover:bg-muted/90 h-10 px-4 py-2 rounded-md font-medium disabled:opacity-50"
                 >
-                  Back
+                  Back to Edit Details
                 </button>
               </div>
             </div>
