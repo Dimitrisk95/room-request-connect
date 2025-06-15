@@ -1,4 +1,4 @@
 
-export { default as CompletionHeader } from './CompletionHeader';
-export { default as NavigationOptions } from './NavigationOptions';
-export { default as SetupSummary } from './SetupSummary';
+export { CompletionHeader } from './CompletionHeader';
+export { NavigationOptions } from './NavigationOptions';
+export { SetupSummary } from './SetupSummary';
