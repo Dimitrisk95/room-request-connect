@@ -1,12 +1,18 @@
 
 import { useState } from "react";
 import { Hotel, Check } from "lucide-react";
-import { SetupData } from "../types";
+
+export interface SetupStep {
+  id: string;
+  label: string;
+  icon: JSX.Element;
+  required: boolean;
+}
 
 export function useSetupSteps() {
   const [currentStep, setCurrentStep] = useState(0);
 
-  const steps = [
+  const steps: SetupStep[] = [
     {
       id: "hotel",
       label: "Hotel Information",

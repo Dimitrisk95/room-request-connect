@@ -16,15 +16,19 @@ export function useHotelSetup() {
     setupData: SetupData,
     debugMode = false
   ) => {
-    if (isCreating) return;
+    if (isCreating) {
+      console.log("Already creating, skipping duplicate request");
+      return;
+    }
 
     setIsCreating(true);
+    let createdHotelId = null;
 
     try {
-      if (!setupData.hotel.name.trim())
-        throw new Error("Hotel name is required");
-      if (!setupData.hotel.hotelCode.trim())
-        throw new Error("Hotel code is required");
+      console.log("[Hotel Setup] Creating hotel with data:", setupData);
+
+      if (!setupData.hotel.name.trim()) throw new Error("Hotel name is required");
+      if (!setupData.hotel.hotelCode.trim()) throw new Error("Hotel code is required");
 
       const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
@@ -38,17 +42,23 @@ export function useHotelSetup() {
         .select()
         .single();
 
-      if (hotelError) throw hotelError;
+      if (hotelError) {
+        console.error("[Hotel Setup] Hotel insert error:", hotelError);
+        throw hotelError;
+      }
 
-      const hotelId = hotelData.id;
+      createdHotelId = hotelData.id;
+      console.log("[Hotel Setup] Hotel created with id:", createdHotelId);
 
+      // Add rooms if requested (can be optional)
       if (
         setupData.rooms.addRooms &&
+        setupData.rooms.roomsToAdd &&
         setupData.rooms.roomsToAdd.length > 0
       ) {
         const rooms = setupData.rooms.roomsToAdd.map((room: any) => ({
           ...room,
-          hotel_id: hotelId,
+          hotel_id: createdHotelId,
           status: room.status || "vacant",
           bed_type: room.bedType || "single",
           room_number: room.roomNumber,
@@ -61,56 +71,36 @@ export function useHotelSetup() {
           .insert(rooms);
 
         if (roomsError) {
+          console.error("[Hotel Setup] Failed to add rooms:", roomsError);
           toast({
             title: "Room Creation Error",
-            description:
-              "Some rooms could not be added. You can add them later in the dashboard.",
+            description: "Some rooms could not be added, but your hotel was created. You can add rooms from the dashboard.",
             variant: "destructive",
           });
         }
       }
 
-      if (
-        setupData.staff.addStaff &&
-        setupData.staff.staffToAdd.length > 0
-      ) {
-        for (const staff of setupData.staff.staffToAdd) {
-          if (!staff.email || !staff.name) continue;
-
-          const { error: staffError } = await supabase
-            .from("users")
-            .insert({
-              name: staff.name,
-              email: staff.email,
-              role: "staff",
-              hotel_id: hotelId,
-              can_manage_rooms: !!staff.can_manage_rooms,
-              can_manage_staff: !!staff.can_manage_staff,
-              password_hash: "to-be-set",
-              needs_password_setup: true,
-              email_verified: false,
-            });
-          if (staffError) {
-            toast({
-              title: "Staff Creation Error",
-              description: `Could not add staff: ${staff.name} (${staff.email}).`,
-              variant: "destructive",
-            });
-          }
-        }
-      }
-
-      // Update user with hotel_id
-      if (user) {
+      // Assign this hotel to admin user
+      if (user && createdHotelId) {
         const { error: userError } = await supabase
           .from("users")
-          .update({ hotel_id: hotelId })
+          .update({ hotel_id: createdHotelId })
           .eq("id", user.id);
 
-        if (userError) throw userError;
+        if (userError) {
+          console.error("[Hotel Setup] Error updating user:", userError);
+          toast({
+            title: "User Update Error",
+            description: "Could not assign hotel to your account. Contact support.",
+            variant: "destructive",
+          });
+          throw userError;
+        }
 
-        const updatedUser = { ...user, hotelId };
+        // Update local auth context
+        const updatedUser = { ...user, hotelId: createdHotelId };
         updateUser(updatedUser);
+        console.log("[Hotel Setup] Updated user with hotelId in context");
       }
 
       toast({
@@ -118,9 +108,12 @@ export function useHotelSetup() {
         description: "Your hotel is now ready. Redirecting to dashboard...",
       });
 
+      // Give user a second for UI toast, then force-redirect to /dashboard
       setTimeout(() => {
-        navigate("/dashboard");
-      }, debugMode ? 1 : 1500);
+        // Use window.location for a hard redirect to avoid stale context problems
+        // Can use navigate if you trust React state
+        window.location.replace("/dashboard");
+      }, debugMode ? 100 : 1500);
 
       return true;
     } catch (error: any) {
@@ -131,6 +124,7 @@ export function useHotelSetup() {
       } else if (error.message) {
         errorMessage = error.message;
       }
+      console.error("[Hotel Setup] Error caught:", errorMessage, error);
       toast({
         title: "Setup Error",
         description: errorMessage,
