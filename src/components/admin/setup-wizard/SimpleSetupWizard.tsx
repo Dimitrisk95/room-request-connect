@@ -9,10 +9,6 @@ import { useState } from "react";
 import { useSetupSteps } from "./hooks/useSetupSteps";
 import { useHotelSetup } from "./hooks/useHotelSetup";
 
-interface SimpleSetupWizardProps {
-  debugMode?: boolean;
-}
-
 const defaultSetupData: SetupData = {
   hotel: {
     name: "",
@@ -33,7 +29,7 @@ const defaultSetupData: SetupData = {
   },
 };
 
-const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
+const SimpleSetupWizard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [setupData, setSetupData] = useState<SetupData>(defaultSetupData);
@@ -79,22 +75,17 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
       return;
     }
 
-    const success = await handleCreateHotel(setupData, debugMode);
+    const success = await handleCreateHotel(setupData);
     console.log("[SimpleSetupWizard] Hotel creation result:", success);
 
     if (success) {
       console.log("[SimpleSetupWizard] Hotel created successfully, redirecting...");
       
-      if (debugMode) {
-        console.log("[SimpleSetupWizard] Debug mode: Manual navigation to dashboard");
-        navigate("/dashboard");
-      } else {
-        // Force redirect after successful creation
-        setTimeout(() => {
-          console.log("[SimpleSetupWizard] Executing redirect to dashboard");
-          window.location.href = "/dashboard";
-        }, 1500);
-      }
+      // Force redirect after successful creation
+      setTimeout(() => {
+        console.log("[SimpleSetupWizard] Executing redirect to dashboard");
+        window.location.href = "/dashboard";
+      }, 1500);
     }
   };
 
@@ -105,14 +96,6 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      {debugMode && (
-        <div className="mb-6 p-3 bg-red-100 border border-red-300 rounded-md">
-          <p className="text-red-700 font-medium">
-            Debug Mode Enabled: Check console for detailed logs
-          </p>
-        </div>
-      )}
-
       <Steps steps={steps} currentStep={currentStep} className="mb-8" />
 
       <Card>
@@ -176,15 +159,6 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                     ? "Creating Hotel..."
                     : "Complete Setup and Create Hotel"}
                 </button>
-
-                {debugMode && (
-                  <button
-                    onClick={() => navigate("/dashboard")}
-                    className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 h-10 px-4 py-2 rounded-md font-medium"
-                  >
-                    Go to Dashboard (Debug)
-                  </button>
-                )}
 
                 <button
                   onClick={prevStep}

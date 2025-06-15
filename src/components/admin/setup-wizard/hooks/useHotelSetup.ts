@@ -12,10 +12,7 @@ export function useHotelSetup() {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreateHotel = async (
-    setupData: SetupData,
-    debugMode = false
-  ) => {
+  const handleCreateHotel = async (setupData: SetupData) => {
     console.log("[Hotel Setup] Starting hotel creation process...");
     console.log("[Hotel Setup] Current user:", user);
     console.log("[Hotel Setup] Setup data:", setupData);
