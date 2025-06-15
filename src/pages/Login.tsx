@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Hotel, ArrowLeft } from "lucide-react";
 import { useLogin } from "@/hooks/use-login";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle } from "lucide-react";
 import StaffLoginForm from "@/components/login/StaffLoginForm";
 import LoginError from "@/components/login/LoginError";
 import PasswordSetupForm from "@/components/login/PasswordSetupForm";
@@ -22,10 +24,11 @@ const Login = () => {
     handlePasswordSetupComplete
   } = useLogin();
 
-  // Get email, reset, and setup parameters from URL
+  // Get email, reset, setup, and verified parameters from URL
   const emailParam = searchParams.get('email');
   const isResetMode = searchParams.get('reset') === 'true';
   const isSetupMode = searchParams.get('setup') === 'true';
+  const isVerified = searchParams.get('verified') === 'true';
   
   const [staffCredentials, setStaffCredentials] = useState({
     email: emailParam || "",
@@ -104,6 +107,15 @@ const Login = () => {
                 : "Login to manage your hotel services"}
             </p>
           </div>
+
+          {isVerified && (
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Your email has been verified! You can now log in to your account.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {loginError && <LoginError error={loginError} />}
 

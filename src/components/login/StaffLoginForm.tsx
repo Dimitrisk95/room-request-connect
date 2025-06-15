@@ -1,10 +1,11 @@
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Loader, Key } from "lucide-react";
-import { useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertCircle } from "lucide-react";
 import ForgotPasswordForm from "./ForgotPasswordForm";
 
 interface StaffLoginFormProps {
@@ -12,10 +13,7 @@ interface StaffLoginFormProps {
     email: string;
     password: string;
   };
-  setStaffCredentials: React.Dispatch<React.SetStateAction<{
-    email: string;
-    password: string;
-  }>>;
+  setStaffCredentials: (credentials: { email: string; password: string }) => void;
   isLoading: boolean;
   handleStaffLogin: (e: React.FormEvent) => Promise<void>;
 }
@@ -24,14 +22,14 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
   staffCredentials,
   setStaffCredentials,
   isLoading,
-  handleStaffLogin
+  handleStaffLogin,
 }) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   if (showForgotPassword) {
     return (
-      <ForgotPasswordForm 
-        onBackToLogin={() => setShowForgotPassword(false)} 
+      <ForgotPasswordForm
+        onBackToLogin={() => setShowForgotPassword(false)}
         initialEmail={staffCredentials.email}
       />
     );
@@ -42,74 +40,62 @@ const StaffLoginForm: React.FC<StaffLoginFormProps> = ({
       <CardHeader>
         <CardTitle>Staff Login</CardTitle>
         <CardDescription>
-          Login to manage your hotel's rooms and requests
+          Enter your credentials to access the staff portal
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleStaffLogin}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={staffCredentials.email}
-                onChange={(e) =>
-                  setStaffCredentials({
-                    ...staffCredentials,
-                    email: e.target.value,
-                  })
-                }
-                className="pl-10"
-                required
-              />
-            </div>
+            <Input
+              id="email"
+              type="email"
+              placeholder="your@email.com"
+              value={staffCredentials.email}
+              onChange={(e) =>
+                setStaffCredentials({
+                  ...staffCredentials,
+                  email: e.target.value,
+                })
+              }
+              required
+            />
           </div>
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label htmlFor="password">Password</Label>
-              <Button 
-                variant="link" 
-                className="p-0 h-auto text-xs text-primary" 
-                type="button"
-                onClick={() => setShowForgotPassword(true)}
-              >
-                Forgot password?
-              </Button>
-            </div>
-            <div className="relative">
-              <Key className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="password"
-                type="password"
-                value={staffCredentials.password}
-                onChange={(e) =>
-                  setStaffCredentials({
-                    ...staffCredentials,
-                    password: e.target.value,
-                  })
-                }
-                className="pl-10"
-                required
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              For newly created staff accounts, use the password "password123" unless you've reset it.
-            </p>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={staffCredentials.password}
+              onChange={(e) =>
+                setStaffCredentials({
+                  ...staffCredentials,
+                  password: e.target.value,
+                })
+              }
+              required
+            />
           </div>
         </CardContent>
-        <CardFooter className="mt-2">
+        <CardFooter className="flex flex-col space-y-3">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" /> 
-                Logging in...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
               </>
             ) : (
-              "Login"
+              "Sign In"
             )}
+          </Button>
+          <Button
+            type="button"
+            variant="link"
+            className="text-sm text-muted-foreground p-0"
+            onClick={() => setShowForgotPassword(true)}
+          >
+            Forgot your password?
           </Button>
         </CardFooter>
       </form>

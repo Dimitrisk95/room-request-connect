@@ -1,41 +1,34 @@
 
-import DashboardShell from "@/components/ui/dashboard-shell";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { useAuth } from "@/context";
+import { useOnboarding } from "@/hooks/auth/use-onboarding";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import { DashboardContent } from "@/components/dashboard/DashboardContent";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import DashboardContent from "@/components/dashboard/DashboardContent";
+import WelcomeTour from "@/components/onboarding/WelcomeTour";
 
 const Dashboard = () => {
-  const {
-    occupiedRooms,
-    totalRooms,
-    pendingRequests,
-    urgentRequests,
-    todayCheckIns,
-    todayCheckOuts,
-  } = useDashboardData();
+  const { user } = useAuth();
+  const { showWelcomeTour, completeOnboarding, skipOnboarding } = useOnboarding();
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <DashboardShell>
-      <div className="space-y-6">
-        <DashboardHeader />
-        
-        <DashboardStats 
-          occupiedRooms={occupiedRooms}
-          totalRooms={totalRooms}
-          pendingRequests={pendingRequests.length}
-          urgentRequests={urgentRequests}
-          todayCheckIns={todayCheckIns}
-          todayCheckOuts={todayCheckOuts}
+    <div className="min-h-screen bg-background">
+      <DashboardHeader />
+      <DashboardContent />
+      
+      {showWelcomeTour && (
+        <WelcomeTour 
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
         />
-
-        <DashboardContent 
-          pendingRequests={pendingRequests}
-          todayCheckIns={todayCheckIns}
-          todayCheckOuts={todayCheckOuts}
-        />
-      </div>
-    </DashboardShell>
+      )}
+    </div>
   );
 };
 

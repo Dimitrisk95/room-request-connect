@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { registerFormSchema, type RegisterFormValues } from "./schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import EmailVerificationPrompt from "@/components/auth/EmailVerificationPrompt";
 
 export function RegisterForm() {
   const { createStaffAccount } = useAuth();
@@ -23,6 +23,8 @@ export function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -94,11 +96,13 @@ export function RegisterForm() {
       );
       
       console.log("Admin account created successfully");
+      setRegisteredEmail(values.email);
+      setShowEmailVerification(true);
+      
       toast({
         title: "Registration successful",
-        description: "Your admin account has been created. You can now log in.",
+        description: "Please check your email to verify your account.",
       });
-      navigate("/login?mode=staff&newAdmin=true");
     } catch (error: any) {
       console.error("Registration error:", error);
       
@@ -125,6 +129,23 @@ export function RegisterForm() {
       setLoading(false);
     }
   };
+
+  const handleEmailVerified = () => {
+    toast({
+      title: "Email verified!",
+      description: "Your account is now active. You can log in.",
+    });
+    navigate("/login?verified=true");
+  };
+
+  if (showEmailVerification) {
+    return (
+      <EmailVerificationPrompt
+        email={registeredEmail}
+        onVerified={handleEmailVerified}
+      />
+    );
+  }
 
   return (
     <Form {...form}>
@@ -257,7 +278,7 @@ export function RegisterForm() {
           className="w-full" 
           disabled={loading || passwordMatch === false}
         >
-          {loading ? "Registering..." : "Register as Admin"}
+          {loading ? "Creating Account..." : "Create Admin Account"}
         </Button>
       </form>
     </Form>
