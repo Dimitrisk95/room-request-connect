@@ -73,7 +73,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
     console.log("Creating hotel with data:", setupData);
 
     try {
-      // Validate required fields
+      // 1. Validate required fields
       if (!setupData.hotel.name.trim()) {
         throw new Error("Hotel name is required");
       }
@@ -81,7 +81,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
         throw new Error("Hotel code is required");
       }
 
-      // Insert the hotel
+      // 2. Insert the hotel
       const { data: hotelData, error: hotelError } = await supabase
         .from("hotels")
         .insert({
@@ -98,11 +98,67 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
         console.error("Hotel creation error:", hotelError);
         throw hotelError;
       }
-
       console.log("Hotel created successfully:", hotelData);
       const hotelId = hotelData.id;
 
-      // Update the current user with the hotel ID
+      // 3. Insert all rooms, if any
+      if (setupData.rooms.addRooms && setupData.rooms.roomsToAdd.length > 0) {
+        // Prepare room objects, ensure required fields are present
+        const rooms = setupData.rooms.roomsToAdd.map((room: any) => ({
+          ...room,
+          hotel_id: hotelId,
+          status: room.status || "vacant", // default status
+          bed_type: room.bedType || "single",
+          room_number: room.roomNumber,
+          type: room.type || "standard",
+          capacity: room.capacity || 2,
+        }));
+
+        const { error: roomsError } = await supabase
+          .from("rooms")
+          .insert(rooms);
+
+        if (roomsError) {
+          console.error("Rooms insertion error:", roomsError);
+          toast({
+            title: "Room Creation Error",
+            description: "Some rooms could not be added. You can add them later in the dashboard.",
+            variant: "destructive"
+          });
+        }
+      }
+
+      // 4. Insert all staff, if any
+      if (setupData.staff.addStaff && setupData.staff.staffToAdd.length > 0) {
+        // For each staff member, create a user entry with staff role
+        for (const staff of setupData.staff.staffToAdd) {
+          if (!staff.email || !staff.name) continue;
+          // Staff should set their own password later; mark as needs_password_setup
+          const { error: staffError } = await supabase
+            .from("users")
+            .insert({
+              name: staff.name,
+              email: staff.email,
+              role: "staff",
+              hotel_id: hotelId,
+              can_manage_rooms: !!staff.can_manage_rooms,
+              can_manage_staff: !!staff.can_manage_staff,
+              password_hash: "to-be-set", // Supabase Auth handles the password, this will be fixed by email flow
+              needs_password_setup: true,
+              email_verified: false
+            });
+          if (staffError) {
+            console.error("Staff insert error:", staffError);
+            toast({
+              title: "Staff Creation Error",
+              description: `Could not add staff: ${staff.name} (${staff.email}).`,
+              variant: "destructive"
+            });
+          }
+        }
+      }
+
+      // 5. Update the current user with the hotel ID
       if (user) {
         const { error: userError } = await supabase
           .from("users")
@@ -124,24 +180,22 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
         title: "Hotel setup completed successfully!",
         description: "Your hotel is now ready. Redirecting to dashboard...",
       });
-      
-      console.log("Hotel creation completed, redirecting to dashboard");
-      
-      // Navigate to dashboard after successful creation
+
+      // Redirect to dashboard after creation
       setTimeout(() => {
         navigate('/dashboard');
       }, 1500);
-      
+
     } catch (error: any) {
       console.error("Error setting up hotel:", error);
-      
+
       let errorMessage = "Setup failed. Please try again.";
       if (error.message?.includes("duplicate key")) {
         errorMessage = "A hotel with this code already exists. Please choose a different code.";
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast({
         title: "Setup Error",
         description: errorMessage,
@@ -207,6 +261,16 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                     <li><strong>Phone:</strong> {setupData.hotel.contactPhone}</li>
                   )}
                 </ul>
+                {setupData.rooms.addRooms && setupData.rooms.roomsToAdd.length > 0 && (
+                  <div className="mt-2 text-left text-xs">
+                    <span className="font-semibold">Rooms to Add:</span> {setupData.rooms.roomsToAdd.length}
+                  </div>
+                )}
+                {setupData.staff.addStaff && setupData.staff.staffToAdd.length > 0 && (
+                  <div className="mt-1 text-left text-xs">
+                    <span className="font-semibold">Staff to Add:</span> {setupData.staff.staffToAdd.length}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -244,3 +308,4 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
 };
 
 export default SimpleSetupWizard;
+
