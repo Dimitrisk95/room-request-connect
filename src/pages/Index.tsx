@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -167,12 +166,10 @@ const Index = () => {
                 </div>
                 
                 <div className="text-center">
-                  <AdminAccessDialog>
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg">
-                      <Building className="mr-2 h-5 w-5" />
-                      List Your Hotel
-                    </Button>
-                  </AdminAccessDialog>
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg">
+                    <Building className="mr-2 h-5 w-5" />
+                    List Your Hotel
+                  </Button>
                   <p className="text-sm text-muted-foreground mt-2">For Hotel Owners</p>
                 </div>
               </div>
@@ -371,11 +368,9 @@ const Index = () => {
               <Button size="lg" variant="secondary">
                 Start Booking Hotels
               </Button>
-              <AdminAccessDialog>
-                <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  List Your Property
-                </Button>
-              </AdminAccessDialog>
+              <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                List Your Property
+              </Button>
             </div>
           </div>
         </section>
