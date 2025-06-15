@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface AccessibilitySettings {
@@ -39,32 +40,39 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
 
   useEffect(() => {
     // Load accessibility settings from localStorage
-    const savedSettings = localStorage.getItem("accessibility-settings");
-    if (savedSettings) {
-      try {
-        setSettings(JSON.parse(savedSettings));
-      } catch (error) {
-        console.error("Failed to parse accessibility settings:", error);
+    try {
+      const savedSettings = localStorage.getItem("accessibility-settings");
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(parsed);
       }
+    } catch (error) {
+      console.error("Failed to parse accessibility settings:", error);
     }
 
     // Detect if user prefers reduced motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setSettings(prev => ({ ...prev, reduceMotion: true }));
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReducedMotion) {
+        setSettings(prev => ({ ...prev, reduceMotion: true }));
+      }
     }
 
     // Detect if screen reader is likely being used
-    const hasScreenReader = window.navigator.userAgent.includes('NVDA') || 
-                            window.navigator.userAgent.includes('JAWS') ||
-                            window.speechSynthesis;
-    if (hasScreenReader) {
-      setSettings(prev => ({ ...prev, screenReader: true }));
+    if (typeof window !== 'undefined' && window.navigator) {
+      const hasScreenReader = window.navigator.userAgent.includes('NVDA') || 
+                              window.navigator.userAgent.includes('JAWS') ||
+                              (window.speechSynthesis && typeof window.speechSynthesis !== 'undefined');
+      if (hasScreenReader) {
+        setSettings(prev => ({ ...prev, screenReader: true }));
+      }
     }
   }, []);
 
   useEffect(() => {
     // Apply accessibility settings to document
+    if (typeof document === 'undefined') return;
+    
     const root = document.documentElement;
     
     // High contrast
@@ -86,7 +94,11 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     }
 
     // Save settings
-    localStorage.setItem("accessibility-settings", JSON.stringify(settings));
+    try {
+      localStorage.setItem("accessibility-settings", JSON.stringify(settings));
+    } catch (error) {
+      console.error("Failed to save accessibility settings:", error);
+    }
   }, [settings]);
 
   const updateSettings = (updates: Partial<AccessibilitySettings>) => {
