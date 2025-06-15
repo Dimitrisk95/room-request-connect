@@ -108,15 +108,22 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     try {
       logger.info('Loading user profile', { userId: supabaseUser.id })
       
-      const { data: userData, error } = await supabase
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile load timeout')), 10000)
+      })
+
+      const profilePromise = supabase
         .from('users')
         .select('*')
         .eq('id', supabaseUser.id)
         .maybeSingle()
 
+      const { data: userData, error } = await Promise.race([profilePromise, timeoutPromise]) as any
+
       if (error && error.code !== 'PGRST116') {
         logger.error('Error loading user profile', error)
-        throw error
+        // Don't throw here, create fallback user instead
       }
 
       let authUser: AuthUser
@@ -132,40 +139,47 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           can_manage_rooms: userData.can_manage_rooms,
           can_manage_staff: userData.can_manage_staff
         }
+        logger.info('User profile loaded successfully', authUser)
       } else {
-        // Create basic user profile for new users
-        const newUserData = {
+        // Create basic user profile for new users or if profile fetch fails
+        logger.info('Creating fallback user profile')
+        
+        authUser = {
           id: supabaseUser.id,
           email: supabaseUser.email!,
           name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+          role: 'admin'
+        }
+
+        // Try to create user profile in background, but don't wait for it
+        const newUserData = {
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: authUser.name,
           role: 'admin' as const,
           password_hash: 'handled_by_auth',
           needs_password_setup: false,
           email_verified: true
         }
 
-        const { error: insertError } = await supabase
+        supabase
           .from('users')
           .insert(newUserData)
-
-        if (insertError) {
-          logger.error('Error creating user profile', insertError)
-        }
-
-        authUser = {
-          id: newUserData.id,
-          email: newUserData.email,
-          name: newUserData.name,
-          role: newUserData.role
-        }
+          .then(({ error: insertError }) => {
+            if (insertError) {
+              logger.error('Error creating user profile (background)', insertError)
+            } else {
+              logger.info('User profile created in background')
+            }
+          })
       }
       
-      logger.info('User profile loaded', authUser)
       setUser(authUser)
+      logger.info('User state updated', authUser)
     } catch (error) {
       logger.error('Failed to load user profile', error)
       
-      // Set fallback user to prevent app from breaking
+      // Always set fallback user to prevent app from breaking
       const fallbackUser: AuthUser = {
         id: supabaseUser.id,
         email: supabaseUser.email!,
@@ -173,6 +187,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         role: 'admin'
       }
       setUser(fallbackUser)
+      logger.info('Fallback user set', fallbackUser)
     }
   }
 
