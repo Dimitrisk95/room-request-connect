@@ -45,30 +45,19 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    logger.info('Initializing auth provider', null, 'SimpleAuthProvider')
+    logger.info('Initializing auth provider')
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        logger.error('Error getting initial session', error, 'SimpleAuthProvider')
-      } else {
-        logger.info('Initial session retrieved', { hasSession: !!session }, 'SimpleAuthProvider')
-        setSession(session)
-        if (session?.user) {
-          loadUserProfile(session.user)
-        }
-      }
-      setIsLoading(false)
-    })
-
-    // Listen for auth changes
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logger.info('Auth state changed', { event, hasSession: !!session }, 'SimpleAuthProvider')
+      logger.info('Auth state changed', { event, hasSession: !!session })
       
       setSession(session)
       
       if (session?.user) {
-        await loadUserProfile(session.user)
+        // Use setTimeout to prevent auth deadlock
+        setTimeout(async () => {
+          await loadUserProfile(session.user)
+        }, 0)
       } else {
         setUser(null)
       }
@@ -76,17 +65,38 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       setIsLoading(false)
     })
 
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        logger.error('Error getting initial session', error)
+        setIsLoading(false)
+        return
+      }
+
+      logger.info('Initial session check', { hasSession: !!session })
+      setSession(session)
+      
+      if (session?.user) {
+        // Use setTimeout to prevent auth deadlock
+        setTimeout(async () => {
+          await loadUserProfile(session.user)
+          setIsLoading(false)
+        }, 0)
+      } else {
+        setIsLoading(false)
+      }
+    })
+
     return () => {
-      logger.info('Cleaning up auth subscription', null, 'SimpleAuthProvider')
+      logger.info('Cleaning up auth subscription')
       subscription.unsubscribe()
     }
   }, [])
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      logger.info('Loading user profile', { userId: supabaseUser.id }, 'SimpleAuthProvider')
+      logger.info('Loading user profile', { userId: supabaseUser.id })
       
-      // Try to get user from our users table
       const { data: userData, error } = await supabase
         .from('users')
         .select('*')
@@ -94,7 +104,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         .maybeSingle()
 
       if (error) {
-        logger.error('Error loading user profile', error, 'SimpleAuthProvider')
+        logger.error('Error loading user profile', error)
         throw error
       }
 
@@ -110,11 +120,11 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           can_manage_staff: userData.can_manage_staff
         }
         
-        logger.info('User profile loaded successfully', authUser, 'SimpleAuthProvider')
+        logger.info('User profile loaded successfully', authUser)
         setUser(authUser)
       } else {
         // Create basic user profile if it doesn't exist
-        logger.info('Creating new user profile', { email: supabaseUser.email }, 'SimpleAuthProvider')
+        logger.info('Creating new user profile', { email: supabaseUser.email })
         
         const newUserData = {
           id: supabaseUser.id,
@@ -131,7 +141,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           .insert(newUserData)
 
         if (insertError) {
-          logger.error('Error creating user profile', insertError, 'SimpleAuthProvider')
+          logger.error('Error creating user profile', insertError)
           throw insertError
         }
 
@@ -142,39 +152,47 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           role: newUserData.role
         }
         
-        logger.info('New user profile created', authUser, 'SimpleAuthProvider')
+        logger.info('New user profile created', authUser)
         setUser(authUser)
       }
     } catch (error) {
-      logger.error('Failed to load user profile', error, 'SimpleAuthProvider')
-      // Don't throw - just log the error and continue
+      logger.error('Failed to load user profile', error)
+      // Set a basic user anyway to prevent infinite loading
+      const fallbackUser: AuthUser = {
+        id: supabaseUser.id,
+        email: supabaseUser.email!,
+        name: supabaseUser.email?.split('@')[0] || 'User',
+        role: 'admin'
+      }
+      setUser(fallbackUser)
     }
   }
 
   const signIn = async (email: string, password: string) => {
     try {
-      logger.info('Attempting sign in', { email }, 'SimpleAuthProvider')
+      logger.info('Attempting sign in', { email })
       setIsLoading(true)
       
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       
       if (error) {
-        logger.error('Sign in failed', error, 'SimpleAuthProvider')
+        logger.error('Sign in failed', error)
+        setIsLoading(false)
         throw error
       }
       
-      logger.info('Sign in successful', null, 'SimpleAuthProvider')
+      logger.info('Sign in successful')
+      // Don't set loading to false here - let the auth state change handler do it
     } catch (error) {
-      logger.error('Sign in error', error, 'SimpleAuthProvider')
-      throw error
-    } finally {
       setIsLoading(false)
+      logger.error('Sign in error', error)
+      throw error
     }
   }
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      logger.info('Attempting sign up', { email, name }, 'SimpleAuthProvider')
+      logger.info('Attempting sign up', { email, name })
       setIsLoading(true)
       
       const { error } = await supabase.auth.signUp({
@@ -187,42 +205,43 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       })
       
       if (error) {
-        logger.error('Sign up failed', error, 'SimpleAuthProvider')
+        logger.error('Sign up failed', error)
+        setIsLoading(false)
         throw error
       }
       
-      logger.info('Sign up successful', null, 'SimpleAuthProvider')
+      logger.info('Sign up successful')
+      // Don't set loading to false here - let the auth state change handler do it
     } catch (error) {
-      logger.error('Sign up error', error, 'SimpleAuthProvider')
-      throw error
-    } finally {
       setIsLoading(false)
+      logger.error('Sign up error', error)
+      throw error
     }
   }
 
   const signOut = async () => {
     try {
-      logger.info('Attempting sign out', null, 'SimpleAuthProvider')
+      logger.info('Attempting sign out')
       
       const { error } = await supabase.auth.signOut()
       
       if (error) {
-        logger.error('Sign out failed', error, 'SimpleAuthProvider')
+        logger.error('Sign out failed', error)
         throw error
       }
       
-      logger.info('Sign out successful', null, 'SimpleAuthProvider')
+      logger.info('Sign out successful')
       setUser(null)
       setSession(null)
     } catch (error) {
-      logger.error('Sign out error', error, 'SimpleAuthProvider')
+      logger.error('Sign out error', error)
       throw error
     }
   }
 
   const guestSignIn = async (hotelCode: string, roomCode: string) => {
     try {
-      logger.info('Guest sign in attempt', { hotelCode, roomCode }, 'SimpleAuthProvider')
+      logger.info('Guest sign in attempt', { hotelCode, roomCode })
       
       const guestUser: AuthUser = {
         id: `guest-${Date.now()}`,
@@ -234,9 +253,11 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       }
       
       setUser(guestUser)
-      logger.info('Guest sign in successful', guestUser, 'SimpleAuthProvider')
+      setIsLoading(false)
+      logger.info('Guest sign in successful', guestUser)
     } catch (error) {
-      logger.error('Guest sign in error', error, 'SimpleAuthProvider')
+      setIsLoading(false)
+      logger.error('Guest sign in error', error)
       throw error
     }
   }

@@ -40,9 +40,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppContent = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  logger.info('App rendering', { hasUser: !!user, userRole: user?.role });
+  logger.info('App rendering', { hasUser: !!user, userRole: user?.role, isLoading });
+  
+  // Show loading state while auth is being determined
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
   
   return (
     <BrowserRouter>

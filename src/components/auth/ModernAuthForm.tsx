@@ -17,6 +17,7 @@ export const ModernAuthForm: React.FC = () => {
   const [mode, setMode] = useState<AuthMode>('admin')
   const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [localLoading, setLocalLoading] = useState(false)
   
   // Form fields
   const [email, setEmail] = useState('')
@@ -28,30 +29,38 @@ export const ModernAuthForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setLocalLoading(true)
     
     try {
       if (mode === 'guest') {
         await guestSignIn(hotelCode, roomCode)
         logger.info('Guest login successful')
-        // Force redirect for guest
         window.location.href = '/dashboard'
       } else if (isSignUp) {
         await signUp(email, password, name)
         logger.info('Admin registration successful')
-        // Force redirect after signup
-        window.location.href = '/dashboard'
+        // For signup, we might need to wait for email confirmation
+        // Just redirect to dashboard for now
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 1000)
       } else {
         await signIn(email, password)
         logger.info('Staff/Admin login successful')
-        // Force redirect after login
-        window.location.href = '/dashboard'
+        // Small delay to ensure auth state is updated
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 500)
       }
     } catch (err: any) {
       const errorMessage = err.message || 'Authentication failed'
       setError(errorMessage)
       logger.error('Authentication error', err)
+      setLocalLoading(false)
     }
   }
+
+  const isFormLoading = isLoading || localLoading
 
   const renderModeSelector = () => (
     <div className="grid grid-cols-3 w-full rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-1 mb-6">
@@ -60,8 +69,12 @@ export const ModernAuthForm: React.FC = () => {
           key={authMode}
           variant={mode === authMode ? "default" : "ghost"}
           className="text-xs px-2 py-2"
-          onClick={() => setMode(authMode)}
+          onClick={() => {
+            setMode(authMode)
+            setError(null)
+          }}
           type="button"
+          disabled={isFormLoading}
         >
           {authMode === 'admin' && <Hotel className="h-3 w-3 mr-1" />}
           {authMode === 'staff' && <Users className="h-3 w-3 mr-1" />}
@@ -80,16 +93,24 @@ export const ModernAuthForm: React.FC = () => {
           <ModernButton
             variant={!isSignUp ? "default" : "ghost"}
             className="text-sm py-2"
-            onClick={() => setIsSignUp(false)}
+            onClick={() => {
+              setIsSignUp(false)
+              setError(null)
+            }}
             type="button"
+            disabled={isFormLoading}
           >
             Login
           </ModernButton>
           <ModernButton
             variant={isSignUp ? "default" : "ghost"}
             className="text-sm py-2"
-            onClick={() => setIsSignUp(true)}
+            onClick={() => {
+              setIsSignUp(true)
+              setError(null)
+            }}
             type="button"
+            disabled={isFormLoading}
           >
             Register
           </ModernButton>
@@ -102,6 +123,7 @@ export const ModernAuthForm: React.FC = () => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          disabled={isFormLoading}
         />
       )}
       
@@ -111,6 +133,7 @@ export const ModernAuthForm: React.FC = () => {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        disabled={isFormLoading}
       />
       <ModernInput
         type="password"
@@ -118,6 +141,7 @@ export const ModernAuthForm: React.FC = () => {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        disabled={isFormLoading}
       />
     </div>
   )
@@ -129,12 +153,14 @@ export const ModernAuthForm: React.FC = () => {
         value={hotelCode}
         onChange={(e) => setHotelCode(e.target.value)}
         required
+        disabled={isFormLoading}
       />
       <ModernInput
         placeholder="Room Code"
         value={roomCode}
         onChange={(e) => setRoomCode(e.target.value)}
         required
+        disabled={isFormLoading}
       />
     </div>
   )
@@ -149,8 +175,8 @@ export const ModernAuthForm: React.FC = () => {
                 <Hotel className="h-8 w-8 text-white" />
               </div>
             </div>
-            <ModernCardTitle className="text-2xl">Roomlix</ModernCardTitle>
-            <ModernCardDescription className="text-sm">
+            <ModernCardTitle className="text-2xl text-white">Roomlix</ModernCardTitle>
+            <ModernCardDescription className="text-sm text-white/70">
               {mode === 'guest' 
                 ? 'Connect with your hotel for a seamless stay'
                 : mode === 'admin' 
@@ -167,7 +193,7 @@ export const ModernAuthForm: React.FC = () => {
               {error && (
                 <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription className="text-white">{error}</AlertDescription>
                 </Alert>
               )}
               
@@ -176,9 +202,9 @@ export const ModernAuthForm: React.FC = () => {
               <ModernButton 
                 type="submit" 
                 className="w-full mt-6"
-                disabled={isLoading}
+                disabled={isFormLoading}
               >
-                {isLoading ? (
+                {isFormLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {mode === 'guest' ? 'Connecting...' : isSignUp ? 'Creating...' : 'Signing In...'}
