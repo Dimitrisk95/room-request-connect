@@ -1,114 +1,187 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Hotel, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import SimpleSetupWizard from "@/components/admin/setup-wizard/SimpleSetupWizard";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Hotel, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminSetup = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const [hotelData, setHotelData] = useState({
+    name: '',
+    address: '',
+    contactEmail: '',
+    contactPhone: '',
+    hotelCode: ''
+  });
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      console.log("User not authenticated, redirecting to login");
-      navigate("/login");
-      return;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHotelData({
+      ...hotelData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Create hotel
+      const { data: hotelResult, error: hotelError } = await supabase
+        .from('hotels')
+        .insert({
+          name: hotelData.name,
+          address: hotelData.address,
+          contact_email: hotelData.contactEmail,
+          contact_phone: hotelData.contactPhone,
+          hotel_code: hotelData.hotelCode
+        })
+        .select()
+        .single();
+
+      if (hotelError) throw hotelError;
+
+      // Update user with hotel_id
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ hotel_id: hotelResult.id })
+        .eq('id', user?.id);
+
+      if (userError) throw userError;
+
+      toast({
+        title: "Hotel Created Successfully!",
+        description: "Your hotel has been set up. Redirecting to dashboard...",
+      });
+
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1500);
+
+    } catch (error: any) {
+      toast({
+        title: "Setup Failed",
+        description: error.message || "Failed to create hotel. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    // If user already has a hotel, redirect to dashboard
-    if (user?.hotelId) {
-      console.log("User already has hotel, redirecting to dashboard");
-      navigate("/dashboard");
-      return;
-    }
-
-    // If not an admin, redirect to dashboard
-    if (user?.role !== "admin") {
-      console.log("User is not admin, redirecting to dashboard");
-      navigate("/dashboard");
-      return;
-    }
-  }, [isAuthenticated, user, navigate]);
-
-  // Show loading while checking authentication
-  if (!isAuthenticated || !user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If user already has a hotel, show redirect message
-  if (user.hotelId) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p>Redirecting to dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If not an admin, show access denied
-  if (user.role !== "admin") {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-xl text-red-600">Access Denied</CardTitle>
-            <CardDescription>
-              Only administrators can set up hotels. Your current role is {user.role}.
-            </CardDescription>
-            <Button 
-              className="mt-4" 
-              onClick={() => navigate("/dashboard")}
-            >
-              Go to Dashboard
-            </Button>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/login")}
-            className="mr-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Login
-          </Button>
-          <div className="flex items-center">
-            <Hotel className="h-6 w-6 text-primary mr-2" />
-            <h1 className="text-2xl font-bold">Hotel Setup</h1>
-          </div>
-        </div>
-        
-        <div className="max-w-4xl mx-auto">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Welcome to Roomlix</CardTitle>
-              <CardDescription>
-                Let's set up your hotel so you can start managing rooms, staff, and guest requests.
-                This process will only take a few minutes.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <Card className="border-white/20 bg-white/10 backdrop-blur-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 p-3">
+                <Hotel className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl text-white">Setup Your Hotel</CardTitle>
+            <CardDescription className="text-white/70">
+              Let's get your hotel configured in Roomlix
+            </CardDescription>
+          </CardHeader>
           
-          <SimpleSetupWizard />
-        </div>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-white">Hotel Name *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={hotelData.name}
+                    onChange={handleInputChange}
+                    placeholder="Grand Hotel Paradise"
+                    required
+                    className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="hotelCode" className="text-white">Hotel Code *</Label>
+                  <Input
+                    id="hotelCode"
+                    name="hotelCode"
+                    value={hotelData.hotelCode}
+                    onChange={handleInputChange}
+                    placeholder="GHP001"
+                    required
+                    className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address" className="text-white">Address</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={hotelData.address}
+                  onChange={handleInputChange}
+                  placeholder="123 Paradise Street, City, Country"
+                  className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contactEmail" className="text-white">Contact Email</Label>
+                  <Input
+                    id="contactEmail"
+                    name="contactEmail"
+                    type="email"
+                    value={hotelData.contactEmail}
+                    onChange={handleInputChange}
+                    placeholder="info@grandhotel.com"
+                    className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="contactPhone" className="text-white">Contact Phone</Label>
+                  <Input
+                    id="contactPhone"
+                    name="contactPhone"
+                    value={hotelData.contactPhone}
+                    onChange={handleInputChange}
+                    placeholder="+1 (555) 123-4567"
+                    className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  "Creating Hotel..."
+                ) : (
+                  <>
+                    Create Hotel & Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -11,6 +11,8 @@ interface AuthUser {
   role: 'admin' | 'staff' | 'guest'
   hotelId?: string
   roomNumber?: string
+  can_manage_rooms?: boolean
+  can_manage_staff?: boolean
 }
 
 interface AuthContextType {
@@ -103,7 +105,9 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           name: userData.name,
           role: userData.role,
           hotelId: userData.hotel_id,
-          roomNumber: userData.room_number
+          roomNumber: userData.room_number,
+          can_manage_rooms: userData.can_manage_rooms,
+          can_manage_staff: userData.can_manage_staff
         }
         
         logger.info('User profile loaded successfully', authUser, 'SimpleAuthProvider')
