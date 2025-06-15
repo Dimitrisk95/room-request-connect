@@ -7,6 +7,7 @@ import { LogViewer } from "./components/debug/LogViewer";
 import { Toaster } from "@/components/ui/toaster";
 import Dashboard from "./pages/Dashboard";
 import AdminSetup from "./pages/AdminSetup";
+import Index from "./pages/Index";
 import { logger } from "./utils/logger";
 
 const queryClient = new QueryClient({
@@ -57,9 +58,12 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Main landing page - always accessible */}
+        <Route path="/" element={<Index />} />
+        
         <Route 
           path="/auth" 
-          element={!user ? <ModernAuthForm /> : <Navigate to="/dashboard" replace />} 
+          element={!user ? <ModernAuthForm /> : <Navigate to="/" replace />} 
         />
         <Route 
           path="/setup" 
@@ -76,10 +80,6 @@ const AppContent = () => {
               <Dashboard />
             </ProtectedRoute>
           } 
-        />
-        <Route 
-          path="/" 
-          element={<Navigate to={user ? "/dashboard" : "/auth"} replace />} 
         />
         <Route 
           path="*" 

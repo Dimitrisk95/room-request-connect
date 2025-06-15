@@ -4,31 +4,96 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Hotel, Users, Calendar, Settings, ClipboardList, LogOut, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect admin without hotel to setup
-  useEffect(() => {
-    if (user?.role === 'admin' && !user?.hotelId) {
-      navigate('/setup');
-    }
-  }, [user, navigate]);
-
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/auth');
+      navigate('/');
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
 
-  // Don't render dashboard if admin needs setup
+  // If admin doesn't have a hotel, show setup prompt instead of redirecting
   if (user?.role === 'admin' && !user?.hotelId) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        {/* Header */}
+        <header className="bg-white/10 backdrop-blur-md border-b border-white/20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-6">
+              <div className="flex items-center space-x-4">
+                <div className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 p-2">
+                  <Hotel className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Roomlix</h1>
+                  <p className="text-white/70 text-sm">Hotel Management System</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <p className="text-white font-medium">{user?.name}</p>
+                  <p className="text-white/70 text-sm capitalize">{user?.role}</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut}
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Welcome to Roomlix, {user?.name}!
+            </h2>
+            <p className="text-white/70 mb-8">
+              You need to set up your hotel before you can access the dashboard.
+            </p>
+            
+            <Card className="border-white/20 bg-white/10 backdrop-blur-md max-w-md mx-auto">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center justify-center">
+                  <Hotel className="h-6 w-6 mr-2" />
+                  Setup Required
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-white/70">
+                  To get started with managing your hotel, you'll need to complete the setup process.
+                </p>
+                <Button 
+                  onClick={() => navigate('/setup')}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600"
+                >
+                  Setup My Hotel
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/')}
+                  className="w-full border-white/20 bg-white/10 text-white hover:bg-white/20"
+                >
+                  Back to Home
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const dashboardCards = [
