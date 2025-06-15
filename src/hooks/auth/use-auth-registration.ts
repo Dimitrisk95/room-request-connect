@@ -15,24 +15,14 @@ export const useAuthRegistration = () => {
     hotelId?: string
   ) => {
     try {
-      console.log("Creating staff account for:", email, role, "with password:", password);
+      console.log("Creating staff account for:", email, role);
 
-      // First check if user already exists in auth system by attempting to sign in
-      const { data: existingAuth, error: checkError } = await supabase.auth.signInWithPassword({
-        email,
-        password: password + "_check_only" // Use an intentionally wrong password to just check if the account exists
-      });
-      
-      // If there's no error about invalid credentials but there is data, the user exists
-      if (existingAuth?.user) {
-        throw new Error("A user with this email already exists. Please use a different email or login instead.");
-      }
-
-      // Try to sign up the user with Supabase Auth
+      // Sign up with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
           data: {
             name,
             role,
@@ -42,11 +32,6 @@ export const useAuthRegistration = () => {
       });
 
       if (authError) {
-        // Special handling for "User already registered" error
-        if (authError.message.includes("User already registered")) {
-          throw new Error("A user with this email already exists. Please use a different email or login instead.");
-        }
-        
         console.error("Auth signup error:", authError);
         throw authError;
       }
@@ -57,63 +42,28 @@ export const useAuthRegistration = () => {
 
       console.log("Auth user created:", authData.user.id);
 
-      // Check if the user already exists in our custom users table
-      const { data: existingUser, error: checkError2 } = await supabase
+      // Create user profile in our users table
+      const { error: profileError } = await supabase
         .from('users')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
-      
-      if (checkError2) {
-        console.error("Error checking existing user:", checkError2);
-      }
-        
-      // If user already exists in our users table, update their information instead
-      if (existingUser) {
-        console.log("User exists in users table, updating entry.");
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            name,
-            role,
-            hotel_id: hotelId || null,
-            password_hash: password,
-            needs_password_setup: false
-          })
-          .eq('email', email);
-          
-        if (updateError) {
-          console.error("Error updating existing user:", updateError);
-          throw updateError;
-        }
-      } else {
-        // Insert new user details into users table
-        const { data: insertedUser, error: userError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            name,
-            email,
-            role,
-            hotel_id: hotelId || null,
-            password_hash: password,
-            needs_password_setup: false
-          })
-          .select()
-          .single();
+        .insert({
+          id: authData.user.id,
+          name,
+          email,
+          role,
+          hotel_id: hotelId || null,
+          password_hash: 'handled_by_auth', // Placeholder since auth handles password
+          needs_password_setup: false,
+          email_verified: false
+        });
 
-        if (userError) {
-          console.error("User data insert error:", userError);
-          throw userError;
-        }
-
-        console.log("User successfully created in users table:", insertedUser);
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        // Don't throw here, user is created in auth, profile creation is secondary
       }
       
-      // Success message - don't send email in this simplified version
-      console.log("Staff account created successfully with password:", password);
-      
+      console.log("Staff account created successfully");
       return authData.user;
+      
     } catch (error) {
       console.error("Account creation error:", error);
       throw error;

@@ -205,6 +205,7 @@ export type Database = {
           can_manage_staff: boolean | null
           created_at: string | null
           email: string
+          email_verified: boolean | null
           hotel_id: string | null
           id: string
           name: string
@@ -213,12 +214,14 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
           room_number: string | null
           updated_at: string | null
+          verification_token: string | null
         }
         Insert: {
           can_manage_rooms?: boolean | null
           can_manage_staff?: boolean | null
           created_at?: string | null
           email: string
+          email_verified?: boolean | null
           hotel_id?: string | null
           id?: string
           name: string
@@ -227,12 +230,14 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           room_number?: string | null
           updated_at?: string | null
+          verification_token?: string | null
         }
         Update: {
           can_manage_rooms?: boolean | null
           can_manage_staff?: boolean | null
           created_at?: string | null
           email?: string
+          email_verified?: boolean | null
           hotel_id?: string | null
           id?: string
           name?: string
@@ -241,6 +246,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           room_number?: string | null
           updated_at?: string | null
+          verification_token?: string | null
         }
         Relationships: [
           {

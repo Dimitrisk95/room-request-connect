@@ -2,19 +2,29 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import LoginHeader from "@/components/login/LoginHeader";
+import { ArrowLeft, Hotel } from "lucide-react";
 import { RegisterForm } from "@/components/register/RegisterForm";
 
 const Register = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background relative">
-      <div className="w-full max-w-md px-4">
-        <LoginHeader />
-        
-        <div className="mb-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Hotel className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold text-primary">Roomlix</h1>
+          </div>
+          <h2 className="text-xl font-semibold">Create Your Admin Account</h2>
+          <p className="text-muted-foreground text-sm">
+            Get started with your hotel management system
+          </p>
+        </div>
+
+        {/* Back button */}
+        <div className="flex justify-start">
           <Button 
             variant="ghost" 
             className="flex items-center gap-2 p-0"
@@ -25,11 +35,12 @@ const Register = () => {
           </Button>
         </div>
         
+        {/* Registration Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Create an Account</CardTitle>
+            <CardTitle>Register</CardTitle>
             <CardDescription>
-              Register as a hotel administrator
+              Create your administrator account to start managing your hotel
             </CardDescription>
           </CardHeader>
           
@@ -41,7 +52,7 @@ const Register = () => {
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
               <Button variant="link" className="p-0" onClick={() => navigate("/login")}>
-                Login
+                Sign in here
               </Button>
             </p>
           </div>
