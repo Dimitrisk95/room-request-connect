@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { z } from "zod";
@@ -34,7 +33,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegistered, onCancel }) => {
-  const { createStaffAccount } = useAuth();
+  const { signUp } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,12 +104,7 @@ const AdminRegistrationForm: React.FC<AdminRegistrationFormProps> = ({ onRegiste
     setError(null);
     try {
       console.log("Starting admin account creation for:", values.email);
-      await createStaffAccount(
-        values.name,
-        values.email,
-        values.password,
-        "admin"
-      );
+      await signUp(values.email, values.password, values.name);
       
       console.log("Admin account created successfully");
       toast({
