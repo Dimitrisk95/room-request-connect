@@ -9,7 +9,7 @@ const ModernCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow-lg backdrop-blur-sm border-white/10 bg-white/5",
+      "rounded-xl border bg-card text-card-foreground shadow-2xl backdrop-blur-sm border-white/10 bg-white/5 overflow-hidden",
       className
     )}
     {...props}
@@ -23,7 +23,7 @@ const ModernCardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn("flex flex-col space-y-2 p-6 pb-4", className)}
     {...props}
   />
 ))
@@ -36,7 +36,7 @@ const ModernCardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent",
+      "text-2xl font-semibold leading-none tracking-tight bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent",
       className
     )}
     {...props}
@@ -50,7 +50,7 @@ const ModernCardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-muted-foreground/80", className)}
+    className={cn("text-sm text-white/70", className)}
     {...props}
   />
 ))

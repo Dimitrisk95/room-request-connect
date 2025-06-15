@@ -70,6 +70,8 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       } else {
         setUser(null)
       }
+      
+      setIsLoading(false)
     })
 
     return () => {
@@ -175,7 +177,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: { name, role: 'admin' }
         }
       })

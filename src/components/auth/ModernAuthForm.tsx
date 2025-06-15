@@ -33,12 +33,18 @@ export const ModernAuthForm: React.FC = () => {
       if (mode === 'guest') {
         await guestSignIn(hotelCode, roomCode)
         logger.info('Guest login successful')
+        // Force redirect for guest
+        window.location.href = '/dashboard'
       } else if (isSignUp) {
         await signUp(email, password, name)
         logger.info('Admin registration successful')
+        // Force redirect after signup
+        window.location.href = '/dashboard'
       } else {
         await signIn(email, password)
         logger.info('Staff/Admin login successful')
+        // Force redirect after login
+        window.location.href = '/dashboard'
       }
     } catch (err: any) {
       const errorMessage = err.message || 'Authentication failed'
@@ -48,32 +54,32 @@ export const ModernAuthForm: React.FC = () => {
   }
 
   const renderModeSelector = () => (
-    <div className="flex w-full rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-1 mb-6">
+    <div className="grid grid-cols-3 w-full rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-1 mb-6">
       {(['admin', 'staff', 'guest'] as AuthMode[]).map((authMode) => (
         <ModernButton
           key={authMode}
           variant={mode === authMode ? "default" : "ghost"}
-          className="w-full rounded-md text-sm"
+          className="text-xs px-2 py-2"
           onClick={() => setMode(authMode)}
           type="button"
         >
-          {authMode === 'admin' && <Hotel className="h-4 w-4 mr-2" />}
-          {authMode === 'staff' && <Users className="h-4 w-4 mr-2" />}
-          {authMode === 'guest' && <User className="h-4 w-4 mr-2" />}
-          {authMode === 'admin' ? 'Admin Portal' : 
-           authMode === 'staff' ? 'Staff Login' : 'Guest Access'}
+          {authMode === 'admin' && <Hotel className="h-3 w-3 mr-1" />}
+          {authMode === 'staff' && <Users className="h-3 w-3 mr-1" />}
+          {authMode === 'guest' && <User className="h-3 w-3 mr-1" />}
+          {authMode === 'admin' ? 'Admin' : 
+           authMode === 'staff' ? 'Staff' : 'Guest'}
         </ModernButton>
       ))}
     </div>
   )
 
   const renderStaffAdminForm = () => (
-    <>
+    <div className="space-y-4">
       {mode === 'admin' && (
-        <div className="flex w-full rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-1 mb-4">
+        <div className="grid grid-cols-2 w-full rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm p-1 mb-4">
           <ModernButton
             variant={!isSignUp ? "default" : "ghost"}
-            className="w-full rounded-md text-sm"
+            className="text-sm py-2"
             onClick={() => setIsSignUp(false)}
             type="button"
           >
@@ -81,7 +87,7 @@ export const ModernAuthForm: React.FC = () => {
           </ModernButton>
           <ModernButton
             variant={isSignUp ? "default" : "ghost"}
-            className="w-full rounded-md text-sm"
+            className="text-sm py-2"
             onClick={() => setIsSignUp(true)}
             type="button"
           >
@@ -91,33 +97,29 @@ export const ModernAuthForm: React.FC = () => {
       )}
       
       {isSignUp && (
-        <div className="space-y-4">
-          <ModernInput
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
+        <ModernInput
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
       )}
       
-      <div className="space-y-4">
-        <ModernInput
-          type="email"
-          placeholder="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <ModernInput
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-    </>
+      <ModernInput
+        type="email"
+        placeholder="Email Address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <ModernInput
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+    </div>
   )
 
   const renderGuestForm = () => (
@@ -141,14 +143,14 @@ export const ModernAuthForm: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
       <div className="w-full max-w-md">
         <ModernCard className="border-white/20 bg-white/10 backdrop-blur-md">
-          <ModernCardHeader className="text-center">
+          <ModernCardHeader className="text-center pb-4">
             <div className="flex justify-center mb-4">
               <div className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 p-3">
                 <Hotel className="h-8 w-8 text-white" />
               </div>
             </div>
-            <ModernCardTitle>Roomlix</ModernCardTitle>
-            <ModernCardDescription>
+            <ModernCardTitle className="text-2xl">Roomlix</ModernCardTitle>
+            <ModernCardDescription className="text-sm">
               {mode === 'guest' 
                 ? 'Connect with your hotel for a seamless stay'
                 : mode === 'admin' 
@@ -158,8 +160,8 @@ export const ModernAuthForm: React.FC = () => {
             </ModernCardDescription>
           </ModernCardHeader>
           
-          <ModernCardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <ModernCardContent className="pt-0">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {renderModeSelector()}
               
               {error && (
@@ -173,13 +175,13 @@ export const ModernAuthForm: React.FC = () => {
               
               <ModernButton 
                 type="submit" 
-                className="w-full"
+                className="w-full mt-6"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {mode === 'guest' ? 'Connecting...' : isSignUp ? 'Creating Account...' : 'Signing In...'}
+                    {mode === 'guest' ? 'Connecting...' : isSignUp ? 'Creating...' : 'Signing In...'}
                   </>
                 ) : (
                   <>
