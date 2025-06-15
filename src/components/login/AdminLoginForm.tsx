@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import { Loader, Check, AlertCircle } from "lucide-react";
 import { z } from "zod";
@@ -32,7 +32,7 @@ const loginFormSchema = z.object({
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -52,8 +52,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
     setError(null);
     try {
       console.log("Attempting login for:", values.email);
-      // Default hotel code for admin - this should match what's in the database
-      await login(values.email, values.password, "550e8400-e29b-41d4-a716-446655440000");
+      await signIn(values.email, values.password);
       
       console.log("Login successful");
       setShowSuccess(true);
@@ -64,8 +63,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
         description: "Successfully logged in to your admin account.",
       });
       
-      // Remove the setTimeout to fix the interactivity issue
-      // Just call navigateAfterLogin directly
+      // Navigate to dashboard
       navigate("/dashboard");
       onSuccess();
       
