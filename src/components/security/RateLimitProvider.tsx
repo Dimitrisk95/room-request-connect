@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import * as React from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RateLimitState {
@@ -14,10 +14,10 @@ interface RateLimitContextType {
   getRemainingAttempts: (action: string, limit: number, windowMs: number) => number;
 }
 
-const RateLimitContext = createContext<RateLimitContextType | undefined>(undefined);
+const RateLimitContext = React.createContext<RateLimitContextType | undefined>(undefined);
 
 export const useRateLimit = () => {
-  const context = useContext(RateLimitContext);
+  const context = React.useContext(RateLimitContext);
   if (!context) {
     throw new Error("useRateLimit must be used within a RateLimitProvider");
   }
@@ -29,10 +29,10 @@ interface RateLimitProviderProps {
 }
 
 export const RateLimitProvider: React.FC<RateLimitProviderProps> = ({ children }) => {
-  const [state, setState] = useState<RateLimitState>({});
+  const [state, setState] = React.useState<RateLimitState>({});
   const { toast } = useToast();
 
-  const checkRateLimit = useCallback((action: string, limit: number, windowMs: number): boolean => {
+  const checkRateLimit = React.useCallback((action: string, limit: number, windowMs: number): boolean => {
     const now = Date.now();
     const key = action;
     
@@ -76,7 +76,7 @@ export const RateLimitProvider: React.FC<RateLimitProviderProps> = ({ children }
     return !currentState || now >= currentState.resetTime || currentState.count < limit;
   }, [state, toast]);
 
-  const getRemainingAttempts = useCallback((action: string, limit: number, windowMs: number): number => {
+  const getRemainingAttempts = React.useCallback((action: string, limit: number, windowMs: number): number => {
     const now = Date.now();
     const current = state[action];
     
