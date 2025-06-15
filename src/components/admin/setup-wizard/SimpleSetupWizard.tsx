@@ -49,7 +49,22 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
   };
 
   const handleComplete = async () => {
-    await handleCreateHotel(setupData, debugMode);
+    console.log("[SimpleSetupWizard] Complete button clicked");
+    console.log("[SimpleSetupWizard] Current setup data:", setupData);
+    console.log("[SimpleSetupWizard] isCreating state:", isCreating);
+
+    if (isCreating) {
+      console.log("[SimpleSetupWizard] Already creating, ignoring click");
+      return;
+    }
+
+    const success = await handleCreateHotel(setupData, debugMode);
+    console.log("[SimpleSetupWizard] Hotel creation result:", success);
+
+    if (success && debugMode) {
+      console.log("[SimpleSetupWizard] Debug mode: Manual navigation to dashboard");
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -57,7 +72,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
       {debugMode && (
         <div className="mb-6 p-3 bg-red-100 border border-red-300 rounded-md">
           <p className="text-red-700 font-medium">
-            Debug Mode Enabled: Automatic redirects are disabled
+            Debug Mode Enabled: Check console for detailed logs
           </p>
         </div>
       )}
@@ -115,35 +130,17 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                     </li>
                   )}
                 </ul>
-                {setupData.rooms.addRooms &&
-                  setupData.rooms.roomsToAdd.length > 0 && (
-                    <div className="mt-2 text-left text-xs">
-                      <span className="font-semibold">
-                        Rooms to Add:
-                      </span>{" "}
-                      {setupData.rooms.roomsToAdd.length}
-                    </div>
-                  )}
-                {setupData.staff.addStaff &&
-                  setupData.staff.staffToAdd.length > 0 && (
-                    <div className="mt-1 text-left text-xs">
-                      <span className="font-semibold">
-                        Staff to Add:
-                      </span>{" "}
-                      {setupData.staff.staffToAdd.length}
-                    </div>
-                  )}
               </div>
 
               <div className="space-y-4">
                 <button
                   onClick={handleComplete}
-                  disabled={isCreating || debugMode}
+                  disabled={isCreating}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-4 py-2 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating
                     ? "Creating Hotel..."
-                    : "Create Hotel & Continue"}
+                    : "Complete Setup and Create Hotel"}
                 </button>
 
                 {debugMode && (
