@@ -41,10 +41,12 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
   const { currentStep, steps, nextStep, prevStep } = useSetupSteps();
 
   const updateSetupData = (data: Partial<SetupData>) => {
+    console.log("Updating setup data:", data);
     setSetupData((prev) => ({ ...prev, ...data }));
   };
 
   const updateHotelData = (data: Partial<typeof setupData.hotel>) => {
+    console.log("Updating hotel data:", data);
     updateSetupData({ hotel: { ...setupData.hotel, ...data } });
   };
 
@@ -52,6 +54,25 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
     console.log("[SimpleSetupWizard] Complete button clicked");
     console.log("[SimpleSetupWizard] Current setup data:", setupData);
     console.log("[SimpleSetupWizard] isCreating state:", isCreating);
+
+    // Validate required fields
+    if (!setupData.hotel.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Hotel name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!setupData.hotel.hotelCode.trim()) {
+      toast({
+        title: "Validation Error", 
+        description: "Hotel code is required",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (isCreating) {
       console.log("[SimpleSetupWizard] Already creating, ignoring click");
@@ -61,10 +82,25 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
     const success = await handleCreateHotel(setupData, debugMode);
     console.log("[SimpleSetupWizard] Hotel creation result:", success);
 
-    if (success && debugMode) {
-      console.log("[SimpleSetupWizard] Debug mode: Manual navigation to dashboard");
-      navigate("/dashboard");
+    if (success) {
+      console.log("[SimpleSetupWizard] Hotel created successfully, redirecting...");
+      
+      if (debugMode) {
+        console.log("[SimpleSetupWizard] Debug mode: Manual navigation to dashboard");
+        navigate("/dashboard");
+      } else {
+        // Force redirect after successful creation
+        setTimeout(() => {
+          console.log("[SimpleSetupWizard] Executing redirect to dashboard");
+          window.location.href = "/dashboard";
+        }, 1500);
+      }
     }
+  };
+
+  const handleFormSubmit = () => {
+    console.log("Form submitted, moving to completion step");
+    nextStep();
   };
 
   return (
@@ -85,7 +121,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
             <HotelSetupStep
               hotelData={setupData.hotel}
               updateHotelData={updateHotelData}
-              onNext={nextStep}
+              onNext={handleFormSubmit}
               isLoading={false}
               hotelCreated={false}
             />
@@ -119,14 +155,12 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                   )}
                   {setupData.hotel.contactEmail && (
                     <li>
-                      <strong>Email:</strong>{" "}
-                      {setupData.hotel.contactEmail}
+                      <strong>Email:</strong> {setupData.hotel.contactEmail}
                     </li>
                   )}
                   {setupData.hotel.contactPhone && (
                     <li>
-                      <strong>Phone:</strong>{" "}
-                      {setupData.hotel.contactPhone}
+                      <strong>Phone:</strong> {setupData.hotel.contactPhone}
                     </li>
                   )}
                 </ul>
@@ -136,7 +170,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                 <button
                   onClick={handleComplete}
                   disabled={isCreating}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-4 py-2 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-4 py-2 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isCreating
                     ? "Creating Hotel..."
@@ -160,6 +194,14 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                   Back to Edit Details
                 </button>
               </div>
+
+              {isCreating && (
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Please wait while we create your hotel...
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

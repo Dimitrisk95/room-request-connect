@@ -37,7 +37,6 @@ export function useHotelSetup() {
     }
 
     setIsCreating(true);
-    let createdHotelId = null;
 
     try {
       console.log("[Hotel Setup] Validating input data...");
@@ -78,8 +77,27 @@ export function useHotelSetup() {
         throw new Error("Hotel creation failed: No data returned");
       }
 
-      createdHotelId = hotelData.id;
+      const createdHotelId = hotelData.id;
       console.log("[Hotel Setup] Hotel created successfully with ID:", createdHotelId);
+
+      // Update the current user with the hotel ID
+      console.log("[Hotel Setup] Updating user with hotel ID...");
+      const { error: userError } = await supabase
+        .from("users")
+        .update({ hotel_id: createdHotelId })
+        .eq("id", user.id);
+
+      if (userError) {
+        console.error("[Hotel Setup] Error updating user:", userError);
+        throw new Error(`Failed to assign hotel to user: ${userError.message}`);
+      }
+
+      console.log("[Hotel Setup] User updated successfully in database");
+
+      // Update local auth context
+      const updatedUser = { ...user, hotelId: createdHotelId };
+      updateUser(updatedUser);
+      console.log("[Hotel Setup] User context updated locally");
 
       // Add rooms if requested
       if (
@@ -115,43 +133,12 @@ export function useHotelSetup() {
         }
       }
 
-      // Update user with hotel ID
-      console.log("[Hotel Setup] Updating user with hotel ID...");
-      const { error: userError } = await supabase
-        .from("users")
-        .update({ hotel_id: createdHotelId })
-        .eq("id", user.id);
-
-      if (userError) {
-        console.error("[Hotel Setup] Error updating user:", userError);
-        throw new Error(`Failed to assign hotel to user: ${userError.message}`);
-      }
-
-      console.log("[Hotel Setup] User updated successfully in database");
-
-      // Update local auth context
-      const updatedUser = { ...user, hotelId: createdHotelId };
-      updateUser(updatedUser);
-      console.log("[Hotel Setup] User context updated locally");
-
       toast({
         title: "Success!",
         description: "Hotel setup completed successfully! Redirecting to dashboard...",
       });
 
-      console.log("[Hotel Setup] Hotel creation completed successfully, redirecting...");
-
-      // Force redirect to dashboard
-      if (debugMode) {
-        console.log("[Hotel Setup] Debug mode enabled, manual redirect required");
-        return true;
-      }
-
-      // Use setTimeout to ensure the toast shows before redirect
-      setTimeout(() => {
-        console.log("[Hotel Setup] Executing redirect to dashboard");
-        window.location.href = "/dashboard";
-      }, 1000);
+      console.log("[Hotel Setup] Hotel creation completed successfully");
 
       return true;
 
