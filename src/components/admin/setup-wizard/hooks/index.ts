@@ -1,4 +1,6 @@
 
 export { useSetupData } from './useSetupData';
-export { useHotelCreation } from './useHotelCreation';
 export { useSetupNavigation } from './useSetupNavigation';
+export { useSetupSteps } from './useSetupSteps';
+export { useStaffForm } from './useStaffForm';
+export { useHotelSetup } from './useHotelSetup';

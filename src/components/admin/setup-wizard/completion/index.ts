@@ -1,6 +1,4 @@
 
-export { DebugModeAlert } from './DebugModeAlert';
-export { CompletionHeader } from './CompletionHeader';
-export { SetupSummary } from './SetupSummary';
-export { NavigationOptions } from './NavigationOptions';
-export { RedirectHandler } from './RedirectHandler';
+export { default as CompletionHeader } from './CompletionHeader';
+export { default as NavigationOptions } from './NavigationOptions';
+export { default as SetupSummary } from './SetupSummary';
