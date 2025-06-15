@@ -2,7 +2,7 @@
 import { useAuth } from "@/context";
 import { useOnboarding } from "@/hooks/auth/use-onboarding";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import DashboardContent from "@/components/dashboard/DashboardContent";
+import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import WelcomeTour from "@/components/onboarding/WelcomeTour";
 
 const Dashboard = () => {
@@ -20,7 +20,11 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
-      <DashboardContent />
+      <DashboardContent 
+        todayCheckIns={0}
+        todayCheckOuts={0}
+        pendingRequests={[]}
+      />
       
       {showWelcomeTour && (
         <WelcomeTour 
