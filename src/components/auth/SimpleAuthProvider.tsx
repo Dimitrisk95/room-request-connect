@@ -44,6 +44,64 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Create fallback user from Supabase user
+  const createFallbackUser = (supabaseUser: SupabaseUser): AuthUser => {
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email!,
+      name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+      role: 'admin' // Default to admin for fallback
+    }
+  }
+
+  const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<AuthUser> => {
+    logger.info('Loading user profile', { userId: supabaseUser.id })
+    
+    // Create fallback user first
+    const fallbackUser = createFallbackUser(supabaseUser)
+    
+    try {
+      // Try to fetch user profile with timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      })
+      
+      const fetchPromise = supabase
+        .from('users')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .maybeSingle()
+      
+      const { data: userData, error } = await Promise.race([fetchPromise, timeoutPromise])
+
+      if (error) {
+        logger.error('Error loading user profile, using fallback', error)
+        return fallbackUser
+      }
+
+      if (userData) {
+        const authUser: AuthUser = {
+          id: userData.id,
+          email: userData.email,
+          name: userData.name,
+          role: userData.role,
+          hotelId: userData.hotel_id,
+          roomNumber: userData.room_number,
+          can_manage_rooms: userData.can_manage_rooms,
+          can_manage_staff: userData.can_manage_staff
+        }
+        logger.info('User profile loaded successfully', authUser)
+        return authUser
+      } else {
+        logger.info('No user profile found, using fallback')
+        return fallbackUser
+      }
+    } catch (error) {
+      logger.error('Failed to load user profile, using fallback', error)
+      return fallbackUser
+    }
+  }
+
   useEffect(() => {
     let mounted = true
 
@@ -51,23 +109,30 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       try {
         logger.info('Initializing auth...')
         
-        // Check for existing session first
+        // Get current session
         const { data: { session: currentSession }, error } = await supabase.auth.getSession()
         
         if (error) {
           logger.error('Error getting session', error)
-          if (mounted) {
-            setIsLoading(false)
-          }
-          return
-        }
-
-        if (currentSession?.user && mounted) {
+        } else if (currentSession?.user && mounted) {
           logger.info('Found existing session')
           setSession(currentSession)
-          await loadUserProfile(currentSession.user)
+          
+          // Load user profile in background
+          loadUserProfile(currentSession.user).then((authUser) => {
+            if (mounted) {
+              setUser(authUser)
+              logger.info('User profile set', authUser)
+            }
+          }).catch((error) => {
+            logger.error('Profile loading failed', error)
+            if (mounted) {
+              setUser(createFallbackUser(currentSession.user))
+            }
+          })
         }
         
+        // Always set loading to false after initial check
         if (mounted) {
           setIsLoading(false)
         }
@@ -87,15 +152,22 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       
       if (event === 'SIGNED_IN' && session?.user) {
         setSession(session)
-        await loadUserProfile(session.user)
+        
+        // Load user profile in background
+        loadUserProfile(session.user).then((authUser) => {
+          if (mounted) {
+            setUser(authUser)
+            logger.info('User profile set from auth change', authUser)
+          }
+        }).catch((error) => {
+          logger.error('Profile loading failed in auth change', error)
+          if (mounted) {
+            setUser(createFallbackUser(session.user))
+          }
+        })
       } else if (event === 'SIGNED_OUT') {
         setSession(null)
         setUser(null)
-      }
-      
-      // Always set loading to false after auth state change
-      if (mounted) {
-        setIsLoading(false)
       }
     })
 
@@ -108,103 +180,19 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     }
   }, [])
 
-  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
-    try {
-      logger.info('Loading user profile', { userId: supabaseUser.id })
-      
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', supabaseUser.id)
-        .maybeSingle()
-
-      if (error && error.code !== 'PGRST116') {
-        logger.error('Error loading user profile', error)
-        // Don't throw here, create fallback user instead
-      }
-
-      let authUser: AuthUser
-
-      if (userData) {
-        authUser = {
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          role: userData.role,
-          hotelId: userData.hotel_id,
-          roomNumber: userData.room_number,
-          can_manage_rooms: userData.can_manage_rooms,
-          can_manage_staff: userData.can_manage_staff
-        }
-        logger.info('User profile loaded successfully', authUser)
-      } else {
-        // Create basic user profile for new users or if profile fetch fails
-        logger.info('Creating fallback user profile')
-        
-        authUser = {
-          id: supabaseUser.id,
-          email: supabaseUser.email!,
-          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
-          role: 'admin'
-        }
-
-        // Try to create user profile in background, but don't wait for it
-        const newUserData = {
-          id: supabaseUser.id,
-          email: supabaseUser.email!,
-          name: authUser.name,
-          role: 'admin' as const,
-          password_hash: 'handled_by_auth',
-          needs_password_setup: false,
-          email_verified: true
-        }
-
-        supabase
-          .from('users')
-          .insert(newUserData)
-          .then(({ error: insertError }) => {
-            if (insertError) {
-              logger.error('Error creating user profile (background)', insertError)
-            } else {
-              logger.info('User profile created in background')
-            }
-          })
-      }
-      
-      setUser(authUser)
-      logger.info('User state updated', authUser)
-    } catch (error) {
-      logger.error('Failed to load user profile', error)
-      
-      // Always set fallback user to prevent app from breaking
-      const fallbackUser: AuthUser = {
-        id: supabaseUser.id,
-        email: supabaseUser.email!,
-        name: supabaseUser.email?.split('@')[0] || 'User',
-        role: 'admin'
-      }
-      setUser(fallbackUser)
-      logger.info('Fallback user set', fallbackUser)
-    }
-  }
-
   const signIn = async (email: string, password: string) => {
     try {
       logger.info('Attempting sign in', { email })
-      setIsLoading(true)
       
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       
       if (error) {
         logger.error('Sign in failed', error)
-        setIsLoading(false)
         throw error
       }
       
       logger.info('Sign in successful')
-      // Loading state will be set to false by auth state change handler
     } catch (error) {
-      setIsLoading(false)
       throw error
     }
   }
@@ -212,7 +200,6 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const signUp = async (email: string, password: string, name: string) => {
     try {
       logger.info('Attempting sign up', { email, name })
-      setIsLoading(true)
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -225,14 +212,11 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       
       if (error) {
         logger.error('Sign up failed', error)
-        setIsLoading(false)
         throw error
       }
       
       logger.info('Sign up successful')
-      // Loading state will be set to false by auth state change handler
     } catch (error) {
-      setIsLoading(false)
       throw error
     }
   }
@@ -269,10 +253,8 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       }
       
       setUser(guestUser)
-      setIsLoading(false)
       logger.info('Guest sign in successful', guestUser)
     } catch (error) {
-      setIsLoading(false)
       logger.error('Guest sign in error', error)
       throw error
     }
