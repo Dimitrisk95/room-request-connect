@@ -61,6 +61,29 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     const fallbackUser = createFallbackUser(supabaseUser)
     
     try {
+      // Check for pending hotel ID from setup
+      const pendingHotelId = localStorage.getItem("pendingHotelId");
+      if (pendingHotelId) {
+        console.log("[Auth] Found pending hotel ID, updating user:", pendingHotelId);
+        
+        // Try to update the user with the pending hotel ID
+        try {
+          const { error: updateError } = await supabase
+            .from("users")
+            .update({ hotel_id: pendingHotelId })
+            .eq("id", supabaseUser.id);
+            
+          if (!updateError) {
+            console.log("[Auth] Successfully updated user with pending hotel ID");
+            localStorage.removeItem("pendingHotelId");
+          } else {
+            console.error("[Auth] Failed to update user with pending hotel ID:", updateError);
+          }
+        } catch (error) {
+          console.error("[Auth] Error updating user with pending hotel ID:", error);
+        }
+      }
+      
       // Try to fetch user profile with timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)

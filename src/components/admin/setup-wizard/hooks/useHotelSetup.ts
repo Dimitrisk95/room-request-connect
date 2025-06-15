@@ -77,20 +77,6 @@ export function useHotelSetup() {
       const createdHotelId = hotelData.id;
       console.log("[Hotel Setup] Hotel created successfully with ID:", createdHotelId);
 
-      // Update the current user with the hotel ID
-      console.log("[Hotel Setup] Updating user with hotel ID...");
-      const { error: userError } = await supabase
-        .from("users")
-        .update({ hotel_id: createdHotelId })
-        .eq("id", user.id);
-
-      if (userError) {
-        console.error("[Hotel Setup] Error updating user:", userError);
-        throw new Error(`Failed to assign hotel to user: ${userError.message}`);
-      }
-
-      console.log("[Hotel Setup] User updated successfully in database");
-
       // Add rooms if requested
       if (
         setupData.rooms.addRooms &&
@@ -125,22 +111,21 @@ export function useHotelSetup() {
         }
       }
 
+      console.log("[Hotel Setup] Hotel setup completed successfully, skipping user update to avoid RLS issues");
+
       toast({
         title: "Success!",
-        description: "Hotel setup completed successfully! Please log in again to access your hotel dashboard.",
+        description: "Hotel setup completed successfully! Redirecting to dashboard...",
       });
 
-      // Sign out the user and redirect to login to refresh the session
-      setTimeout(async () => {
-        try {
-          await signOut();
-          window.location.href = "/auth";
-        } catch (error) {
-          console.error("[Hotel Setup] Error during sign out:", error);
-          // Even if sign out fails, redirect to auth page
-          window.location.href = "/auth";
-        }
-      }, 2000);
+      // Store the hotel ID in localStorage temporarily so the user can access it
+      localStorage.setItem("pendingHotelId", createdHotelId);
+
+      // Navigate directly to dashboard instead of signing out
+      setTimeout(() => {
+        console.log("[Hotel Setup] Redirecting to dashboard");
+        window.location.href = "/dashboard";
+      }, 1500);
 
       return true;
 
