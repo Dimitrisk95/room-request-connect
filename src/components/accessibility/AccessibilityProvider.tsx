@@ -40,31 +40,33 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
 
   useEffect(() => {
     // Load accessibility settings from localStorage
-    try {
-      const savedSettings = localStorage.getItem("accessibility-settings");
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(parsed);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const savedSettings = localStorage.getItem("accessibility-settings");
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
+          setSettings(parsed);
+        }
+      } catch (error) {
+        console.error("Failed to parse accessibility settings:", error);
       }
-    } catch (error) {
-      console.error("Failed to parse accessibility settings:", error);
-    }
 
-    // Detect if user prefers reduced motion
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReducedMotion) {
-        setSettings(prev => ({ ...prev, reduceMotion: true }));
+      // Detect if user prefers reduced motion
+      if (window.matchMedia) {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReducedMotion) {
+          setSettings(prev => ({ ...prev, reduceMotion: true }));
+        }
       }
-    }
 
-    // Detect if screen reader is likely being used
-    if (typeof window !== 'undefined' && window.navigator) {
-      const hasScreenReader = window.navigator.userAgent.includes('NVDA') || 
-                              window.navigator.userAgent.includes('JAWS') ||
-                              (window.speechSynthesis && typeof window.speechSynthesis !== 'undefined');
-      if (hasScreenReader) {
-        setSettings(prev => ({ ...prev, screenReader: true }));
+      // Detect if screen reader is likely being used
+      if (window.navigator) {
+        const hasScreenReader = window.navigator.userAgent.includes('NVDA') || 
+                                window.navigator.userAgent.includes('JAWS') ||
+                                (window.speechSynthesis && typeof window.speechSynthesis !== 'undefined');
+        if (hasScreenReader) {
+          setSettings(prev => ({ ...prev, screenReader: true }));
+        }
       }
     }
   }, []);
@@ -94,10 +96,12 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     }
 
     // Save settings
-    try {
-      localStorage.setItem("accessibility-settings", JSON.stringify(settings));
-    } catch (error) {
-      console.error("Failed to save accessibility settings:", error);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem("accessibility-settings", JSON.stringify(settings));
+      } catch (error) {
+        console.error("Failed to save accessibility settings:", error);
+      }
     }
   }, [settings]);
 
@@ -119,16 +123,18 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
       {children}
       
       {/* Screen reader announcements */}
-      <div 
-        aria-live="polite" 
-        aria-atomic="true"
-        className="sr-only"
-        role="status"
-      >
-        {announcements.map((announcement, index) => (
-          <div key={index}>{announcement}</div>
-        ))}
-      </div>
+      {typeof document !== 'undefined' && (
+        <div 
+          aria-live="polite" 
+          aria-atomic="true"
+          className="sr-only"
+          role="status"
+        >
+          {announcements.map((announcement, index) => (
+            <div key={index}>{announcement}</div>
+          ))}
+        </div>
+      )}
     </AccessibilityContext.Provider>
   );
 };
