@@ -15,18 +15,18 @@ interface AppProvidersProps {
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
     <ErrorBoundary>
-      <PWAProvider>
-        <AccessibilityProvider>
-          <RateLimitProvider>
-            <Router>
-              <AuthProvider>
+      <AccessibilityProvider>
+        <RateLimitProvider>
+          <Router>
+            <AuthProvider>
+              <PWAProvider>
                 {children}
                 <Toaster />
-              </AuthProvider>
-            </Router>
-          </RateLimitProvider>
-        </AccessibilityProvider>
-      </PWAProvider>
+              </PWAProvider>
+            </AuthProvider>
+          </Router>
+        </RateLimitProvider>
+      </AccessibilityProvider>
     </ErrorBoundary>
   );
 };
