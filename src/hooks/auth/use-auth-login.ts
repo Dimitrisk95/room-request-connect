@@ -75,7 +75,26 @@ export const useAuthLogin = ({ updateUser }: LoginOptions) => {
           throw newUserError;
         }
 
-        userData = newUserData;
+        // Use the newly created user data
+        const userObject: User = {
+          id: data.user.id,
+          name: newUserData.name,
+          email: data.user.email!,
+          role: newUserData.role,
+          hotelId: newUserData.hotel_id,
+          can_manage_rooms: newUserData.can_manage_rooms || false,
+          can_manage_staff: newUserData.can_manage_staff || false
+        };
+
+        console.log("User logged in successfully:", {
+          id: userObject.id,
+          email: userObject.email,
+          role: userObject.role,
+          hotelId: userObject.hotelId
+        });
+
+        updateUser(userObject);
+        return userObject;
       } else {
         throw userError;
       }
