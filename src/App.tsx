@@ -32,7 +32,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    logger.info('Redirecting to auth - no user found');
     return <Navigate to="/auth" replace />;
   }
   
@@ -41,8 +40,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
-  
-  logger.info('App rendering', { hasUser: !!user, userRole: user?.role, isLoading });
   
   // Show loading state while auth is being determined
   if (isLoading) {

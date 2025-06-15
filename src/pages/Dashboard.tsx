@@ -4,19 +4,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Hotel, Users, Calendar, Settings, ClipboardList, LogOut, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect admin without hotel to setup
+  useEffect(() => {
+    if (user?.role === 'admin' && !user?.hotelId) {
+      navigate('/setup');
+    }
+  }, [user, navigate]);
+
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
-  // If admin doesn't have a hotel, redirect to setup
+  // Don't render dashboard if admin needs setup
   if (user?.role === 'admin' && !user?.hotelId) {
-    navigate('/setup');
     return null;
   }
 

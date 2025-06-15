@@ -45,50 +45,56 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    logger.info('Initializing auth provider')
+    let mounted = true
 
-    // Set up auth state listener first
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+      
       logger.info('Auth state changed', { event, hasSession: !!session })
       
-      setSession(session)
-      
-      if (session?.user) {
-        // Use setTimeout to prevent auth deadlock
-        setTimeout(async () => {
-          await loadUserProfile(session.user)
-        }, 0)
-      } else {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setSession(session)
+        await loadUserProfile(session.user)
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null)
         setUser(null)
       }
       
-      setIsLoading(false)
+      if (mounted) {
+        setIsLoading(false)
+      }
     })
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        logger.error('Error getting initial session', error)
-        setIsLoading(false)
-        return
-      }
+    // Check for existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          logger.error('Error getting session', error)
+          if (mounted) setIsLoading(false)
+          return
+        }
 
-      logger.info('Initial session check', { hasSession: !!session })
-      setSession(session)
-      
-      if (session?.user) {
-        // Use setTimeout to prevent auth deadlock
-        setTimeout(async () => {
+        if (session?.user && mounted) {
+          setSession(session)
           await loadUserProfile(session.user)
+        }
+        
+        if (mounted) {
           setIsLoading(false)
-        }, 0)
-      } else {
-        setIsLoading(false)
+        }
+      } catch (error) {
+        logger.error('Session initialization error', error)
+        if (mounted) setIsLoading(false)
       }
-    })
+    }
+
+    initializeAuth()
 
     return () => {
-      logger.info('Cleaning up auth subscription')
+      mounted = false
       subscription.unsubscribe()
     }
   }, [])
@@ -103,13 +109,15 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         .eq('id', supabaseUser.id)
         .maybeSingle()
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         logger.error('Error loading user profile', error)
         throw error
       }
 
+      let authUser: AuthUser
+
       if (userData) {
-        const authUser: AuthUser = {
+        authUser = {
           id: userData.id,
           email: userData.email,
           name: userData.name,
@@ -119,13 +127,8 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           can_manage_rooms: userData.can_manage_rooms,
           can_manage_staff: userData.can_manage_staff
         }
-        
-        logger.info('User profile loaded successfully', authUser)
-        setUser(authUser)
       } else {
-        // Create basic user profile if it doesn't exist
-        logger.info('Creating new user profile', { email: supabaseUser.email })
-        
+        // Create basic user profile for new users
         const newUserData = {
           id: supabaseUser.id,
           email: supabaseUser.email!,
@@ -142,22 +145,22 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
 
         if (insertError) {
           logger.error('Error creating user profile', insertError)
-          throw insertError
         }
 
-        const authUser: AuthUser = {
+        authUser = {
           id: newUserData.id,
           email: newUserData.email,
           name: newUserData.name,
           role: newUserData.role
         }
-        
-        logger.info('New user profile created', authUser)
-        setUser(authUser)
       }
+      
+      logger.info('User profile loaded', authUser)
+      setUser(authUser)
     } catch (error) {
       logger.error('Failed to load user profile', error)
-      // Set a basic user anyway to prevent infinite loading
+      
+      // Set fallback user to prevent app from breaking
       const fallbackUser: AuthUser = {
         id: supabaseUser.id,
         email: supabaseUser.email!,
@@ -177,15 +180,12 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       
       if (error) {
         logger.error('Sign in failed', error)
-        setIsLoading(false)
         throw error
       }
       
       logger.info('Sign in successful')
-      // Don't set loading to false here - let the auth state change handler do it
     } catch (error) {
       setIsLoading(false)
-      logger.error('Sign in error', error)
       throw error
     }
   }
@@ -206,15 +206,12 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       
       if (error) {
         logger.error('Sign up failed', error)
-        setIsLoading(false)
         throw error
       }
       
       logger.info('Sign up successful')
-      // Don't set loading to false here - let the auth state change handler do it
     } catch (error) {
       setIsLoading(false)
-      logger.error('Sign up error', error)
       throw error
     }
   }
@@ -231,8 +228,6 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       }
       
       logger.info('Sign out successful')
-      setUser(null)
-      setSession(null)
     } catch (error) {
       logger.error('Sign out error', error)
       throw error

@@ -7,12 +7,14 @@ import { useAuth } from './SimpleAuthProvider'
 import { useLogger } from '@/utils/logger'
 import { Hotel, User, Users, Loader2, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useNavigate } from 'react-router-dom'
 
 type AuthMode = 'staff' | 'guest' | 'admin'
 
 export const ModernAuthForm: React.FC = () => {
   const { signIn, signUp, guestSignIn, isLoading } = useAuth()
   const logger = useLogger()
+  const navigate = useNavigate()
   
   const [mode, setMode] = useState<AuthMode>('admin')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -35,27 +37,21 @@ export const ModernAuthForm: React.FC = () => {
       if (mode === 'guest') {
         await guestSignIn(hotelCode, roomCode)
         logger.info('Guest login successful')
-        window.location.href = '/dashboard'
+        navigate('/dashboard')
       } else if (isSignUp) {
         await signUp(email, password, name)
         logger.info('Admin registration successful')
-        // For signup, we might need to wait for email confirmation
-        // Just redirect to dashboard for now
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 1000)
+        navigate('/dashboard')
       } else {
         await signIn(email, password)
         logger.info('Staff/Admin login successful')
-        // Small delay to ensure auth state is updated
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 500)
+        navigate('/dashboard')
       }
     } catch (err: any) {
       const errorMessage = err.message || 'Authentication failed'
       setError(errorMessage)
       logger.error('Authentication error', err)
+    } finally {
       setLocalLoading(false)
     }
   }
