@@ -47,6 +47,34 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   useEffect(() => {
     let mounted = true
 
+    const initializeAuth = async () => {
+      try {
+        logger.info('Initializing auth...')
+        
+        // Check for existing session first
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          logger.error('Error getting session', error)
+          if (mounted) setIsLoading(false)
+          return
+        }
+
+        if (currentSession?.user && mounted) {
+          logger.info('Found existing session')
+          setSession(currentSession)
+          await loadUserProfile(currentSession.user)
+        }
+        
+        if (mounted) {
+          setIsLoading(false)
+        }
+      } catch (error) {
+        logger.error('Session initialization error', error)
+        if (mounted) setIsLoading(false)
+      }
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
@@ -61,36 +89,13 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         setUser(null)
       }
       
+      // Always set loading to false after auth state change
       if (mounted) {
         setIsLoading(false)
       }
     })
 
-    // Check for existing session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          logger.error('Error getting session', error)
-          if (mounted) setIsLoading(false)
-          return
-        }
-
-        if (session?.user && mounted) {
-          setSession(session)
-          await loadUserProfile(session.user)
-        }
-        
-        if (mounted) {
-          setIsLoading(false)
-        }
-      } catch (error) {
-        logger.error('Session initialization error', error)
-        if (mounted) setIsLoading(false)
-      }
-    }
-
+    // Initialize auth
     initializeAuth()
 
     return () => {
@@ -180,10 +185,12 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       
       if (error) {
         logger.error('Sign in failed', error)
+        setIsLoading(false)
         throw error
       }
       
       logger.info('Sign in successful')
+      // Loading state will be set to false by auth state change handler
     } catch (error) {
       setIsLoading(false)
       throw error
@@ -206,10 +213,12 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       
       if (error) {
         logger.error('Sign up failed', error)
+        setIsLoading(false)
         throw error
       }
       
       logger.info('Sign up successful')
+      // Loading state will be set to false by auth state change handler
     } catch (error) {
       setIsLoading(false)
       throw error
