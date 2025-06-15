@@ -56,7 +56,9 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         
         if (error) {
           logger.error('Error getting session', error)
-          if (mounted) setIsLoading(false)
+          if (mounted) {
+            setIsLoading(false)
+          }
           return
         }
 
@@ -71,7 +73,9 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         }
       } catch (error) {
         logger.error('Session initialization error', error)
-        if (mounted) setIsLoading(false)
+        if (mounted) {
+          setIsLoading(false)
+        }
       }
     }
 
@@ -108,18 +112,11 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     try {
       logger.info('Loading user profile', { userId: supabaseUser.id })
       
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile load timeout')), 10000)
-      })
-
-      const profilePromise = supabase
+      const { data: userData, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', supabaseUser.id)
         .maybeSingle()
-
-      const { data: userData, error } = await Promise.race([profilePromise, timeoutPromise]) as any
 
       if (error && error.code !== 'PGRST116') {
         logger.error('Error loading user profile', error)

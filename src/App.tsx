@@ -23,6 +23,8 @@ const queryClient = new QueryClient({
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
+  logger.info('ProtectedRoute check', { user: !!user, isLoading });
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -40,6 +42,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
+  
+  logger.info('AppContent render', { user: !!user, isLoading });
   
   // Show loading state while auth is being determined
   if (isLoading) {
