@@ -5,7 +5,8 @@ import { Steps } from "@/components/ui/steps";
 import { Hotel, Check } from "lucide-react";
 import { useAuth } from "@/context";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import HotelSetupStep from "./HotelSetupStep";
 import { SetupData } from "./types";
 
@@ -15,6 +16,8 @@ interface SimpleSetupWizardProps {
 
 const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
   const { user, updateUser } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
   const [setupData, setSetupData] = useState<SetupData>({
@@ -92,6 +95,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
         .single();
 
       if (hotelError) {
+        console.error("Hotel creation error:", hotelError);
         throw hotelError;
       }
 
@@ -106,6 +110,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
           .eq("id", user.id);
 
         if (userError) {
+          console.error("User update error:", userError);
           throw userError;
         }
 
@@ -115,13 +120,17 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
         console.log("User updated with hotel ID:", hotelId);
       }
 
-      toast.success("Hotel setup completed successfully!");
+      toast({
+        title: "Hotel setup completed successfully!",
+        description: "Your hotel is now ready. Redirecting to dashboard...",
+      });
+      
       console.log("Hotel creation completed, redirecting to dashboard");
       
-      // Simple redirect after successful creation
+      // Navigate to dashboard after successful creation
       setTimeout(() => {
-        window.location.replace('/dashboard');
-      }, 1000);
+        navigate('/dashboard');
+      }, 1500);
       
     } catch (error: any) {
       console.error("Error setting up hotel:", error);
@@ -133,7 +142,11 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
         errorMessage = error.message;
       }
       
-      toast.error(errorMessage);
+      toast({
+        title: "Setup Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
       setIsCreating(false);
     }
   };
@@ -207,7 +220,7 @@ const SimpleSetupWizard = ({ debugMode = false }: SimpleSetupWizardProps) => {
                 
                 {debugMode && (
                   <button
-                    onClick={() => window.location.replace('/dashboard')}
+                    onClick={() => navigate('/dashboard')}
                     className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 h-10 px-4 py-2 rounded-md font-medium"
                   >
                     Go to Dashboard (Debug)

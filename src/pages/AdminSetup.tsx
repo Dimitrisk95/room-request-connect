@@ -13,18 +13,21 @@ const AdminSetup = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
+      console.log("User not authenticated, redirecting to login");
       navigate("/login");
       return;
     }
 
     // If user already has a hotel, redirect to dashboard
     if (user?.hotelId) {
+      console.log("User already has hotel, redirecting to dashboard");
       navigate("/dashboard");
       return;
     }
 
     // If not an admin, redirect to dashboard
     if (user?.role !== "admin") {
+      console.log("User is not admin, redirecting to dashboard");
       navigate("/dashboard");
       return;
     }
@@ -81,11 +84,11 @@ const AdminSetup = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/login")}
             className="mr-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Back to Login
           </Button>
           <div className="flex items-center">
             <Hotel className="h-6 w-6 text-primary mr-2" />
@@ -96,7 +99,7 @@ const AdminSetup = () => {
         <div className="max-w-4xl mx-auto">
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Welcome to Hotel Connect</CardTitle>
+              <CardTitle>Welcome to Roomlix</CardTitle>
               <CardDescription>
                 Let's set up your hotel so you can start managing rooms, staff, and guest requests.
                 This process will only take a few minutes.

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Eye, EyeOff, Info, Shield, ShieldCheck, ShieldX } from "lucide-react";
@@ -11,7 +12,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { registerFormSchema, type RegisterFormValues } from "./schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import EmailVerificationPrompt from "@/components/auth/EmailVerificationPrompt";
 
 export function RegisterForm() {
   const { createStaffAccount } = useAuth();
@@ -21,10 +21,6 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
-  const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null);
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -34,42 +30,22 @@ export function RegisterForm() {
       password: "",
       confirmPassword: "",
     },
-    mode: "onChange", // Enable real-time validation
   });
 
-  // Check password strength
-  useEffect(() => {
-    const password = form.watch("password");
-    if (!password) {
-      setPasswordStrength(0);
-      return;
-    }
+  const getPasswordStrength = (password: string) => {
+    if (!password) return 0;
     
     let strength = 0;
-    // Length check
     if (password.length >= 8) strength += 25;
-    // Contains number
     if (/\d/.test(password)) strength += 25;
-    // Contains lowercase
     if (/[a-z]/.test(password)) strength += 25;
-    // Contains uppercase or special char
     if (/[A-Z]/.test(password) || /[^A-Za-z0-9]/.test(password)) strength += 25;
     
-    setPasswordStrength(strength);
-  }, [form.watch("password")]);
+    return strength;
+  };
 
-  // Check if passwords match
-  useEffect(() => {
-    const password = form.watch("password");
-    const confirmPassword = form.watch("confirmPassword");
-    
-    if (!confirmPassword) {
-      setPasswordMatch(null);
-      return;
-    }
-    
-    setPasswordMatch(password === confirmPassword);
-  }, [form.watch("password"), form.watch("confirmPassword")]);
+  const passwordStrength = getPasswordStrength(form.watch("password"));
+  const passwordMatch = form.watch("password") === form.watch("confirmPassword");
 
   const getPasswordStrengthColor = () => {
     if (passwordStrength < 50) return "bg-destructive";
@@ -96,13 +72,14 @@ export function RegisterForm() {
       );
       
       console.log("Admin account created successfully");
-      setRegisteredEmail(values.email);
-      setShowEmailVerification(true);
-      
       toast({
         title: "Registration successful",
-        description: "Please check your email to verify your account.",
+        description: "Account created! You can now log in.",
       });
+      
+      // Redirect directly to login with newAdmin flag
+      navigate("/login?newAdmin=true");
+      
     } catch (error: any) {
       console.error("Registration error:", error);
       
@@ -129,23 +106,6 @@ export function RegisterForm() {
       setLoading(false);
     }
   };
-
-  const handleEmailVerified = () => {
-    toast({
-      title: "Email verified!",
-      description: "Your account is now active. You can log in.",
-    });
-    navigate("/login?verified=true");
-  };
-
-  if (showEmailVerification) {
-    return (
-      <EmailVerificationPrompt
-        email={registeredEmail}
-        onVerified={handleEmailVerified}
-      />
-    );
-  }
 
   return (
     <Form {...form}>
@@ -243,7 +203,7 @@ export function RegisterForm() {
                   <Input 
                     type={showConfirmPassword ? "text" : "password"} 
                     {...field} 
-                    className={passwordMatch === false ? "border-destructive" : ""}
+                    className={!passwordMatch && field.value ? "border-destructive" : ""}
                   />
                   <Button
                     type="button"
@@ -256,13 +216,13 @@ export function RegisterForm() {
                   </Button>
                 </div>
               </FormControl>
-              {passwordMatch === false && field.value && (
+              {!passwordMatch && field.value && (
                 <p className="text-destructive text-xs flex items-center mt-1">
                   <AlertCircle className="h-3.5 w-3.5 mr-1" />
                   Passwords do not match
                 </p>
               )}
-              {passwordMatch === true && field.value && (
+              {passwordMatch && field.value && (
                 <p className="text-green-500 text-xs flex items-center mt-1">
                   <ShieldCheck className="h-3.5 w-3.5 mr-1" />
                   Passwords match
@@ -276,7 +236,7 @@ export function RegisterForm() {
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={loading || passwordMatch === false}
+          disabled={loading || (!passwordMatch && !!form.watch("confirmPassword"))}
         >
           {loading ? "Creating Account..." : "Create Admin Account"}
         </Button>
