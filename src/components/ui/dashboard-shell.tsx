@@ -1,8 +1,7 @@
-
 import React, { ReactNode, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Calendar, Hotel, MessageSquare, User, Users, Building, Settings, Key, BarChart3 } from "lucide-react";
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { useAccessibility } from "@/components/accessibility/AccessibilityProvider";
 import Sidebar from "@/components/ui/sidebar/Sidebar";
@@ -17,7 +16,7 @@ interface DashboardShellProps {
 }
 
 const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
-  const { logout, user } = useAuth();
+  const { signOut, user } = useAuth();
   const { announceToScreenReader } = useAccessibility();
   const [showNotifications, setShowNotifications] = useState(false);
   const isMobile = useIsMobile();
@@ -56,7 +55,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({ children }) => {
 
   const handleLogout = () => {
     announceToScreenReader("Logging out...");
-    logout();
+    signOut();
   };
 
   const toggleNotifications = () => {
