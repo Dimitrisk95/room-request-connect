@@ -77,6 +77,18 @@ export function useHotelSetup() {
       const createdHotelId = hotelData.id;
       console.log("[Hotel Setup] Hotel created successfully with ID:", createdHotelId);
 
+      // Update user with hotel_id
+      console.log("[Hotel Setup] Updating user with hotel_id:", createdHotelId);
+      const { error: userUpdateError } = await supabase
+        .from("users")
+        .update({ hotel_id: createdHotelId })
+        .eq("id", user.id);
+
+      if (userUpdateError) {
+        console.error("[Hotel Setup] Failed to update user with hotel_id:", userUpdateError);
+        throw new Error(`Failed to associate user with hotel: ${userUpdateError.message}`);
+      }
+
       // Add rooms if requested
       if (
         setupData.rooms.addRooms &&
@@ -111,20 +123,17 @@ export function useHotelSetup() {
         }
       }
 
-      console.log("[Hotel Setup] Hotel setup completed successfully, skipping user update to avoid RLS issues");
+      console.log("[Hotel Setup] Hotel setup completed successfully");
 
       toast({
         title: "Success!",
-        description: "Hotel setup completed successfully! Redirecting to dashboard...",
+        description: "Hotel setup completed successfully! Redirecting to admin dashboard...",
       });
 
-      // Store the hotel ID in localStorage temporarily so the user can access it
-      localStorage.setItem("pendingHotelId", createdHotelId);
-
-      // Navigate directly to dashboard instead of signing out
+      // Navigate directly to admin dashboard
       setTimeout(() => {
-        console.log("[Hotel Setup] Redirecting to dashboard");
-        window.location.href = "/dashboard";
+        console.log("[Hotel Setup] Redirecting to admin dashboard");
+        navigate("/admin-dashboard");
       }, 1500);
 
       return true;

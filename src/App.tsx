@@ -7,6 +7,7 @@ import { LogViewer } from "./components/debug/LogViewer";
 import { Toaster } from "@/components/ui/toaster";
 import Dashboard from "./pages/Dashboard";
 import AdminSetup from "./pages/AdminSetup";
+import AdminDashboard from "./pages/AdminDashboard";
 import Index from "./pages/Index";
 import { logger } from "./utils/logger";
 
@@ -78,6 +79,14 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-dashboard" 
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
             </ProtectedRoute>
           } 
         />
