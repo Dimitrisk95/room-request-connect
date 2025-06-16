@@ -11,12 +11,13 @@ export const signIn = async (email: string, password: string) => {
     
     if (error) {
       logger.error('Sign in failed', error)
-      throw error
+      return { error }
     }
     
     logger.info('Sign in successful')
+    return { error: null }
   } catch (error) {
-    throw error
+    return { error }
   }
 }
 
@@ -35,12 +36,13 @@ export const signUp = async (email: string, password: string, name: string) => {
     
     if (error) {
       logger.error('Sign up failed', error)
-      throw error
+      return { error }
     }
     
     logger.info('Sign up successful')
+    return { error: null }
   } catch (error) {
-    throw error
+    return { error }
   }
 }
 

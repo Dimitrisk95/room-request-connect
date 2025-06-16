@@ -1,61 +1,81 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SetupData } from "../../types";
+import { logger } from "@/utils/logger";
 
-// Simple, bulletproof hotel code generation
-const generateSimpleHotelCode = (): string => {
-  const timestamp = Date.now().toString();
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `HOTEL_${timestamp.slice(-6)}_${random}`;
+export interface HotelData {
+  name: string;
+  code: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+export const createHotel = async (hotelData: HotelData) => {
+  try {
+    logger.info('Creating hotel', hotelData);
+
+    const { data: hotel, error: hotelError } = await supabase
+      .from('hotels')
+      .insert({
+        name: hotelData.name,
+        code: hotelData.code,
+        contact_email: hotelData.email,
+        contact_phone: hotelData.phone,
+        address: hotelData.address
+      })
+      .select()
+      .single();
+
+    if (hotelError) {
+      logger.error('Error creating hotel', hotelError);
+      throw hotelError;
+    }
+
+    logger.info('Hotel created successfully', hotel);
+
+    // Associate the current user with the hotel
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      const { error: userUpdateError } = await supabase
+        .from('users')
+        .update({ hotel_id: hotel.id })
+        .eq('id', user.id);
+
+      if (userUpdateError) {
+        logger.error('Error associating user with hotel', userUpdateError);
+        throw userUpdateError;
+      }
+
+      logger.info('User associated with hotel successfully');
+      
+      // Store hotel ID in localStorage to trigger user profile refresh
+      localStorage.setItem("pendingHotelId", hotel.id);
+    }
+
+    return hotel;
+  } catch (error) {
+    logger.error('Hotel creation failed', error);
+    throw error;
+  }
 };
 
-export const createHotelSimple = async (setupData: SetupData, userId: string): Promise<string> => {
-  console.log("[Simple Hotel Creation] Starting process...");
-  
-  // Generate a guaranteed unique code using timestamp + random
-  const uniqueHotelCode = generateSimpleHotelCode();
-  console.log("[Simple Hotel Creation] Generated unique code:", uniqueHotelCode);
+export const checkHotelNameExists = async (name: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('hotels')
+      .select('id')
+      .eq('name', name)
+      .maybeSingle();
 
-  // Use the hotel name as provided (validation already done in the form)
-  const hotelName = setupData.hotel.name.trim();
-  console.log("[Simple Hotel Creation] Using hotel name:", hotelName);
+    if (error) {
+      logger.error('Error checking hotel name', error);
+      return false;
+    }
 
-  const hotelData = {
-    name: hotelName,
-    address: setupData.hotel.address?.trim() || null,
-    contact_email: setupData.hotel.contactEmail?.trim() || null,
-    contact_phone: setupData.hotel.contactPhone?.trim() || null,
-    hotel_code: uniqueHotelCode,
-  };
-
-  console.log("[Simple Hotel Creation] Creating hotel with data:", hotelData);
-
-  // Create hotel
-  const { data: hotel, error: hotelError } = await supabase
-    .from("hotels")
-    .insert(hotelData)
-    .select()
-    .single();
-
-  if (hotelError) {
-    console.error("[Simple Hotel Creation] Hotel creation failed:", hotelError);
-    throw new Error(`Failed to create hotel: ${hotelError.message}`);
+    return !!data;
+  } catch (error) {
+    logger.error('Error checking hotel name existence', error);
+    return false;
   }
-
-  console.log("[Simple Hotel Creation] Hotel created successfully:", hotel.id);
-
-  // Associate user with hotel
-  const { error: userError } = await supabase
-    .from("users")
-    .update({ hotel_id: hotel.id })
-    .eq("id", userId);
-
-  if (userError) {
-    console.error("[Simple Hotel Creation] Failed to associate user:", userError);
-    throw new Error(`Failed to associate user with hotel: ${userError.message}`);
-  }
-
-  console.log("[Simple Hotel Creation] User associated successfully");
-  
-  return hotel.id;
 };
