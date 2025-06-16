@@ -19,7 +19,7 @@ const Dashboard = () => {
   };
 
   // If admin, redirect to admin dashboard
-  if (user?.role === 'admin') {
+  if (user?.role === 'admin' as any) {
     navigate('/admin-dashboard');
     return null;
   }
@@ -30,14 +30,14 @@ const Dashboard = () => {
       description: "Manage rooms, availability, and room assignments",
       icon: Hotel,
       path: "/rooms",
-      permission: user?.can_manage_rooms || user?.role === 'admin'
+      permission: user?.can_manage_rooms || (user?.role as any) === 'admin'
     },
     {
       title: "Staff Management", 
       description: "Manage staff accounts and permissions",
       icon: Users,
       path: "/staff-management",
-      permission: user?.can_manage_staff || user?.role === 'admin'
+      permission: user?.can_manage_staff || (user?.role as any) === 'admin'
     },
     {
       title: "Reservations",
@@ -58,7 +58,7 @@ const Dashboard = () => {
       description: "Hotel settings and configuration",
       icon: Settings,
       path: "/settings",
-      permission: user?.role === 'admin'
+      permission: (user?.role as any) === 'admin'
     }
   ];
 
