@@ -263,10 +263,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      auth_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
       create_new_user: {
         Args: {
           user_name: string
