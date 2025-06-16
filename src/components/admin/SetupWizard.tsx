@@ -1,10 +1,10 @@
 
-import SimpleSetupWizard from "./setup-wizard/SimpleSetupWizard";
+import SimpleHotelSetup from "./setup-wizard/SimpleHotelSetup";
 
 export { type SetupData } from "./setup-wizard/types";
 
 const SetupWizard = () => {
-  return <SimpleSetupWizard />;
+  return <SimpleHotelSetup />;
 };
 
 export default SetupWizard;
