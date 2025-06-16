@@ -65,23 +65,31 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       try {
         let authUser = await loadUserProfile(currentSession.user)
         
-        // If admin user doesn't have a hotel, create one automatically
-        if (authUser.role === 'admin' && !authUser.hotelId) {
+        // Only create hotel for admin users who don't have one AND we successfully loaded their profile
+        if (authUser.role === 'admin' && !authUser.hotelId && authUser.id === currentSession.user.id) {
           logger.info('Admin without hotel detected, creating default hotel');
-          const hotel = await createDefaultHotel(authUser.id);
-          authUser.hotelId = hotel.id;
-          logger.info('Default hotel created for admin', { hotelId: hotel.id, hotelName: hotel.name });
+          try {
+            const hotel = await createDefaultHotel(authUser.id);
+            authUser.hotelId = hotel.id;
+            logger.info('Default hotel created for admin', { hotelId: hotel.id, hotelName: hotel.name });
+          } catch (hotelError) {
+            logger.error('Failed to create hotel, continuing with auth anyway', hotelError);
+            // Continue with auth even if hotel creation fails
+          }
         }
         
         setUser(authUser)
         logger.info('User profile set', authUser)
       } catch (error) {
         logger.error('Profile loading failed', error)
-        setUser(createFallbackUser(currentSession.user))
+        const fallbackUser = createFallbackUser(currentSession.user)
+        setUser(fallbackUser)
+        logger.info('Using fallback user', fallbackUser)
       }
     } else {
       setUser(null)
     }
+    setIsLoading(false) // Always stop loading after processing
   }
 
   // Function to refresh user profile (can be called after hotel creation)
@@ -115,11 +123,11 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           logger.info('Found existing session')
           setSession(currentSession)
           await updateUserState(currentSession)
-        }
-        
-        // Always set loading to false after initial check
-        if (mounted) {
-          setIsLoading(false)
+        } else {
+          // No session found, stop loading
+          if (mounted) {
+            setIsLoading(false)
+          }
         }
       } catch (error) {
         logger.error('Session initialization error', error)
@@ -141,6 +149,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       } else if (event === 'SIGNED_OUT') {
         setSession(null)
         setUser(null)
+        setIsLoading(false)
       }
     })
 
@@ -156,6 +165,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const handleGuestSignIn = async (hotelCode: string, roomCode: string) => {
     const guestUser = await guestSignIn(hotelCode, roomCode)
     setUser(guestUser)
+    setIsLoading(false)
   }
 
   const value: AuthContextType = {

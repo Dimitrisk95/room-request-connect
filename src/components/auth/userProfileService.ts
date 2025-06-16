@@ -21,14 +21,14 @@ export const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<AuthU
   const fallbackUser = createFallbackUser(supabaseUser)
   
   try {
-    // Try to fetch user profile with timeout
+    // Reduced timeout to 3 seconds and simplified query
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
     })
     
     const fetchPromise = supabase
       .from('users')
-      .select('*')
+      .select('id, name, email, role, hotel_id, room_number, can_manage_rooms, can_manage_staff')
       .eq('id', supabaseUser.id)
       .maybeSingle()
     
@@ -70,7 +70,7 @@ export const refreshUserProfile = async (userId: string): Promise<AuthUser | nul
     
     const { data: userData, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, name, email, role, hotel_id, room_number, can_manage_rooms, can_manage_staff')
       .eq('id', userId)
       .single()
 
