@@ -18,7 +18,7 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
     if (isNewAdmin) {
       toast({
         title: "Welcome to Roomlix!",
-        description: "Please log in to set up your hotel.",
+        description: "Please log in to access your dashboard.",
       });
     }
   }, [isNewAdmin, toast]);
@@ -33,53 +33,32 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
         can_manage_staff: user.can_manage_staff
       });
       
-      // Check if admin needs to create a hotel
-      if (user.role === "admin" && !user.hotelId) {
-        console.log("Admin user without hotel, redirecting to setup");
-        navigate("/setup");
-        return;
-      }
-      
       // Handle guest users
       if (user.role === "guest" && user.roomNumber) {
         navigate(`/guest/${user.roomNumber}`);
         return;
       }
       
-      // If we have a stored location, redirect there (but not for admins without hotels)
-      if (locationState?.from && user.hotelId) {
-        navigate(locationState.from);
-        return;
-      }
-      
-      // For admin users with hotels, redirect to admin dashboard
-      if (user.role === "admin" && user.hotelId) {
+      // For admin users, always go to admin dashboard (hotel is auto-created)
+      if (user.role === "admin") {
         navigate("/admin-dashboard");
         return;
       }
       
-      // Default redirect to dashboard for authenticated users with hotels
-      if (user.hotelId) {
-        navigate("/dashboard");
-      } else if (user.role === "admin") {
-        // Admin without hotel should go to setup
-        navigate("/setup");
-      } else {
-        // Fallback to dashboard
-        navigate("/dashboard");
+      // If we have a stored location, redirect there
+      if (locationState?.from) {
+        navigate(locationState.from);
+        return;
       }
+      
+      // Default redirect to dashboard for authenticated users
+      navigate("/dashboard");
     }
   }, [isAuthenticated, needsPasswordSetup, user, navigate, locationState]);
   
   const navigateAfterStaffLogin = (user: User) => {
-    // Check if admin needs hotel setup
-    if (user.role === "admin" && !user.hotelId) {
-      navigate("/setup");
-      return;
-    }
-    
-    // For admin users with hotels, go to admin dashboard
-    if (user.role === "admin" && user.hotelId) {
+    // For admin users, go to admin dashboard
+    if (user.role === "admin") {
       navigate("/admin-dashboard");
       return;
     }

@@ -6,7 +6,6 @@ import { ModernAuthForm } from "./components/auth/ModernAuthForm";
 import { LogViewer } from "./components/debug/LogViewer";
 import { Toaster } from "@/components/ui/toaster";
 import Dashboard from "./pages/Dashboard";
-import AdminSetup from "./pages/AdminSetup";
 import AdminDashboard from "./pages/AdminDashboard";
 import Index from "./pages/Index";
 import { logger } from "./utils/logger";
@@ -65,14 +64,6 @@ const AppContent = () => {
         <Route 
           path="/auth" 
           element={!user ? <ModernAuthForm /> : <Navigate to="/" replace />} 
-        />
-        <Route 
-          path="/setup" 
-          element={
-            <ProtectedRoute>
-              <AdminSetup />
-            </ProtectedRoute>
-          } 
         />
         <Route 
           path="/dashboard" 

@@ -12,6 +12,49 @@ interface AuthProviderProps {
   children: React.ReactNode
 }
 
+const generateRandomHotelName = () => {
+  const prefixes = ['Hotel', 'Resort', 'Inn', 'Lodge', 'Suites'];
+  const suffixes = ['Plaza', 'Palace', 'Grand', 'Royal', 'Elite', 'Premium'];
+  const randomNum = Math.floor(Math.random() * 10000);
+  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+  const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+  return `${prefix} ${suffix} ${randomNum}`;
+};
+
+const createDefaultHotel = async (userId: string) => {
+  try {
+    const hotelName = generateRandomHotelName();
+    const hotelCode = `HTL${Math.floor(Math.random() * 10000)}`;
+    
+    const { data: hotel, error } = await supabase
+      .from('hotels')
+      .insert({
+        name: hotelName,
+        code: hotelCode,
+        address: 'Address to be configured',
+        contact_email: 'Contact email to be configured',
+        contact_phone: 'Phone to be configured'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Associate user with the hotel
+    const { error: userUpdateError } = await supabase
+      .from('users')
+      .update({ hotel_id: hotel.id })
+      .eq('id', userId);
+
+    if (userUpdateError) throw userUpdateError;
+
+    return hotel;
+  } catch (error) {
+    logger.error('Failed to create default hotel', error);
+    throw error;
+  }
+};
+
 export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -20,7 +63,16 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const updateUserState = async (currentSession: Session | null) => {
     if (currentSession?.user) {
       try {
-        const authUser = await loadUserProfile(currentSession.user)
+        let authUser = await loadUserProfile(currentSession.user)
+        
+        // If admin user doesn't have a hotel, create one automatically
+        if (authUser.role === 'admin' && !authUser.hotelId) {
+          logger.info('Admin without hotel detected, creating default hotel');
+          const hotel = await createDefaultHotel(authUser.id);
+          authUser.hotelId = hotel.id;
+          logger.info('Default hotel created for admin', { hotelId: hotel.id, hotelName: hotel.name });
+        }
+        
         setUser(authUser)
         logger.info('User profile set', authUser)
       } catch (error) {
@@ -54,13 +106,6 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       try {
         logger.info('Initializing auth...')
         
-        // Check for pending hotel ID from hotel creation
-        const pendingHotelId = localStorage.getItem("pendingHotelId")
-        if (pendingHotelId) {
-          logger.info('Found pending hotel ID, will refresh user profile')
-          localStorage.removeItem("pendingHotelId")
-        }
-        
         // Get current session
         const { data: { session: currentSession }, error } = await supabase.auth.getSession()
         
@@ -70,13 +115,6 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           logger.info('Found existing session')
           setSession(currentSession)
           await updateUserState(currentSession)
-          
-          // If there was a pending hotel ID, refresh the user profile
-          if (pendingHotelId) {
-            setTimeout(() => {
-              refreshUser()
-            }, 1000) // Small delay to ensure hotel association is complete
-          }
         }
         
         // Always set loading to false after initial check
@@ -100,20 +138,9 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       if (event === 'SIGNED_IN' && session?.user) {
         setSession(session)
         await updateUserState(session)
-        
-        // Check for pending hotel ID on sign in as well
-        const pendingHotelId = localStorage.getItem("pendingHotelId")
-        if (pendingHotelId) {
-          localStorage.removeItem("pendingHotelId")
-          setTimeout(() => {
-            refreshUser()
-          }, 1000)
-        }
       } else if (event === 'SIGNED_OUT') {
         setSession(null)
         setUser(null)
-        // Clear any pending hotel ID when user signs out
-        localStorage.removeItem("pendingHotelId")
       }
     })
 
@@ -139,7 +166,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     signUp,
     signOut,
     guestSignIn: handleGuestSignIn,
-    refreshUser // Expose the refresh function
+    refreshUser
   }
 
   return (
