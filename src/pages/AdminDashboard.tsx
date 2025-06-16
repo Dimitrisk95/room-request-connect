@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building, Key, UserPlus, Bed, Calendar, MessageSquare, Settings, BarChart3, Users } from "lucide-react";
 import DashboardShell from "@/components/ui/dashboard-shell";
