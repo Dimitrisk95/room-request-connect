@@ -3,14 +3,14 @@ import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import { SetupData } from "../types";
 import { useState } from "react";
-import { createHotelSimple } from "./services/simpleHotelCreationService";
+import { createHotel } from "./services/simpleHotelCreationService";
 
 export function useSimpleHotelSetup() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
 
-  const createHotel = async (setupData: SetupData) => {
+  const createHotelFromSetup = async (setupData: SetupData) => {
     if (!user) {
       toast({
         title: "Error",
@@ -38,7 +38,15 @@ export function useSimpleHotelSetup() {
     console.log("[Simple Hotel Setup] Starting hotel creation...");
 
     try {
-      const hotelId = await createHotelSimple(setupData, user.id);
+      const hotelData = {
+        name: setupData.hotel.name,
+        code: setupData.hotel.hotelCode,
+        email: setupData.hotel.contactEmail,
+        phone: setupData.hotel.contactPhone,
+        address: setupData.hotel.address
+      };
+
+      const hotel = await createHotel(hotelData);
       
       toast({
         title: "Success!",
@@ -46,7 +54,7 @@ export function useSimpleHotelSetup() {
       });
 
       // Store hotel ID and redirect
-      localStorage.setItem("pendingHotelId", hotelId);
+      localStorage.setItem("pendingHotelId", hotel.id);
       
       setTimeout(() => {
         console.log("[Simple Hotel Setup] Redirecting to admin dashboard");
@@ -69,5 +77,5 @@ export function useSimpleHotelSetup() {
     }
   };
 
-  return { isCreating, createHotel };
+  return { isCreating, createHotel: createHotelFromSetup };
 }
