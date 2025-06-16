@@ -42,7 +42,7 @@ export function useSimpleHotelSetup() {
       
       toast({
         title: "Success!",
-        description: `Hotel created successfully! Redirecting...`,
+        description: `Hotel "${setupData.hotel.name}" created successfully! Redirecting...`,
       });
 
       // Store hotel ID and redirect

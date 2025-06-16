@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Hotel, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { Hotel, ArrowRight, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useSimpleHotelSetup } from "./hooks/useSimpleHotelSetup";
+import { supabase } from "@/integrations/supabase/client";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const SimpleHotelSetup = () => {
   const { isCreating, createHotel } = useSimpleHotelSetup();
@@ -17,6 +19,51 @@ const SimpleHotelSetup = () => {
     contactPhone: '',
   });
 
+  const [nameError, setNameError] = useState<string>("");
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  
+  // Debounce the hotel name to avoid too many API calls
+  const debouncedHotelName = useDebounce(formData.name.trim(), 500);
+
+  // Check if hotel name exists
+  useEffect(() => {
+    const checkHotelName = async () => {
+      if (!debouncedHotelName) {
+        setNameError("");
+        return;
+      }
+
+      setIsCheckingName(true);
+      
+      try {
+        const { data: existingHotel, error } = await supabase
+          .from("hotels")
+          .select("id")
+          .eq("name", debouncedHotelName)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error checking hotel name:", error);
+          setNameError("Unable to validate hotel name. Please try again.");
+          return;
+        }
+
+        if (existingHotel) {
+          setNameError("This hotel name already exists. Please choose a different name.");
+        } else {
+          setNameError("");
+        }
+      } catch (error) {
+        console.error("Error checking hotel name:", error);
+        setNameError("Unable to validate hotel name. Please try again.");
+      } finally {
+        setIsCheckingName(false);
+      }
+    };
+
+    checkHotelName();
+  }, [debouncedHotelName]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -27,6 +74,11 @@ const SimpleHotelSetup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Don't submit if there's a name error
+    if (nameError || !formData.name.trim()) {
+      return;
+    }
+
     const setupData = {
       hotel: {
         name: formData.name,
@@ -49,6 +101,8 @@ const SimpleHotelSetup = () => {
 
     await createHotel(setupData);
   };
+
+  const isFormValid = formData.name.trim() && !nameError && !isCheckingName;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
@@ -79,6 +133,18 @@ const SimpleHotelSetup = () => {
                   required
                   className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
                 />
+                {(nameError || isCheckingName) && (
+                  <div className="flex items-center space-x-2 text-sm">
+                    {isCheckingName ? (
+                      <span className="text-white/60">Checking availability...</span>
+                    ) : nameError ? (
+                      <>
+                        <AlertCircle className="h-4 w-4 text-red-400" />
+                        <span className="text-red-400">{nameError}</span>
+                      </>
+                    ) : null}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -123,7 +189,7 @@ const SimpleHotelSetup = () => {
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600"
-                disabled={isCreating || !formData.name.trim()}
+                disabled={isCreating || !isFormValid}
               >
                 {isCreating ? (
                   "Creating Hotel..."
