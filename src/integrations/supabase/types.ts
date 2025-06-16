@@ -263,6 +263,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auth_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       create_new_user: {
         Args: {
           user_name: string
@@ -292,10 +296,6 @@ export type Database = {
       delete_user_and_related_data: {
         Args: { user_id_param: string }
         Returns: boolean
-      }
-      get_auth_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
       }
       get_current_user_id: {
         Args: Record<PropertyKey, never>
