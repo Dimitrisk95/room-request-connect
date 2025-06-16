@@ -10,7 +10,7 @@ const AdminSetup = () => {
 
   useEffect(() => {
     // If user already has a hotel, redirect to dashboard
-    if (user?.hotel_id) {
+    if (user?.hotelId) {
       navigate("/admin-dashboard");
     }
   }, [user, navigate]);
