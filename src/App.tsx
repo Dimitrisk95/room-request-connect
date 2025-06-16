@@ -44,7 +44,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AppContent = () => {
   const { user, isLoading } = useAuth();
   
-  logger.info('AppContent render', { user: !!user, isLoading });
+  logger.info('AppContent render', { user: !!user, isLoading, userRole: user?.role });
   
   // Show loading state while auth is being determined
   if (isLoading) {
@@ -63,7 +63,7 @@ const AppContent = () => {
         
         <Route 
           path="/auth" 
-          element={!user ? <ModernAuthForm /> : <Navigate to="/" replace />} 
+          element={!user ? <ModernAuthForm /> : <Navigate to="/dashboard" replace />} 
         />
         <Route 
           path="/dashboard" 

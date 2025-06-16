@@ -4,10 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Hotel, Users, Calendar, Settings, ClipboardList, LogOut, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Handle admin redirect safely with useEffect
+  useEffect(() => {
+    if (user?.role === 'admin' as any) {
+      navigate('/admin-dashboard', { replace: true });
+    }
+  }, [user?.role, navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -18,10 +26,13 @@ const Dashboard = () => {
     }
   };
 
-  // If admin, redirect to admin dashboard
+  // Don't render anything if admin user (will redirect)
   if (user?.role === 'admin' as any) {
-    navigate('/admin-dashboard');
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="text-white">Redirecting to admin dashboard...</div>
+      </div>
+    );
   }
 
   const dashboardCards = [
