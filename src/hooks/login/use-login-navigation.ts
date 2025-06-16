@@ -52,6 +52,12 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
         return;
       }
       
+      // For admin users with hotels, redirect to admin dashboard
+      if (user.role === "admin" && user.hotelId) {
+        navigate("/admin-dashboard");
+        return;
+      }
+      
       // Default redirect to dashboard for authenticated users with hotels
       if (user.hotelId) {
         navigate("/dashboard");
@@ -69,6 +75,12 @@ export const useLoginNavigation = (user: User | null, isAuthenticated: boolean, 
     // Check if admin needs hotel setup
     if (user.role === "admin" && !user.hotelId) {
       navigate("/setup");
+      return;
+    }
+    
+    // For admin users with hotels, go to admin dashboard
+    if (user.role === "admin" && user.hotelId) {
+      navigate("/admin-dashboard");
       return;
     }
     

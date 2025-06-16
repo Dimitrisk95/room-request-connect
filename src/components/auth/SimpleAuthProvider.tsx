@@ -5,7 +5,7 @@ import { Session } from '@supabase/supabase-js'
 import { logger } from '@/utils/logger'
 import { AuthContext } from './AuthContext'
 import { AuthUser, AuthContextType } from './types'
-import { loadUserProfile, createFallbackUser } from './userProfileService'
+import { loadUserProfile, createFallbackUser, refreshUserProfile } from './userProfileService'
 import { signIn, signUp, signOut, guestSignIn } from './authService'
 
 interface AuthProviderProps {
@@ -32,12 +32,34 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     }
   }
 
+  // Function to refresh user profile (can be called after hotel creation)
+  const refreshUser = async () => {
+    if (session?.user) {
+      try {
+        const refreshedUser = await refreshUserProfile(session.user.id)
+        if (refreshedUser) {
+          setUser(refreshedUser)
+          logger.info('User profile refreshed', refreshedUser)
+        }
+      } catch (error) {
+        logger.error('Failed to refresh user profile', error)
+      }
+    }
+  }
+
   useEffect(() => {
     let mounted = true
 
     const initializeAuth = async () => {
       try {
         logger.info('Initializing auth...')
+        
+        // Check for pending hotel ID from hotel creation
+        const pendingHotelId = localStorage.getItem("pendingHotelId")
+        if (pendingHotelId) {
+          logger.info('Found pending hotel ID, will refresh user profile')
+          localStorage.removeItem("pendingHotelId")
+        }
         
         // Get current session
         const { data: { session: currentSession }, error } = await supabase.auth.getSession()
@@ -48,6 +70,13 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
           logger.info('Found existing session')
           setSession(currentSession)
           await updateUserState(currentSession)
+          
+          // If there was a pending hotel ID, refresh the user profile
+          if (pendingHotelId) {
+            setTimeout(() => {
+              refreshUser()
+            }, 1000) // Small delay to ensure hotel association is complete
+          }
         }
         
         // Always set loading to false after initial check
@@ -71,6 +100,15 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       if (event === 'SIGNED_IN' && session?.user) {
         setSession(session)
         await updateUserState(session)
+        
+        // Check for pending hotel ID on sign in as well
+        const pendingHotelId = localStorage.getItem("pendingHotelId")
+        if (pendingHotelId) {
+          localStorage.removeItem("pendingHotelId")
+          setTimeout(() => {
+            refreshUser()
+          }, 1000)
+        }
       } else if (event === 'SIGNED_OUT') {
         setSession(null)
         setUser(null)
@@ -100,7 +138,8 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     signIn,
     signUp,
     signOut,
-    guestSignIn: handleGuestSignIn
+    guestSignIn: handleGuestSignIn,
+    refreshUser // Expose the refresh function
   }
 
   return (

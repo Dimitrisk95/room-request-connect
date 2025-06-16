@@ -96,6 +96,12 @@ const Dashboard = () => {
     );
   }
 
+  // If admin has a hotel, redirect to admin dashboard
+  if (user?.role === 'admin' && user?.hotelId) {
+    navigate('/admin-dashboard');
+    return null;
+  }
+
   const dashboardCards = [
     {
       title: "Room Management",
