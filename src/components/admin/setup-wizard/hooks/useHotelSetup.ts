@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { SetupData } from "../types";
 import { useState } from "react";
 import { refreshUserProfile } from "@/components/auth/userProfileService";
+import { generateUniqueHotelCode, validateHotelCodeFormat } from "@/components/settings/hotel-code/hotelCodeUtils";
 
 export function useHotelSetup() {
   const { user, signOut } = useAuth();
@@ -45,7 +46,46 @@ export function useHotelSetup() {
         throw new Error("Hotel code is required");
       }
 
-      console.log("[Hotel Setup] Input validation passed, creating hotel...");
+      // Validate hotel code format
+      const formatValidation = validateHotelCodeFormat(setupData.hotel.hotelCode);
+      if (!formatValidation.isValid) {
+        throw new Error(formatValidation.error || "Invalid hotel code format");
+      }
+
+      console.log("[Hotel Setup] Input validation passed, checking for unique hotel code...");
+
+      // Check if the hotel code already exists
+      const { data: existingHotel, error: checkError } = await supabase
+        .from("hotels")
+        .select("id")
+        .eq("hotel_code", setupData.hotel.hotelCode.trim())
+        .maybeSingle();
+
+      if (checkError) {
+        console.error("[Hotel Setup] Error checking existing hotel code:", checkError);
+        throw new Error("Failed to validate hotel code. Please try again.");
+      }
+
+      let finalHotelCode = setupData.hotel.hotelCode.trim();
+
+      // If hotel code exists, generate a unique one
+      if (existingHotel) {
+        console.log("[Hotel Setup] Hotel code already exists, generating unique code...");
+        try {
+          finalHotelCode = await generateUniqueHotelCode(setupData.hotel.name, "");
+          console.log("[Hotel Setup] Generated unique hotel code:", finalHotelCode);
+          
+          toast({
+            title: "Hotel Code Updated",
+            description: `The code "${setupData.hotel.hotelCode}" was already taken. We've generated a unique code: "${finalHotelCode}"`,
+          });
+        } catch (error) {
+          console.error("[Hotel Setup] Failed to generate unique code:", error);
+          throw new Error("Failed to generate a unique hotel code. Please try a different code.");
+        }
+      }
+
+      console.log("[Hotel Setup] Creating hotel with final code:", finalHotelCode);
 
       // Create hotel
       const hotelInsertData = {
@@ -53,7 +93,7 @@ export function useHotelSetup() {
         address: setupData.hotel.address?.trim() || null,
         contact_email: setupData.hotel.contactEmail?.trim() || null,
         contact_phone: setupData.hotel.contactPhone?.trim() || null,
-        hotel_code: setupData.hotel.hotelCode.trim(),
+        hotel_code: finalHotelCode,
       };
 
       console.log("[Hotel Setup] Inserting hotel with data:", hotelInsertData);
@@ -66,6 +106,12 @@ export function useHotelSetup() {
 
       if (hotelError) {
         console.error("[Hotel Setup] Hotel insert error:", hotelError);
+        
+        // Handle specific duplicate key error
+        if (hotelError.message?.includes("duplicate key") || hotelError.message?.includes("unique constraint")) {
+          throw new Error("A hotel with this code already exists. Please choose a different code.");
+        }
+        
         throw new Error(`Hotel creation failed: ${hotelError.message}`);
       }
 
@@ -127,7 +173,7 @@ export function useHotelSetup() {
 
       toast({
         title: "Success!",
-        description: "Hotel setup completed successfully! Redirecting to admin dashboard...",
+        description: `Hotel "${setupData.hotel.name}" created successfully! Redirecting to admin dashboard...`,
       });
 
       // Store the hotel ID temporarily to help with auth refresh

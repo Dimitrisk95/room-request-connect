@@ -1,13 +1,13 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hotel, ArrowRight, Info } from "lucide-react";
+import { Hotel, ArrowRight, Info, RefreshCw } from "lucide-react";
 import { SetupData } from "../SetupWizard";
+import { generateHotelCode } from "@/utils/codeGenerator";
 
 const formSchema = z.object({
   hotelName: z.string().min(1, "Hotel name is required"),
@@ -51,6 +51,16 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
     mode: "onChange"
   });
 
+  // Auto-generate hotel code when hotel name changes
+  useEffect(() => {
+    const hotelName = form.watch("hotelName");
+    if (hotelName && !form.getValues("hotelCode")) {
+      const generatedCode = generateHotelCode(hotelName);
+      form.setValue("hotelCode", generatedCode);
+      updateHotelData({ hotelCode: generatedCode });
+    }
+  }, [form.watch("hotelName")]);
+
   // Handle real-time updates of the form data
   const handleValueChange = (field: keyof FormValues, value: string) => {
     if (field === "hotelName") {
@@ -63,6 +73,15 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
       updateHotelData({ contactEmail: value });
     } else if (field === "contactPhone") {
       updateHotelData({ contactPhone: value });
+    }
+  };
+
+  const handleGenerateNewCode = () => {
+    const hotelName = form.getValues("hotelName");
+    if (hotelName) {
+      const newCode = generateHotelCode(hotelName);
+      form.setValue("hotelCode", newCode);
+      updateHotelData({ hotelCode: newCode });
     }
   };
 
@@ -124,20 +143,32 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
                 <FormItem>
                   <FormLabel className="text-base font-medium">Hotel Connection Code *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., GrandPlaza2024" 
-                      className="h-12 font-mono"
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        handleValueChange("hotelCode", e.target.value);
-                      }}
-                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="e.g., GrandPlaza2024" 
+                        className="h-12 font-mono flex-1"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleValueChange("hotelCode", e.target.value);
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12"
+                        onClick={handleGenerateNewCode}
+                        disabled={!form.getValues("hotelName")}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormDescription className="flex items-start space-x-2 text-sm">
                     <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                     <span>
-                      This unique code allows guests to connect to your hotel. Use only letters and numbers (no spaces).
+                      This unique code allows guests to connect to your hotel. Use only letters and numbers (no spaces). If the code is already taken, we'll generate a unique one automatically.
                     </span>
                   </FormDescription>
                   <FormMessage />
