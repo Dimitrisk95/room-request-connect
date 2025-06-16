@@ -5,15 +5,12 @@ import { AuthUser } from './types'
 import { logger } from '@/utils/logger'
 
 export const createFallbackUser = (supabaseUser: SupabaseUser): AuthUser => {
-  // Check for pending hotel ID and include it in the fallback user
-  const pendingHotelId = localStorage.getItem("pendingHotelId");
-  
   return {
     id: supabaseUser.id,
     email: supabaseUser.email!,
     name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
     role: 'admin', // Default to admin for fallback
-    hotelId: pendingHotelId || undefined // Include pending hotel ID if available
+    hotelId: undefined
   }
 }
 
@@ -48,16 +45,10 @@ export const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<AuthU
         email: userData.email,
         name: userData.name,
         role: userData.role,
-        hotelId: userData.hotel_id || fallbackUser.hotelId, // Use pending hotel ID if no hotel_id in database
+        hotelId: userData.hotel_id,
         roomNumber: userData.room_number,
         can_manage_rooms: userData.can_manage_rooms,
         can_manage_staff: userData.can_manage_staff
-      }
-      
-      // If we have a pending hotel ID and it's different from what's in the database, clear it
-      const pendingHotelId = localStorage.getItem("pendingHotelId");
-      if (pendingHotelId && userData.hotel_id === pendingHotelId) {
-        localStorage.removeItem("pendingHotelId");
       }
       
       logger.info('User profile loaded successfully', authUser)
@@ -70,4 +61,42 @@ export const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<AuthU
     logger.error('Failed to load user profile, using fallback', error)
     return fallbackUser
   }
+}
+
+// New function to refresh user profile after hotel creation
+export const refreshUserProfile = async (userId: string): Promise<AuthUser | null> => {
+  try {
+    logger.info('Refreshing user profile after hotel creation', { userId })
+    
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (error) {
+      logger.error('Error refreshing user profile', error)
+      return null
+    }
+
+    if (userData) {
+      const authUser: AuthUser = {
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        hotelId: userData.hotel_id,
+        roomNumber: userData.room_number,
+        can_manage_rooms: userData.can_manage_rooms,
+        can_manage_staff: userData.can_manage_staff
+      }
+      
+      logger.info('User profile refreshed successfully', authUser)
+      return authUser
+    }
+  } catch (error) {
+    logger.error('Failed to refresh user profile', error)
+  }
+  
+  return null
 }

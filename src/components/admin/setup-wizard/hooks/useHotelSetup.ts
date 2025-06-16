@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { SetupData } from "../types";
 import { useState } from "react";
+import { refreshUserProfile } from "@/components/auth/userProfileService";
 
 export function useHotelSetup() {
   const { user, signOut } = useAuth();
@@ -16,7 +17,6 @@ export function useHotelSetup() {
     console.log("[Hotel Setup] Starting hotel creation process...");
     console.log("[Hotel Setup] Current user:", user);
     console.log("[Hotel Setup] Setup data:", setupData);
-    console.log("[Hotel Setup] isCreating state:", isCreating);
 
     if (isCreating) {
       console.log("[Hotel Setup] Already creating, skipping duplicate request");
@@ -130,7 +130,10 @@ export function useHotelSetup() {
         description: "Hotel setup completed successfully! Redirecting to admin dashboard...",
       });
 
-      // Force a page reload to refresh all auth state
+      // Store the hotel ID temporarily to help with auth refresh
+      localStorage.setItem("pendingHotelId", createdHotelId);
+
+      // Force a complete page reload to refresh all auth state
       setTimeout(() => {
         console.log("[Hotel Setup] Redirecting to admin dashboard with page reload");
         window.location.href = "/admin-dashboard";

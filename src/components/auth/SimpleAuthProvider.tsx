@@ -17,6 +17,21 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const updateUserState = async (currentSession: Session | null) => {
+    if (currentSession?.user) {
+      try {
+        const authUser = await loadUserProfile(currentSession.user)
+        setUser(authUser)
+        logger.info('User profile set', authUser)
+      } catch (error) {
+        logger.error('Profile loading failed', error)
+        setUser(createFallbackUser(currentSession.user))
+      }
+    } else {
+      setUser(null)
+    }
+  }
+
   useEffect(() => {
     let mounted = true
 
@@ -32,19 +47,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         } else if (currentSession?.user && mounted) {
           logger.info('Found existing session')
           setSession(currentSession)
-          
-          // Load user profile in background
-          loadUserProfile(currentSession.user).then((authUser) => {
-            if (mounted) {
-              setUser(authUser)
-              logger.info('User profile set', authUser)
-            }
-          }).catch((error) => {
-            logger.error('Profile loading failed', error)
-            if (mounted) {
-              setUser(createFallbackUser(currentSession.user))
-            }
-          })
+          await updateUserState(currentSession)
         }
         
         // Always set loading to false after initial check
@@ -67,22 +70,12 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       
       if (event === 'SIGNED_IN' && session?.user) {
         setSession(session)
-        
-        // Load user profile in background
-        loadUserProfile(session.user).then((authUser) => {
-          if (mounted) {
-            setUser(authUser)
-            logger.info('User profile set from auth change', authUser)
-          }
-        }).catch((error) => {
-          logger.error('Profile loading failed in auth change', error)
-          if (mounted) {
-            setUser(createFallbackUser(session.user))
-          }
-        })
+        await updateUserState(session)
       } else if (event === 'SIGNED_OUT') {
         setSession(null)
         setUser(null)
+        // Clear any pending hotel ID when user signs out
+        localStorage.removeItem("pendingHotelId")
       }
     })
 
