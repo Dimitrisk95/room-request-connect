@@ -130,10 +130,10 @@ export function useHotelSetup() {
         description: "Hotel setup completed successfully! Redirecting to admin dashboard...",
       });
 
-      // Navigate directly to admin dashboard
+      // Force a page reload to refresh all auth state
       setTimeout(() => {
-        console.log("[Hotel Setup] Redirecting to admin dashboard");
-        navigate("/admin-dashboard");
+        console.log("[Hotel Setup] Redirecting to admin dashboard with page reload");
+        window.location.href = "/admin-dashboard";
       }, 1500);
 
       return true;
