@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from "react";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hotel, ArrowRight, Info, RefreshCw } from "lucide-react";
+import { Hotel, ArrowRight } from "lucide-react";
 import { SetupData } from "../SetupWizard";
 import { generateHotelCode } from "@/utils/codeGenerator";
+import HotelBasicInfoForm from "./components/HotelBasicInfoForm";
+import HotelContactInfoForm from "./components/HotelContactInfoForm";
 
 const formSchema = z.object({
   hotelName: z.string().min(1, "Hotel name is required"),
@@ -113,140 +115,17 @@ const HotelSetupStep: React.FC<HotelSetupStepProps> = ({
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-          <div className="grid gap-4">
-            <FormField
-              control={form.control}
-              name="hotelName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base font-medium">Hotel Name *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="e.g., Grand Plaza Hotel" 
-                      className="h-12"
-                      {...field} 
-                      onChange={(e) => {
-                        field.onChange(e);
-                        handleValueChange("hotelName", e.target.value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <HotelBasicInfoForm
+            control={form.control}
+            onValueChange={handleValueChange}
+            onGenerateCode={handleGenerateNewCode}
+            hotelName={form.getValues("hotelName")}
+          />
 
-            <FormField
-              control={form.control}
-              name="hotelCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base font-medium">Hotel Connection Code *</FormLabel>
-                  <FormControl>
-                    <div className="flex gap-2">
-                      <Input 
-                        placeholder="e.g., GrandPlaza2024" 
-                        className="h-12 font-mono flex-1"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          handleValueChange("hotelCode", e.target.value);
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12"
-                        onClick={handleGenerateNewCode}
-                        disabled={!form.getValues("hotelName")}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormDescription className="flex items-start space-x-2 text-sm">
-                    <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <span>
-                      This unique code allows guests to connect to your hotel. Use only letters and numbers (no spaces). If the code is already taken, we'll generate a unique one automatically.
-                    </span>
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-medium mb-4">Contact Information (Optional)</h3>
-            <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Hotel Address</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="123 Main Street, City, State" 
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          handleValueChange("address", e.target.value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="contactEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="email" 
-                          placeholder="contact@hotel.com" 
-                          {...field} 
-                          onChange={(e) => {
-                            field.onChange(e);
-                            handleValueChange("contactEmail", e.target.value);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="contactPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Phone</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="+1 (555) 123-4567"
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            handleValueChange("contactPhone", e.target.value);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </div>
+          <HotelContactInfoForm
+            control={form.control}
+            onValueChange={handleValueChange}
+          />
 
           <div className="pt-6">
             <Button 
