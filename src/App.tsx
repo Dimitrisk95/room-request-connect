@@ -50,7 +50,7 @@ const AppContent = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-white">Loading...</div>
+        <div className="text-white">Initializing...</div>
       </div>
     );
   }

@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ const Dashboard = () => {
 
   // Handle admin redirect safely with useEffect
   useEffect(() => {
-    if (user?.role === 'admin' as any) {
+    if (user?.role === 'admin') {
       navigate('/admin-dashboard', { replace: true });
     }
   }, [user?.role, navigate]);
@@ -27,7 +26,7 @@ const Dashboard = () => {
   };
 
   // Don't render anything if admin user (will redirect)
-  if (user?.role === 'admin' as any) {
+  if (user?.role === 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-white">Redirecting to admin dashboard...</div>
@@ -41,14 +40,14 @@ const Dashboard = () => {
       description: "Manage rooms, availability, and room assignments",
       icon: Hotel,
       path: "/rooms",
-      permission: user?.can_manage_rooms || (user?.role as any) === 'admin'
+      permission: user?.can_manage_rooms || user?.role === 'admin'
     },
     {
       title: "Staff Management", 
       description: "Manage staff accounts and permissions",
       icon: Users,
       path: "/staff-management",
-      permission: user?.can_manage_staff || (user?.role as any) === 'admin'
+      permission: user?.can_manage_staff || user?.role === 'admin'
     },
     {
       title: "Reservations",
@@ -69,7 +68,7 @@ const Dashboard = () => {
       description: "Hotel settings and configuration",
       icon: Settings,
       path: "/settings",
-      permission: (user?.role as any) === 'admin'
+      permission: user?.role === 'admin'
     }
   ];
 
