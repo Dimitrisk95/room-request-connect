@@ -17,7 +17,7 @@ export interface AuthContextType {
   session: any;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, name: string) => Promise<any>;
   signOut: () => Promise<void>;
   guestSignIn: (hotelCode: string, roomCode: string) => Promise<void>;
   refreshUser: () => Promise<void>;

@@ -168,12 +168,16 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
     setIsLoading(false)
   }
 
+  const handleSignUp = async (email: string, password: string, name: string) => {
+    return await signUp(email, password, name)
+  }
+
   const value: AuthContextType = {
     user,
     session,
     isLoading,
     signIn,
-    signUp,
+    signUp: handleSignUp,
     signOut,
     guestSignIn: handleGuestSignIn,
     refreshUser
