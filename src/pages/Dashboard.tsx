@@ -1,9 +1,12 @@
+
 import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Hotel, Users, Calendar, Settings, ClipboardList, LogOut, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { PermissionChecker } from "@/utils/permissions";
+import { USER_ROLES, AUTH_ROUTES } from "@/constants/auth";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -11,8 +14,8 @@ const Dashboard = () => {
 
   // Handle admin redirect safely with useEffect
   useEffect(() => {
-    if (user?.role === 'admin') {
-      navigate('/admin-dashboard', { replace: true });
+    if (PermissionChecker.isAdmin(user)) {
+      navigate(AUTH_ROUTES.ADMIN_DASHBOARD, { replace: true });
     }
   }, [user?.role, navigate]);
 
@@ -26,7 +29,7 @@ const Dashboard = () => {
   };
 
   // Don't render anything if admin user (will redirect)
-  if (user?.role === 'admin') {
+  if (PermissionChecker.isAdmin(user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-white">Redirecting to admin dashboard...</div>
@@ -40,14 +43,14 @@ const Dashboard = () => {
       description: "Manage rooms, availability, and room assignments",
       icon: Hotel,
       path: "/rooms",
-      permission: user?.can_manage_rooms || user?.role === 'admin'
+      permission: PermissionChecker.canManageRooms(user)
     },
     {
       title: "Staff Management", 
       description: "Manage staff accounts and permissions",
       icon: Users,
       path: "/staff-management",
-      permission: user?.can_manage_staff || user?.role === 'admin'
+      permission: PermissionChecker.canManageStaff(user)
     },
     {
       title: "Reservations",
@@ -68,7 +71,7 @@ const Dashboard = () => {
       description: "Hotel settings and configuration",
       icon: Settings,
       path: "/settings",
-      permission: user?.role === 'admin'
+      permission: PermissionChecker.isAdmin(user)
     }
   ];
 
