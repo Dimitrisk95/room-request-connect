@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,10 +13,11 @@ const Dashboard = () => {
 
   // Handle admin redirect safely with useEffect
   useEffect(() => {
-    if (PermissionChecker.isAdmin(user)) {
+    if (user && PermissionChecker.isAdmin(user)) {
+      console.log('Admin user detected, redirecting to admin dashboard');
       navigate(AUTH_ROUTES.ADMIN_DASHBOARD, { replace: true });
     }
-  }, [user?.role, navigate]);
+  }, [user, navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -28,11 +28,13 @@ const Dashboard = () => {
     }
   };
 
-  // Don't render anything if admin user (will redirect)
-  if (PermissionChecker.isAdmin(user)) {
+  // Show loading state while checking user or if admin (will redirect)
+  if (!user || PermissionChecker.isAdmin(user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-white">Redirecting to admin dashboard...</div>
+        <div className="text-white">
+          {!user ? "Loading..." : "Redirecting to admin dashboard..."}
+        </div>
       </div>
     );
   }
