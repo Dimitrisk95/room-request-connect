@@ -17,13 +17,10 @@ export const createFallbackUser = (supabaseUser: SupabaseUser): AuthUser => {
 export const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<AuthUser> => {
   logger.info('Loading user profile', { userId: supabaseUser.id })
   
-  // Create fallback user first
-  const fallbackUser = createFallbackUser(supabaseUser)
-  
   try {
-    // Reduced timeout to 3 seconds and simplified query
+    // Reduced timeout to 2 seconds for faster response
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
+      setTimeout(() => reject(new Error('Profile fetch timeout')), 2000)
     })
     
     const fetchPromise = supabase
@@ -35,8 +32,8 @@ export const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<AuthU
     const { data: userData, error } = await Promise.race([fetchPromise, timeoutPromise])
 
     if (error) {
-      logger.error('Error loading user profile, using fallback', error)
-      return fallbackUser
+      logger.error('Error loading user profile', error)
+      throw error
     }
 
     if (userData) {
@@ -54,12 +51,12 @@ export const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<AuthU
       logger.info('User profile loaded successfully', authUser)
       return authUser
     } else {
-      logger.info('No user profile found, using fallback')
-      return fallbackUser
+      logger.info('No user profile found in database')
+      throw new Error('No user profile found')
     }
   } catch (error) {
-    logger.error('Failed to load user profile, using fallback', error)
-    return fallbackUser
+    logger.error('Failed to load user profile', error)
+    throw error
   }
 }
 

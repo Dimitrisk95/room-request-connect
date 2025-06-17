@@ -61,11 +61,22 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true)
 
   const updateUserState = async (currentSession: Session | null) => {
-    if (currentSession?.user) {
-      try {
-        let authUser = await loadUserProfile(currentSession.user)
+    try {
+      if (currentSession?.user) {
+        logger.info('Processing user session', { userId: currentSession.user.id })
         
-        // Only create hotel for admin users who don't have one AND we successfully loaded their profile
+        let authUser: AuthUser
+        
+        try {
+          authUser = await loadUserProfile(currentSession.user)
+          logger.info('User profile loaded successfully', authUser)
+        } catch (error) {
+          logger.error('Profile loading failed, using fallback', error)
+          authUser = createFallbackUser(currentSession.user)
+          logger.info('Using fallback user', authUser)
+        }
+        
+        // Only create hotel for admin users who don't have one
         if (authUser.role === 'admin' && !authUser.hotelId && authUser.id === currentSession.user.id) {
           logger.info('Admin without hotel detected, creating default hotel');
           try {
@@ -79,17 +90,16 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         }
         
         setUser(authUser)
-        logger.info('User profile set', authUser)
-      } catch (error) {
-        logger.error('Profile loading failed', error)
-        const fallbackUser = createFallbackUser(currentSession.user)
-        setUser(fallbackUser)
-        logger.info('Using fallback user', fallbackUser)
+      } else {
+        setUser(null)
       }
-    } else {
+    } catch (error) {
+      logger.error('Error in updateUserState', error)
       setUser(null)
+    } finally {
+      // Always clear loading state
+      setIsLoading(false)
     }
-    setIsLoading(false) // Always stop loading after processing
   }
 
   // Function to refresh user profile (can be called after hotel creation)
@@ -119,12 +129,18 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         
         if (error) {
           logger.error('Error getting session', error)
-        } else if (currentSession?.user && mounted) {
+          if (mounted) {
+            setIsLoading(false)
+          }
+          return
+        }
+        
+        if (currentSession?.user && mounted) {
           logger.info('Found existing session')
           setSession(currentSession)
           await updateUserState(currentSession)
         } else {
-          // No session found, stop loading
+          logger.info('No existing session found')
           if (mounted) {
             setIsLoading(false)
           }
