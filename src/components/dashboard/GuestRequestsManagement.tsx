@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +44,22 @@ const GuestRequestsManagement: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      
+      // Transform and validate the data to match our Request interface
+      const transformedRequests: Request[] = (data || []).map(item => ({
+        id: item.id,
+        guest_name: item.guest_name,
+        room_number: item.room_number,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        priority: ['low', 'medium', 'high'].includes(item.priority) ? item.priority as 'low' | 'medium' | 'high' : 'medium',
+        status: ['pending', 'in_progress', 'resolved'].includes(item.status) ? item.status as 'pending' | 'in_progress' | 'resolved' : 'pending',
+        created_at: item.created_at,
+        assigned_to_name: item.assigned_to_name
+      }));
+      
+      setRequests(transformedRequests);
     } catch (error) {
       console.error('Error fetching requests:', error);
     } finally {
