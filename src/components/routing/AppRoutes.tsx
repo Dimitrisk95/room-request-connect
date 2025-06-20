@@ -5,6 +5,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Import all pages
 import Index from "@/pages/Index";
+import ListProperty from "@/pages/ListProperty";
+import HotelSetup from "@/pages/HotelSetup";
 import GuestConnect from "@/pages/GuestConnect";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
@@ -32,6 +34,8 @@ export const AppRoutes: React.FC = () => {
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<ModernAuthForm />} />
+      <Route path="/list-property" element={<ListProperty />} />
+      <Route path="/hotel-setup" element={<HotelSetup />} />
       <Route path="/guest-connect" element={<GuestConnect />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />

@@ -130,6 +130,9 @@ const Index = () => {
             <Button asChild variant="ghost">
               <Link to="/guest-connect">Guest Login</Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link to="/list-property">List Your Property</Link>
+            </Button>
             <AdminAccessDialog />
           </div>
         </div>
@@ -166,9 +169,11 @@ const Index = () => {
                 </div>
                 
                 <div className="text-center">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg">
-                    <Building className="mr-2 h-5 w-5" />
-                    List Your Hotel
+                  <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg">
+                    <Link to="/list-property">
+                      <Building className="mr-2 h-5 w-5" />
+                      List Your Hotel
+                    </Link>
                   </Button>
                   <p className="text-sm text-muted-foreground mt-2">For Hotel Owners</p>
                 </div>

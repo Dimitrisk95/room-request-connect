@@ -4,23 +4,44 @@ import { Hotel, UserCheck, Users } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from './SimpleAuthProvider'
-import { AuthRedirect } from './AuthRedirect'
+import { useNavigate } from 'react-router-dom'
+import { PermissionChecker } from '@/utils/permissions'
 import AdminLoginForm from '../login/AdminLoginForm'
 import AdminRegistrationForm from '../login/AdminRegistrationForm'
 
 export const ModernAuthForm = () => {
   const { user, isLoading } = useAuth()
   const [activeTab, setActiveTab] = useState('login')
+  const navigate = useNavigate()
 
-  // If user is already authenticated, redirect them
-  if (!isLoading && user) {
-    return <AuthRedirect />
-  }
+  // Handle redirect when user is authenticated
+  useEffect(() => {
+    if (!isLoading && user) {
+      console.log('User authenticated in auth form, redirecting', { role: user.role });
+      
+      if (user.role === "guest" && user.roomNumber) {
+        navigate(`/guest/${user.roomNumber}`, { replace: true });
+      } else if (PermissionChecker.isAdmin(user)) {
+        navigate("/admin-dashboard", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
+  }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
+
+  // Don't render the form if user is already authenticated
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="text-white">Redirecting...</div>
       </div>
     )
   }
