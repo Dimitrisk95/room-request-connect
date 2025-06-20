@@ -1,4 +1,5 @@
 
+import React from "react"
 import { useToast } from "@/hooks/use-toast"
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug'
