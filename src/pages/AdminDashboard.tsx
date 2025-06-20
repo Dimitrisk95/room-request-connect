@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building, Key, UserPlus, Bed, Calendar, MessageSquare, Settings, BarChart3, Users } from "lucide-react";
@@ -18,7 +18,16 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    console.log('AdminDashboard: Component mounted', { 
+      user: !!user, 
+      role: user?.role, 
+      hotelId: user?.hotelId 
+    });
+  }, [user]);
+
   if (!user) {
+    console.log('AdminDashboard: No user found, showing auth required');
     return (
       <DashboardShell>
         <div className="flex flex-col items-center justify-center h-[70vh]">
@@ -30,7 +39,7 @@ const AdminDashboard = () => {
               </CardDescription>
               <Button 
                 className="mt-4" 
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/auth")}
               >
                 Go to Login
               </Button>
@@ -42,6 +51,7 @@ const AdminDashboard = () => {
   }
 
   if (user?.role !== "admin") {
+    console.log('AdminDashboard: Non-admin user attempting access', { role: user?.role });
     return (
       <DashboardShell>
         <div className="p-6">
@@ -58,29 +68,32 @@ const AdminDashboard = () => {
     );
   }
 
-  // If admin doesn't have a hotel yet, redirect to setup
+  console.log('AdminDashboard: Admin user accessing dashboard', { 
+    userId: user.id, 
+    hotelId: user.hotelId 
+  });
+
+  // For admin users, if no hotel exists, it should be auto-created by the auth provider
+  // But we'll add a fallback just in case
   if (!user?.hotelId) {
+    console.log('AdminDashboard: Admin without hotel detected');
     return (
       <DashboardShell>
         <div className="flex flex-col items-center justify-center h-[70vh]">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <CardTitle>Hotel Setup Required</CardTitle>
+              <CardTitle>Setting up your hotel...</CardTitle>
               <CardDescription>
-                You need to set up your hotel before accessing the admin dashboard.
+                Please wait while we set up your hotel account.
               </CardDescription>
-              <Button 
-                className="mt-4" 
-                onClick={() => navigate("/setup")}
-              >
-                Set Up Hotel
-              </Button>
             </CardHeader>
           </Card>
         </div>
       </DashboardShell>
     );
   }
+
+  console.log('AdminDashboard: Rendering full admin dashboard');
 
   return (
     <DashboardShell>

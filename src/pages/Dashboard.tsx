@@ -11,11 +11,18 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Handle admin redirect safely with useEffect
+  // Handle admin redirect immediately on mount
   useEffect(() => {
+    console.log('Dashboard: Checking user and role', { 
+      user: !!user, 
+      role: user?.role, 
+      isAdmin: user ? PermissionChecker.isAdmin(user) : false 
+    });
+    
     if (user && PermissionChecker.isAdmin(user)) {
       console.log('Admin user detected, redirecting to admin dashboard');
       navigate(AUTH_ROUTES.ADMIN_DASHBOARD, { replace: true });
+      return;
     }
   }, [user, navigate]);
 
@@ -28,13 +35,20 @@ const Dashboard = () => {
     }
   };
 
-  // Show loading state while checking user or if admin (will redirect)
-  if (!user || PermissionChecker.isAdmin(user)) {
+  // Show loading state while checking user status
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-white">
-          {!user ? "Loading..." : "Redirecting to admin dashboard..."}
-        </div>
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  // If admin user, show redirecting message (they should be redirected by useEffect)
+  if (PermissionChecker.isAdmin(user)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="text-white">Redirecting to admin dashboard...</div>
       </div>
     );
   }
