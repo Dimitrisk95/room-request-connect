@@ -67,26 +67,36 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
         
         let authUser: AuthUser
         
+        // Try to load profile with shorter timeout and better fallback
         try {
-          authUser = await loadUserProfile(currentSession.user)
+          // Set a much shorter timeout for profile loading
+          const profilePromise = loadUserProfile(currentSession.user)
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Profile load timeout')), 2000)
+          )
+          
+          authUser = await Promise.race([profilePromise, timeoutPromise]) as AuthUser
           logger.info('User profile loaded successfully', authUser)
         } catch (error) {
           logger.error('Profile loading failed, using fallback', error)
+          // Create fallback user immediately
           authUser = createFallbackUser(currentSession.user)
           logger.info('Using fallback user', authUser)
         }
         
-        // Only create hotel for admin users who don't have one
+        // For admin users without hotel, create one in background but don't block UI
         if (authUser.role === 'admin' && !authUser.hotelId && authUser.id === currentSession.user.id) {
-          logger.info('Admin without hotel detected, creating default hotel');
-          try {
-            const hotel = await createDefaultHotel(authUser.id);
-            authUser.hotelId = hotel.id;
-            logger.info('Default hotel created for admin', { hotelId: hotel.id, hotelName: hotel.name });
-          } catch (hotelError) {
-            logger.error('Failed to create hotel, continuing with auth anyway', hotelError);
-            // Continue with auth even if hotel creation fails
-          }
+          logger.info('Admin without hotel detected, creating default hotel in background');
+          // Don't await this - let it happen in background
+          createDefaultHotel(authUser.id)
+            .then(hotel => {
+              authUser.hotelId = hotel.id;
+              setUser({...authUser}); // Update with hotel ID when ready
+              logger.info('Default hotel created for admin', { hotelId: hotel.id, hotelName: hotel.name });
+            })
+            .catch(hotelError => {
+              logger.error('Failed to create hotel in background', hotelError);
+            });
         }
         
         setUser(authUser)
@@ -97,7 +107,7 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       logger.error('Error in updateUserState', error)
       setUser(null)
     } finally {
-      // Always clear loading state
+      // Always clear loading state quickly
       setIsLoading(false)
     }
   }
@@ -124,11 +134,16 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       try {
         logger.info('Initializing auth...')
         
-        // Get current session
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession()
+        // Get current session with timeout
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((resolve) => 
+          setTimeout(() => resolve({ data: { session: null }, error: new Error('Session timeout') }), 3000)
+        )
+        
+        const { data: { session: currentSession }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any
         
         if (error) {
-          logger.error('Error getting session', error)
+          logger.error('Error getting session, continuing with no session', error)
           if (mounted) {
             setIsLoading(false)
           }
@@ -153,18 +168,23 @@ export const SimpleAuthProvider: React.FC<AuthProviderProps> = ({ children }) =>
       }
     }
 
-    // Set up auth state listener
+    // Set up auth state listener with better error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
       
       logger.info('Auth state changed', { event, hasSession: !!session })
       
-      if (event === 'SIGNED_IN' && session?.user) {
-        setSession(session)
-        await updateUserState(session)
-      } else if (event === 'SIGNED_OUT') {
-        setSession(null)
-        setUser(null)
+      try {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setSession(session)
+          await updateUserState(session)
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null)
+          setUser(null)
+          setIsLoading(false)
+        }
+      } catch (error) {
+        logger.error('Error in auth state change handler', error)
         setIsLoading(false)
       }
     })
