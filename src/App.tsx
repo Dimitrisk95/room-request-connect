@@ -1,9 +1,11 @@
 
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { SimpleAuthProvider } from "./components/auth/SimpleAuthProvider";
 import { AppRoutes } from "./components/routing/AppRoutes";
 import { Toaster } from "@/components/ui/toaster";
+import { AccessibilityProvider } from "./components/accessibility/AccessibilityProvider";
 import { logger } from "./utils/logger";
 
 const queryClient = new QueryClient({
@@ -22,12 +24,14 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <SimpleAuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-          <Toaster />
-        </BrowserRouter>
-      </SimpleAuthProvider>
+      <AccessibilityProvider>
+        <SimpleAuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+            <Toaster />
+          </BrowserRouter>
+        </SimpleAuthProvider>
+      </AccessibilityProvider>
     </QueryClientProvider>
   );
 }
