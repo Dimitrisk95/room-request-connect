@@ -5,8 +5,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Import all pages
 import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
 import GuestConnect from "@/pages/GuestConnect";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
@@ -26,14 +24,14 @@ import RoleManagement from "@/pages/RoleManagement";
 import AccessCodes from "@/pages/AccessCodes";
 import Analytics from "@/pages/Analytics";
 import NotFound from "@/pages/NotFound";
+import { ModernAuthForm } from "@/components/auth/ModernAuthForm";
 
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/auth" element={<ModernAuthForm />} />
       <Route path="/guest-connect" element={<GuestConnect />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />

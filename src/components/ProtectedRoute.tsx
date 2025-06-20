@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context";
-import { UserRole } from "@/context/auth/types";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
+import { UserRole } from "@/components/auth/types";
 import { Loader } from "lucide-react";
+import { PermissionChecker } from "@/utils/permissions";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,20 +19,21 @@ const ProtectedRoute = ({
   requiresRoomManage = false,
   requiresStaffManage = false
 }: ProtectedRouteProps) => {
-  const { isAuthenticated, user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  useEffect(() => {
-    // Short timeout to allow auth state to be checked
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 200);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  console.log("ProtectedRoute - checking permissions:", {
+    isLoading,
+    hasUser: !!user,
+    role: user?.role,
+    can_manage_rooms: user?.can_manage_rooms,
+    can_manage_staff: user?.can_manage_staff,
+    requiresRoomManage,
+    requiresStaffManage,
+    currentPath: location.pathname
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen w-full">
         <div className="text-center">
@@ -42,29 +44,19 @@ const ProtectedRoute = ({
     );
   }
 
-  console.log("ProtectedRoute - checking permissions:", {
-    isAuthenticated,
-    role: user?.role,
-    can_manage_rooms: user?.can_manage_rooms,
-    can_manage_staff: user?.can_manage_staff,
-    requiresRoomManage,
-    requiresStaffManage
-  });
-
-  if (!isAuthenticated) {
-    // Redirect to login if not authenticated
-    // Store the path they were trying to visit so we can redirect after login
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (!user) {
+    console.log("ProtectedRoute: No user, redirecting to auth");
+    return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
   }
 
   // If roles are specified, check if user has permission
   if (user && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    // Redirect to dashboard if authenticated but wrong role
+    console.log("ProtectedRoute: Wrong role, redirecting to dashboard");
     return <Navigate to="/dashboard" replace />;
   }
 
   // Check for specific permission requirements (except for admins who have all permissions)
-  if (user && user.role !== "admin") {
+  if (user && !PermissionChecker.isAdmin(user)) {
     // Check room management permission if required
     if (requiresRoomManage && !user.can_manage_rooms) {
       console.log("Protected route: Access denied - missing room management permission");
