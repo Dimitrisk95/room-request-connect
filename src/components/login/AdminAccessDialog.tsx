@@ -7,7 +7,7 @@ import AdminRegistrationForm from "./AdminRegistrationForm";
 import AdminLoginForm from "./AdminLoginForm";
 import { Hotel, UserCircle } from "lucide-react";
 
-const AdminAccessDialog = () => {
+const AdminAccessDialog: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"register" | "login">("register");
 
