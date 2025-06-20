@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

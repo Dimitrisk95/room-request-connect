@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Room } from "@/types";
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 

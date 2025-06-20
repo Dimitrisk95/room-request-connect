@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Room } from "@/types";
-import { useAuth } from "@/context";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
